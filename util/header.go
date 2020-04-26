@@ -9,7 +9,7 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 )
 
-// The api of fetching eth header from etherscan XDD
+// The post api of fetching eth header
 const GETBLOCK = "{\"jsonrpc\":\"2.0\",\"method\":\"eth_getBlockByNumber\",\"params\": [\"0x%x\", false],\"id\":1}"
 
 // The response of etherscan api

@@ -9,7 +9,7 @@ import (
 type Shadow int
 
 /**
- * @method: GetEthHeaderByNumber
+ * GetEthHeaderByNumber
  */
 type GetEthHeaderByNumberParams struct {
 	Number uint64 `json:"number"`
@@ -21,27 +21,37 @@ type GetEthHeaderByNumberResp struct {
 
 func (s *Shadow) GetEthHeaderByNumber(
 	params GetEthHeaderByNumberParams,
-	resp GetEthHeaderByNumberResp,
+	resp *GetEthHeaderByNumberResp,
 ) error {
-	resp.Header = util.Header(params.Number)
-	return nil
+	var err error
+	resp.Header, err = util.Header(params.Number)
+	return err
 }
 
 /**
- * @method: GetEthHeaderWithProofByNumber
+ * GetEthHeaderWithProofByNumber
  */
 type GetEthHeaderWithProofByNumberParams struct {
 	Number uint64 `json:"number"`
 }
 
 type GetEthHeaderWithProofByNumberResp struct {
-	Header types.Header `json:"header"`
+	Header types.Header     `json:"header"`
+	Proof  util.ProofOutput `json:"proof"`
 }
 
 func (s *Shadow) GetEthHeaderWithProofByNumber(
 	params GetEthHeaderWithProofByNumberParams,
-	resp GetEthHeaderWithProofByNumberResp,
+	resp *GetEthHeaderWithProofByNumberResp,
 ) error {
-	resp.Header = util.Header(params.Number)
-	return nil
+	header, err := util.Header(params.Number)
+	resp.Header = header
+	if err != nil {
+		return err
+	}
+
+	// Proof header
+	proof, err := util.Proof(&header)
+	resp.Proof = proof
+	return err
 }

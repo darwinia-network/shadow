@@ -11,7 +11,7 @@ import (
 )
 
 // This struct is used for process interaction
-type Output struct {
+type ProofOutput struct {
 	HeaderRLP    string   `json:"header_rlp"`
 	MerkleRoot   string   `json:"merkle_root"`
 	Elements     []string `json:"elements"`
@@ -20,10 +20,10 @@ type Output struct {
 }
 
 // Proof eth blockheader
-func Proof(header *types.Header) (Output, error) {
+func Proof(header *types.Header) (ProofOutput, error) {
 	blockno := header.Number.Uint64()
 	epoch := blockno / 30000
-	output := &Output{}
+	output := &ProofOutput{}
 
 	// get proof from cache
 	cache, err := ethashproof.LoadCache(int(epoch))
@@ -45,7 +45,7 @@ func Proof(header *types.Header) (Output, error) {
 	}
 
 	// init output
-	output = &Output{
+	output = &ProofOutput{
 		HeaderRLP:    hexutil.Encode(rlpheader),
 		MerkleRoot:   cache.RootHash.Hex(),
 		Elements:     []string{},

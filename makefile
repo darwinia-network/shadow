@@ -1,13 +1,11 @@
 build:
 	@rm -rf target
 	@go mod tidy
-	@go build -o ./target/proof -v github.com/darwinia-network/darwinia.go/cmd/proof
-	@go build -o ./target/epoch -v github.com/darwinia-network/darwinia.go/cmd/epoch
+	@go build -o ./target/dargo -v github.com/darwinia-network/darwinia.go/dargo
 build-all: deps
 	@rm -rf ./target/all
 	@mkdir -p ./target/all && cd ./target/all
-	@xgo --targets=linux,darwin/amd64 github.com/darwinia-network/darwinia.go/cmd/proof
-	@xgo --targets=linux,darwin/amd64 github.com/darwinia-network/darwinia.go/cmd/epoch
+	@xgo --targets=linux,darwin/amd64 github.com/darwinia-network/darwinia.go/dargo
 deps:
 	@docker pull karalabe/xgo-latest
 	@go get github.com/karalabe/xgo

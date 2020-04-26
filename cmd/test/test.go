@@ -6,9 +6,9 @@ import (
 )
 
 func main() {
-	conf, err := util.LoadConfig()
+	header, err := util.Header(666666)
 	if err != nil {
-		fmt.Printf("%v", err)
+		fmt.Printf("%v\n", err)
 	}
-	fmt.Printf("%v\n", conf.Api)
+	fmt.Printf("%v\n", header)
 }

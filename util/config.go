@@ -2,7 +2,6 @@ package util
 
 import (
 	"encoding/json"
-	"errors"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -24,22 +23,31 @@ func LoadConfig() (Config, error) {
 	// Create root dir if not exist
 	root := filepath.Join(home, ".darwinia")
 	if _, err := os.Stat(root); os.IsNotExist(err) {
-		os.Mkdir(root, 0700)
+		err = os.Mkdir(root, 0700)
+		if err != nil {
+			return Config{}, err
+		}
 	}
 
 	// Check `config.json`
 	conf := filepath.Join(root, "config.json")
 	if _, err := os.Stat(conf); os.IsNotExist(err) {
-		return Config{}, errors.New("config.json does not exist")
+		if err != nil {
+			return Config{}, err
+		}
 	}
 
 	// Read `config.json`
 	confJson := RawConfig{}
 	bytes, err := ioutil.ReadFile(conf)
-	Assert(err)
+	if err != nil {
+		return Config{}, err
+	}
 
 	err = json.Unmarshal(bytes, &confJson)
-	Assert(err)
+	if err != nil {
+		return Config{}, err
+	}
 
 	// Return eth config
 	return confJson.Eth, nil

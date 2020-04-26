@@ -4,28 +4,48 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/ethereum/go-ethereum/core/types"
 )
 
 // The api of fetching eth header from etherscan XDD
-const ETHERSCAN_API = "https://api.etherscan.io/api?module=proxy&action=eth_getBlockByNumber&tag=%d&boolean=true"
+const GETBLOCK = "{\"jsonrpc\":\"2.0\",\"method\":\"eth_getBlockByNumber\",\"params\": [\"0x%x\", false],\"id\":1}"
 
 // The response of etherscan api
-type EtherScanResponse struct {
+type InfuraResponse struct {
 	JsonRPC string       `json:"jsonrpc"`
 	Id      uint32       `json:"id"`
 	Result  types.Header `json:"result"`
 }
 
 // Get ethereum header by block number
-func Header(blockNum uint64) types.Header {
-	esResp := EtherScanResponse{}
-	resp, err := http.Get(fmt.Sprintf(ETHERSCAN_API, blockNum))
-	Assert(err)
+func Header(blockNum uint64) (types.Header, error) {
+	infuraResp := InfuraResponse{}
+	conf, err := LoadConfig()
+	if err != nil {
+		return infuraResp.Result, err
+	}
 
-	err = json.NewDecoder(resp.Body).Decode(&esResp)
-	Assert(err)
+	// Request infura
+	resp, err := http.Post(
+		conf.Api,
+		"application/json",
+		strings.NewReader(fmt.Sprintf(GETBLOCK, blockNum)),
+	)
 
-	return esResp.Result
+	if err != nil {
+		return infuraResp.Result, err
+	}
+
+	defer resp.Body.Close()
+
+	// Decode resp to json
+	err = json.NewDecoder(resp.Body).Decode(&infuraResp)
+	if err != nil {
+		return infuraResp.Result, err
+	}
+
+	// Return eth header
+	return infuraResp.Result, nil
 }

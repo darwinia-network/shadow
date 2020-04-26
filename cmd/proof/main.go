@@ -29,7 +29,8 @@ func main() {
 		num, err := strconv.ParseUint(os.Args[1], 10, 32)
 		util.Assert(err)
 
-		header = util.Header(num)
+		header, err = util.Header(num)
+		util.Assert(err)
 	}
 
 	// proof header

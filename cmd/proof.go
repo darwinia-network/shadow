@@ -10,7 +10,7 @@ import (
 )
 
 var cmdProof = &cobra.Command{
-	Use:   "Proof [number]",
+	Use:   "proof [number]",
 	Short: "Proof the block by number",
 	Long:  "DANGEROUS! This cmd will fill up your screen!",
 	Args:  cobra.MinimumNArgs(1),

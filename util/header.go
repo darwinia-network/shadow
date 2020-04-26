@@ -1,4 +1,4 @@
-package utils
+package util
 
 import (
 	"encoding/json"
@@ -8,7 +8,7 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 )
 
-// the api of fetching eth header from etherscan XDD
+// The api of fetching eth header from etherscan XDD
 const ETHERSCAN_API = "https://api.etherscan.io/api?module=proxy&action=eth_getBlockByNumber&tag=%d&boolean=true"
 
 // The response of etherscan api

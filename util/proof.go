@@ -1,7 +1,6 @@
-package utils
+package util
 
 import (
-	"fmt"
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -28,25 +27,20 @@ func Proof(header *types.Header) (Output, error) {
 
 	// get proof from cache
 	cache, err := ethashproof.LoadCache(int(epoch))
-	fmt.Printf("%s", err)
 	if err != nil {
-		fmt.Printf("Cache is missing, calculate dataset merkle tree to create the cache first...\n")
 		_, err = ethashproof.CalculateDatasetMerkleRoot(epoch, true)
 		if err != nil {
-			fmt.Printf("Creating cache failed: %s\n", err)
 			return *output, err
 		}
 
 		cache, err = ethashproof.LoadCache(int(epoch))
 		if err != nil {
-			fmt.Printf("Getting cache failed after trying to creat it: %s. Abort.\n", err)
 			return *output, err
 		}
 	}
 
 	rlpheader, err := ethashproof.RLPHeader(header)
 	if err != nil {
-		fmt.Printf("Can't rlp encode the header: %s\n", err)
 		return *output, err
 	}
 

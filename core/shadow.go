@@ -36,8 +36,8 @@ type GetEthHeaderWithProofByNumberParams struct {
 }
 
 type GetEthHeaderWithProofByNumberResp struct {
-	Header types.Header     `json:"header"`
-	Proof  util.ProofOutput `json:"proof"`
+	Header types.Header                     `json:"header"`
+	Proof  []util.DoubleNodeWithMerkleProof `json:"proof"`
 }
 
 func (s *Shadow) GetEthHeaderWithProofByNumber(
@@ -52,6 +52,6 @@ func (s *Shadow) GetEthHeaderWithProofByNumber(
 
 	// Proof header
 	proof, err := util.Proof(&header)
-	resp.Proof = proof
+	resp.Proof = proof.Format()
 	return err
 }

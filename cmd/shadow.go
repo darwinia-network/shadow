@@ -19,7 +19,7 @@ var cmdShadow = &cobra.Command{
 			args = []string{"3000"}
 		}
 
-		fmt.Printf("Shadow service start at %s", args[0])
+		fmt.Printf("Shadow service start at %s\n", args[0])
 		err := rpc.ServeHTTP(
 			new(core.Shadow),
 			fmt.Sprintf(":%s", args[0]),

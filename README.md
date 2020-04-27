@@ -17,7 +17,16 @@ go get install "github.com/darwinia-network/darwinia.go/dargo"
 
 ```
 mkdir ~/.darwinia
-echo '{"eth": { api: "infura api with your key"}}' > ~/.darwinia/config.json
+echo '{"eth": { "api": "infura api with your key"}}' > ~/.darwinia/config.json
+```
+
+## Contribute and Build
+
+```
+git clone https://github.com/darwinia-network/darwinia.go.git
+cd darwinia.go/dargo
+make
+./target/dargo version
 ```
 
 ## Usage
@@ -66,13 +75,13 @@ dargo shadow 3000
 ### Shadow.GetEthHeaderByNumber
 
 ```
-curl -d '{"method":"Shadow.GetEthHeaderByNumber","params":[{"number": 0}], "id": 0}' http://0.0.0.0:3000
+curl -d '{"method":"Shadow.GetEthHeaderByNumber","params":[{"number": 0}], "id": 0}' http://127.0.0.1:3000
 ```
 
 ### Shadow.GetEthHeaderWithProofByNumber
 
 ```
-curl -d '{"method":"Shadow.GetEthHeaderWithProofByNumber","params":[{"number": 1, "transcation": false, "options": {"format": "json"}}], "id": 0}' http://0.0.0.0:3000
+curl -d '{"method":"Shadow.GetEthHeaderWithProofByNumber","params":[{"number": 1, "transcation": false, "options": {"format": "json"}}], "id": 0}' http://127.0.0.1:3000
 ```
 
 ## Trouble Shooting

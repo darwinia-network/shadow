@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/darwinia-network/darwinia.go/core"
-	"github.com/darwinia-network/darwinia.go/lib"
+	"github.com/darwinia-network/darwinia.go/rpc"
 	"github.com/darwinia-network/darwinia.go/util"
 	"github.com/spf13/cobra"
 )
@@ -20,7 +20,7 @@ var cmdShadow = &cobra.Command{
 		}
 
 		fmt.Printf("Shadow service start at %s", args[0])
-		err := lib.Serve(
+		err := rpc.ServeHTTP(
 			new(core.Shadow),
 			fmt.Sprintf(":%s", args[0]),
 		)

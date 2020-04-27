@@ -2,6 +2,7 @@ package util
 
 import (
 	"encoding/json"
+	"errors"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -25,7 +26,9 @@ func LoadConfig() (Config, error) {
 	if _, err := os.Stat(root); os.IsNotExist(err) {
 		err = os.Mkdir(root, 0700)
 		if err != nil {
-			return Config{}, err
+			return Config{}, errors.New(
+				"please fill your infura key in `eth.api` at `~/.darwinia/config.json`",
+			)
 		}
 	}
 

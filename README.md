@@ -44,6 +44,37 @@ Use "dargo [command] --help" for more information about a command.
 
 ```
 
+## Shadow RPC examples
+
+Fill the `~/.darwinia/config.json`
+
+```
+{
+  "eth": { 
+    "api": "infura-api-with-your-key"
+  }
+}
+```
+
+Run the service
+
+```
+# Start shadow service at port 3000
+dargo shadow 3000
+```
+
+### Shadow.GetEthHeaderByNumber
+
+```
+curl -d '{"method":"Shadow.GetEthHeaderByNumber","params":[{"number": 0}], "id": 0}' http://0.0.0.0:3000
+```
+
+### Shadow.GetEthHeaderWithProofByNumber
+
+```
+curl -d '{"method":"Shadow.GetEthHeaderWithProofByNumber","params":[{"number": 1, "transcation": false, "options": {"format": "json"}}], "id": 0}' http://0.0.0.0:3000
+```
+
 ## Trouble Shooting
 
 Everytime you run `proof` in error, please delete `~/.ethashproof` and `~/.ethash` 

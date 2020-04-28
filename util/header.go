@@ -49,3 +49,22 @@ func Header(blockNum uint64) (types.Header, error) {
 	// Return eth header
 	return infuraResp.Result, nil
 }
+
+// Darwinia block
+type DarwiniaEthBlock struct {
+	ParentHash       string
+	TimeStamp        int64
+	Number           int64
+	Author           string
+	TransactionsRoot string
+	UnclesHash       string
+	ExtraData        []uint8
+	StateRoot        string
+	ReceiptsRoot     string
+	LogBloom         string
+	GasUsed          string
+	GasLimited       string
+	Difficulty       string
+	Seal             [][]uint8
+	Hash             string
+}

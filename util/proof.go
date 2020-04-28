@@ -15,6 +15,21 @@ type DoubleNodeWithMerkleProof struct {
 	Proof    []string `json:"proof"`
 }
 
+func (dnmp *DoubleNodeWithMerkleProof) Encode() string {
+	hex := ""
+	for _, v := range dnmp.DagNodes {
+		hex += v[2:]
+	}
+
+	// pad the length
+	hex += "64"
+	for _, v := range dnmp.Proof {
+		hex += v[2:]
+	}
+
+	return hex
+}
+
 // This struct is used for process interaction
 type ProofOutput struct {
 	HeaderRLP    string   `json:"header_rlp"`
@@ -49,7 +64,6 @@ func (o *ProofOutput) Format() []DoubleNodeWithMerkleProof {
 	return dnmps
 }
 
-//
 // Proof eth blockheader
 func Proof(header *types.Header) (ProofOutput, error) {
 	blockno := header.Number.Uint64()

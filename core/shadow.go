@@ -1,8 +1,8 @@
 package core
 
 import (
-	"encoding/hex"
-	"fmt"
+	// "encoding/hex"
+	// "fmt"
 
 	"github.com/darwinia-network/darwinia.go/util"
 	"github.com/ethereum/go-ethereum/core/types"
@@ -73,21 +73,9 @@ func (s *Shadow) GetEthHeaderWithProofByNumber(
 
 	// Check if need codec
 	if params.Options.Format == "scale" {
-		sheader, err := util.Encode(jsonResp.Header)
-		if err != nil {
-			return err
-		}
-		sproof, err := util.Encode(jsonResp.Proof)
-		if err != nil {
-			return err
-		}
-
-		fmt.Printf("%v\n", sheader)
-		fmt.Printf("%v\n", sproof)
-
 		*resp = GetEthHeaderWithProofByNumberCodecResp{
-			hex.EncodeToString(sheader),
-			hex.EncodeToString(sproof),
+			"",
+			encodeProof(jsonResp.Proof),
 		}
 	}
 

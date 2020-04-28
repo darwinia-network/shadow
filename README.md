@@ -14,6 +14,18 @@ mkdir ~/.darwinia
 echo '{"eth": { "api": "infura api with your key"}}' > ~/.darwinia/config.json
 ```
 
+## Installation
+
+Just supports OSX now
+
+```
+# Tap darwinia homebrew
+brew tap darwinia-network/darwinia
+
+# Install
+brew install dargo
+```
+
 ## Contribute and Build
 
 ```

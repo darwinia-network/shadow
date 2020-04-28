@@ -1,6 +1,9 @@
 package core
 
 import (
+	"encoding/hex"
+	"fmt"
+
 	"github.com/darwinia-network/darwinia.go/util"
 	"github.com/ethereum/go-ethereum/core/types"
 )
@@ -31,27 +34,62 @@ func (s *Shadow) GetEthHeaderByNumber(
 /**
  * GetEthHeaderWithProofByNumber
  */
-type GetEthHeaderWithProofByNumberParams struct {
-	Number uint64 `json:"number"`
+type GetEthHeaderWithProofByNumberOptions struct {
+	Format string `json:"format"`
 }
 
-type GetEthHeaderWithProofByNumberResp struct {
+type GetEthHeaderWithProofByNumberParams struct {
+	Number  uint64                               `json:"block_num"`
+	Options GetEthHeaderWithProofByNumberOptions `json:"options"`
+}
+
+type GetEthHeaderWithProofByNumberJSONResp struct {
 	Header types.Header                     `json:"header"`
 	Proof  []util.DoubleNodeWithMerkleProof `json:"proof"`
 }
 
+type GetEthHeaderWithProofByNumberCodecResp struct {
+	Header string `json:"header"`
+	Proof  string `json:"proof"`
+}
+
 func (s *Shadow) GetEthHeaderWithProofByNumber(
 	params GetEthHeaderWithProofByNumberParams,
-	resp *GetEthHeaderWithProofByNumberResp,
+	resp *interface{},
 ) error {
 	header, err := util.Header(params.Number)
-	resp.Header = header
+	jsonResp := GetEthHeaderWithProofByNumberJSONResp{}
+	jsonResp.Header = header
 	if err != nil {
 		return err
 	}
 
 	// Proof header
 	proof, err := util.Proof(&header)
-	resp.Proof = proof.Format()
+	jsonResp.Proof = proof.Format()
+
+	// Set response
+	*resp = jsonResp
+
+	// Check if need codec
+	if params.Options.Format == "scale" {
+		sheader, err := util.Encode(jsonResp.Header)
+		if err != nil {
+			return err
+		}
+		sproof, err := util.Encode(jsonResp.Proof)
+		if err != nil {
+			return err
+		}
+
+		fmt.Printf("%v\n", sheader)
+		fmt.Printf("%v\n", sproof)
+
+		*resp = GetEthHeaderWithProofByNumberCodecResp{
+			hex.EncodeToString(sheader),
+			hex.EncodeToString(sproof),
+		}
+	}
+
 	return err
 }

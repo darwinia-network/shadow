@@ -131,7 +131,7 @@ func IntoDarwiniaEthHeader(e types.Header) (DarwiniaEthHeader, error) {
 	h.TimeStamp = e.Time.Uint64()
 	h.Number = e.Number.Uint64()
 	h.Author = e.Coinbase.Hex()
-	h.TransactionsRoot = e.Root.Hex()
+	h.TransactionsRoot = e.TxHash.Hex()
 	h.UnclesHash = e.UncleHash.Hex()
 	h.ExtraData = "0x" + hex.EncodeToString(e.Extra)
 	h.StateRoot = e.Root.Hex()

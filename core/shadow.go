@@ -83,7 +83,7 @@ func (s *Shadow) GetEthHeaderWithProofByNumber(
 	// Check if need codec
 	if params.Options.Format == "scale" {
 		*resp = GetEthHeaderWithProofByNumberCodecResp{
-			"",
+			encodeDarwiniaEthHeader(rawResp.Header),
 			encodeProofArray(rawResp.Proof),
 		}
 	} else if params.Options.Format == "json" {

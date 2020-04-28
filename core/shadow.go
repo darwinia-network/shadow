@@ -43,8 +43,13 @@ type GetEthHeaderWithProofByNumberParams struct {
 	Options GetEthHeaderWithProofByNumberOptions `json:"options"`
 }
 
+type GetEthHeaderWithProofByNumberRawResp struct {
+	Header util.DarwiniaEthHeader           `json:"eth_header"`
+	Proof  []util.DoubleNodeWithMerkleProof `json:"proof"`
+}
+
 type GetEthHeaderWithProofByNumberJSONResp struct {
-	Header types.Header                     `json:"header"`
+	Header util.DarwiniaEthHeaderHexFormat  `json:"eth_header"`
 	Proof  []util.DoubleNodeWithMerkleProof `json:"proof"`
 }
 
@@ -58,24 +63,33 @@ func (s *Shadow) GetEthHeaderWithProofByNumber(
 	resp *interface{},
 ) error {
 	header, err := util.Header(params.Number)
-	jsonResp := GetEthHeaderWithProofByNumberJSONResp{}
-	jsonResp.Header = header
+	if err != nil {
+		return err
+	}
+
+	rawResp := GetEthHeaderWithProofByNumberRawResp{}
+	rawResp.Header, err = util.IntoDarwiniaEthHeader(header)
 	if err != nil {
 		return err
 	}
 
 	// Proof header
 	proof, err := util.Proof(&header)
-	jsonResp.Proof = proof.Format()
+	rawResp.Proof = proof.Format()
 
 	// Set response
-	*resp = jsonResp
+	*resp = rawResp
 
 	// Check if need codec
 	if params.Options.Format == "scale" {
 		*resp = GetEthHeaderWithProofByNumberCodecResp{
 			"",
-			encodeProof(jsonResp.Proof),
+			encodeProofArray(rawResp.Proof),
+		}
+	} else if params.Options.Format == "json" {
+		*resp = GetEthHeaderWithProofByNumberJSONResp{
+			rawResp.Header.HexFormat(),
+			rawResp.Proof,
 		}
 	}
 

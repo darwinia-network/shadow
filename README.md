@@ -4,12 +4,6 @@
 
 [![Golang CI][workflow-badge]][github]
 
-## Install
-
-```
-go get install "github.com/darwinia-network/darwinia.go/dargo"
-```
-
 ## Config
 
 `dargo` use the same config file with `darwinia.js`, if you don't know what 
@@ -23,9 +17,13 @@ echo '{"eth": { "api": "infura api with your key"}}' > ~/.darwinia/config.json
 ## Contribute and Build
 
 ```
+# Clone darwinia.go
 git clone https://github.com/darwinia-network/darwinia.go.git
-cd darwinia.go/dargo
-make
+
+# Make the binary
+cd darwinia.go/dargo && make
+
+# Check the version
 ./target/dargo version
 ```
 
@@ -65,23 +63,25 @@ Fill the `~/.darwinia/config.json`
 }
 ```
 
-Run the service
+## Shadow Service
 
 ```
 # Start shadow service at port 3000
 dargo shadow 3000
 ```
 
+The shadow service of dargo follows the [spec][spec].
+
 ### Shadow.GetEthHeaderByNumber
 
 ```
-curl -d '{"method":"Shadow.GetEthHeaderByNumber","params":[{"number": 0}], "id": 0}' http://127.0.0.1:3000
+curl -d '{"method":"shadow_getEthHeaderByNumber","params":{"block_num": 0}, "id": 0}' http://127.0.0.1:3000
 ```
 
 ### Shadow.GetEthHeaderWithProofByNumber
 
 ```
-curl -d '{"method":"Shadow.GetEthHeaderWithProofByNumber","params":[{"number": 1, "transcation": false, "options": {"format": "json"}}], "id": 0}' http://127.0.0.1:3000
+curl -d '{"method":"shadow_getEthHeaderWithProofByNumber","params":{"block_num": 1, "transcation": false, "options": {"format": "json"}}, "id": 0}' http://127.0.0.1:3000
 ```
 
 ## Trouble Shooting
@@ -95,4 +95,5 @@ GPL-3.0
 
 
 [github]: https://github.com/darwinia-network/darwinia.go
+[spec]: https://github.com/darwinia-network/darwinia/wiki/Darwinia-offchain-worker-shadow-service-spec
 [workflow-badge]: https://github.com/darwinia-network/darwinia.go/workflows/Golang%20CI/badge.svg

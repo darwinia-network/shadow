@@ -1,12 +1,10 @@
-package lib
+package rpc
 
 import (
 	"bytes"
 	"errors"
 	"io"
 	"net/http"
-	"net/rpc"
-	"net/rpc/jsonrpc"
 )
 
 // rpcRequest represents a RPC request.
@@ -42,14 +40,14 @@ func (r *rpcRequest) Close() error {
 
 // Call invokes the RPC request, waits for it to complete, and returns the results.
 func (r *rpcRequest) Call() io.Reader {
-	go jsonrpc.ServeConn(r)
+	go ServeJSONConn(r)
 	<-r.done
 	return r.rw
 }
 
 // Serve rpc methods with port
-func Serve(methods interface{}, port string) error {
-	err := rpc.Register(methods)
+func ServeHTTP(methods interface{}, port string) error {
+	err := Register(methods)
 	if err != nil {
 		return errors.New("Generate RPC methods failed")
 	}

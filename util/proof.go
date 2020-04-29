@@ -10,6 +10,11 @@ import (
 	"github.com/tranvictor/ethashproof/mtree"
 )
 
+type DoubleNodeWithMerkleProof struct {
+	DagNodes []string `json:"dag_nodes"`
+	Proof    []string `json:"proof"`
+}
+
 // This struct is used for process interaction
 type ProofOutput struct {
 	HeaderRLP    string   `json:"header_rlp"`
@@ -17,6 +22,31 @@ type ProofOutput struct {
 	Elements     []string `json:"elements"`
 	MerkleProofs []string `json:"merkle_proofs"`
 	ProofLength  uint64   `json:"proof_length"`
+}
+
+// Format ProofOutput to double node with merkle proofs
+func (o *ProofOutput) Format() []DoubleNodeWithMerkleProof {
+	h512s := Filter(o.Elements, func(i int, _ string) bool {
+		return i%2 == 0
+	})
+
+	h512s = Map(h512s, func(i int, v string) string {
+		return v + o.Elements[(i*2)+1][1:]
+	})
+
+	dnmps := []DoubleNodeWithMerkleProof{}
+	sh512s := Filter(h512s, func(i int, _ string) bool {
+		return i%2 == 0
+	})
+	Map(sh512s, func(i int, v string) string {
+		dnmps = append(dnmps, DoubleNodeWithMerkleProof{
+			[]string{v, h512s[i*2+1]},
+			o.MerkleProofs[uint64(i)*o.ProofLength : (uint64(i)+1)*o.ProofLength],
+		})
+		return v
+	})
+
+	return dnmps
 }
 
 // Proof eth blockheader

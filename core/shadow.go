@@ -62,20 +62,35 @@ func (s *Shadow) GetEthHeaderWithProofByNumber(
 	params GetEthHeaderWithProofByNumberParams,
 	resp *interface{},
 ) error {
-	header, err := util.Header(params.Number)
-	if err != nil {
-		return err
-	}
+	// Fetch header from cache
+	cache := EthHeaderWithProofCache{Number: params.Number}
+	rawResp, err := cache.Fetch()
 
-	rawResp := GetEthHeaderWithProofByNumberRawResp{}
-	rawResp.Header, err = util.IntoDarwiniaEthHeader(header)
+	// Fetch header from infura
 	if err != nil {
-		return err
-	}
+		ethHeader, err := util.Header(params.Number)
+		if err != nil {
+			return err
+		}
 
-	// Proof header
-	proof, err := util.Proof(&header)
-	rawResp.Proof = proof.Format()
+		rawResp.Header, err = util.IntoDarwiniaEthHeader(ethHeader)
+		if err != nil {
+			return err
+		}
+
+		// Proof header
+		proof, err := util.Proof(&ethHeader)
+		rawResp.Proof = proof.Format()
+		if err != nil {
+			return err
+		}
+
+		// Create cache
+		err = cache.FromResp(rawResp)
+		if err != nil {
+			return err
+		}
+	}
 
 	// Set response
 	*resp = rawResp

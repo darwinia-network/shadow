@@ -10,10 +10,12 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/rlp"
+	"github.com/jinzhu/gorm"
+	_ "github.com/jinzhu/gorm/dialects/sqlite"
 )
 
 // The post api of fetching eth header
-const GETBLOCK = "{\"jsonrpc\":\"2.0\",\"method\":\"eth_getBlockByNumber\",\"params\": [\"0x%x\", false],\"id\":1}"
+const GETBLOCK = "{\"jsonrpc\":\"2.0\",\"method\":\"eth_getBlockByNumber\",\"params\": [\"0x%x\", false],\"id\":1}\n"
 
 // The response of etherscan api
 type InfuraResponse struct {
@@ -24,6 +26,7 @@ type InfuraResponse struct {
 
 // Get ethereum header by block number
 func Header(blockNum uint64) (types.Header, error) {
+	// Get header from infura
 	infuraResp := InfuraResponse{}
 	conf, err := LoadConfig()
 	if err != nil {
@@ -41,9 +44,8 @@ func Header(blockNum uint64) (types.Header, error) {
 		return infuraResp.Result, err
 	}
 
-	defer resp.Body.Close()
-
 	// Decode resp to json
+	defer resp.Body.Close()
 	err = json.NewDecoder(resp.Body).Decode(&infuraResp)
 	if err != nil {
 		return infuraResp.Result, err
@@ -55,6 +57,7 @@ func Header(blockNum uint64) (types.Header, error) {
 
 // Darwinia block
 type DarwiniaEthHeader struct {
+	gorm.Model
 	ParentHash       string   `json:"parent_hash"`
 	TimeStamp        uint64   `json:"timestamp"`
 	Number           uint64   `json:"number"`

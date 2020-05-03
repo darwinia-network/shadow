@@ -2,7 +2,7 @@ package core
 
 import (
 	// "encoding/hex"
-	// "fmt"
+	"fmt"
 
 	"github.com/darwinia-network/darwinia.go/util"
 	"github.com/ethereum/go-ethereum/core/types"
@@ -66,6 +66,7 @@ func (s *Shadow) GetEthHeaderWithProofByNumber(
 	cache := EthHeaderWithProofCache{Number: params.Number}
 	rawResp, err := cache.Fetch()
 
+	fmt.Println("requsting")
 	// Fetch header from infura
 	if err != nil {
 		ethHeader, err := util.Header(params.Number)
@@ -92,6 +93,7 @@ func (s *Shadow) GetEthHeaderWithProofByNumber(
 		}
 	}
 
+	fmt.Printf("%s\n", rawResp)
 	// Set response
 	*resp = rawResp
 
@@ -108,5 +110,5 @@ func (s *Shadow) GetEthHeaderWithProofByNumber(
 		}
 	}
 
-	return err
+	return nil
 }

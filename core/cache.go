@@ -1,6 +1,7 @@
 package core
 
 import (
+	"encoding/json"
 	"log"
 	"os/user"
 	"path"
@@ -16,34 +17,62 @@ const DB_PATH = ".darwinia/cache/shadow.db"
 // EthHeaderWithProof Cache
 type EthHeaderWithProofCache struct {
 	gorm.Model
-	Number uint64                           `json:"number" gorm:"unique_index"`
-	Header util.DarwiniaEthHeader           `json:"eth_header"`
-	Proof  []util.DoubleNodeWithMerkleProof `json:"proof"`
+	Number uint64 `json:"number" gorm:"unique_index"`
+	Header string `json:"eth_header"`
+	Proof  string `json:"proof"`
 }
 
+// Save header to cache
 func (c *EthHeaderWithProofCache) FromResp(resp GetEthHeaderWithProofByNumberRawResp) error {
 	db, err := ConnectDb()
 	if err != nil {
 		return err
 	}
 
-	// Insert cache into sqlite3
+	// Convert header to string
+	header, err := json.Marshal(resp.Header)
+	if err != nil {
+		return err
+	}
+
+	proof, err := json.Marshal(resp.Proof)
+	if err != nil {
+		return err
+	}
+
 	defer db.Close()
 	db.Create(&EthHeaderWithProofCache{
 		Number: resp.Header.Number,
-		Header: resp.Header,
-		Proof:  resp.Proof,
+		Header: string(header),
+		Proof:  string(proof),
 	})
 
 	// Return nil
 	return nil
 }
 
-func (c *EthHeaderWithProofCache) IntoResp() GetEthHeaderWithProofByNumberRawResp {
-	return GetEthHeaderWithProofByNumberRawResp{
-		c.Header,
-		c.Proof,
+// Convert EthHeader
+func (c *EthHeaderWithProofCache) IntoResp() (GetEthHeaderWithProofByNumberRawResp, error) {
+	var rResp GetEthHeaderWithProofByNumberRawResp
+	header, proof := util.DarwiniaEthHeader{}, []util.DoubleNodeWithMerkleProof{}
+
+	// Decode header
+	err := json.Unmarshal([]byte(c.Header), header)
+	if err != nil {
+		return rResp, err
 	}
+
+	// Decode proof
+	err = json.Unmarshal([]byte(c.Proof), proof)
+	if err != nil {
+		return rResp, err
+	}
+
+	// Construct resp
+	return GetEthHeaderWithProofByNumberRawResp{
+		header,
+		proof,
+	}, nil
 }
 
 // Fetch Eth Header by number
@@ -56,15 +85,16 @@ func (c *EthHeaderWithProofCache) Fetch() (GetEthHeaderWithProofByNumberRawResp,
 
 	// Get header from sqlite3
 	defer db.Close()
-	err = db.Take(&c).Error
+	err = db.Where("number = ?", c.Number).Take(&c).Error
 	if err != nil {
-		return c.IntoResp(), err
+		return resp, err
 	}
 
 	// Return resp
-	return c.IntoResp(), nil
+	return c.IntoResp()
 }
 
+// Connect to cache
 func ConnectDb() (*gorm.DB, error) {
 	usr, err := user.Current()
 	if err != nil {

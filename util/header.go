@@ -10,8 +10,6 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/rlp"
-	"github.com/jinzhu/gorm"
-	_ "github.com/jinzhu/gorm/dialects/sqlite"
 )
 
 // The post api of fetching eth header
@@ -57,7 +55,6 @@ func Header(blockNum uint64) (types.Header, error) {
 
 // Darwinia block
 type DarwiniaEthHeader struct {
-	gorm.Model
 	ParentHash       string   `json:"parent_hash"`
 	TimeStamp        uint64   `json:"timestamp"`
 	Number           uint64   `json:"number"`

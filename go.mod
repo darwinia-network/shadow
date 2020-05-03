@@ -3,6 +3,7 @@ module github.com/darwinia-network/darwinia.go
 go 1.14
 
 require (
+	github.com/aristanetworks/goarista v0.0.0-20190204200901-2166578f3448
 	github.com/ethereum/go-ethereum v1.8.22
 	github.com/fsnotify/fsnotify v1.4.9 // indirect
 	github.com/jinzhu/gorm v1.9.12

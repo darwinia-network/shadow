@@ -26,11 +26,6 @@ type InfuraResponse struct {
 func Header(blockNum uint64, api string) (types.Header, error) {
 	// Get header from infura
 	infuraResp := InfuraResponse{}
-	conf := new(Config)
-	err := conf.Load()
-	if err != nil {
-		return infuraResp.Result, err
-	}
 
 	// Request infura
 	resp, err := http.Post(

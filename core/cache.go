@@ -57,13 +57,13 @@ func (c *EthHeaderWithProofCache) IntoResp() (GetEthHeaderWithProofByNumberRawRe
 	header, proof := util.DarwiniaEthHeader{}, []util.DoubleNodeWithMerkleProof{}
 
 	// Decode header
-	err := json.Unmarshal([]byte(c.Header), header)
+	err := json.Unmarshal([]byte(c.Header), &header)
 	if err != nil {
 		return rResp, err
 	}
 
 	// Decode proof
-	err = json.Unmarshal([]byte(c.Proof), proof)
+	err = json.Unmarshal([]byte(c.Proof), &proof)
 	if err != nil {
 		return rResp, err
 	}

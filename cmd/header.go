@@ -16,7 +16,8 @@ var cmdHeader = &cobra.Command{
 	Args:  cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		conf := new(util.Config)
-		conf.Load()
+		err := conf.Load()
+		util.Assert(err)
 
 		// parse block number
 		block, err := strconv.ParseUint(args[0], 10, 64)

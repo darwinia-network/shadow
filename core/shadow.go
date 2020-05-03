@@ -1,10 +1,25 @@
 package core
 
 import (
-	// "encoding/hex"
+	"fmt"
+
 	"github.com/darwinia-network/darwinia.go/util"
 	"github.com/ethereum/go-ethereum/core/types"
 )
+
+// Shadow genesis block error message
+const GENESIS_ERROR = "The requested block number is too low, only support blocks heigher than %v"
+
+/**
+ * Genesis block checker
+ */
+func checkGenesis(genesis uint64, number uint64) error {
+	if number <= genesis {
+		return fmt.Errorf(GENESIS_ERROR, genesis)
+	}
+
+	return nil
+}
 
 // Dimmy shadow service
 type Shadow struct {
@@ -26,7 +41,12 @@ func (s *Shadow) GetEthHeaderByNumber(
 	params GetEthHeaderByNumberParams,
 	resp *GetEthHeaderByNumberResp,
 ) error {
-	var err error
+	err := checkGenesis(s.Config.Genesis, params.Number)
+	if err != nil {
+		return err
+	}
+
+	// Return raw eth header
 	resp.Header, err = util.Header(params.Number, s.Config.Api)
 	return err
 }
@@ -62,12 +82,18 @@ func (s *Shadow) GetEthHeaderWithProofByNumber(
 	params GetEthHeaderWithProofByNumberParams,
 	resp *interface{},
 ) error {
+	err := checkGenesis(s.Config.Genesis, params.Number)
+	if err != nil {
+		return err
+	}
+
 	// Fetch header from cache
 	cache := EthHeaderWithProofCache{Number: params.Number}
 	rawResp, err := cache.Fetch()
 
 	// Fetch header from infura
 	if err != nil {
+		// Fetch eth header
 		ethHeader, err := util.Header(params.Number, s.Config.Api)
 		if err != nil {
 			return err
@@ -78,9 +104,25 @@ func (s *Shadow) GetEthHeaderWithProofByNumber(
 			return err
 		}
 
+		// Check proof lock
+		if s.Config.CheckLock("proof.lock") {
+			return fmt.Errorf("Shadow service is busy now, please try again later")
+		} else {
+			err := s.Config.CreateLock("proof.lock")
+			if err != nil {
+				return err
+			}
+		}
+
 		// Proof header
 		proof, err := util.Proof(&ethHeader)
 		rawResp.Proof = proof.Format()
+		if err != nil {
+			return err
+		}
+
+		// Remove proof lock
+		err = s.Config.RemoveLock("proof.lock")
 		if err != nil {
 			return err
 		}

@@ -23,17 +23,18 @@ type InfuraResponse struct {
 }
 
 // Get ethereum header by block number
-func Header(blockNum uint64) (types.Header, error) {
+func Header(blockNum uint64, api string) (types.Header, error) {
 	// Get header from infura
 	infuraResp := InfuraResponse{}
-	conf, err := LoadConfig()
+	conf := new(Config)
+	err := conf.Load()
 	if err != nil {
 		return infuraResp.Result, err
 	}
 
 	// Request infura
 	resp, err := http.Post(
-		conf.Api,
+		api,
 		"application/json",
 		strings.NewReader(fmt.Sprintf(GETBLOCK, blockNum)),
 	)

@@ -2,14 +2,14 @@ package core
 
 import (
 	// "encoding/hex"
-	"fmt"
-
 	"github.com/darwinia-network/darwinia.go/util"
 	"github.com/ethereum/go-ethereum/core/types"
 )
 
 // Dimmy shadow service
-type Shadow int
+type Shadow struct {
+	Config util.Config
+}
 
 /**
  * GetEthHeaderByNumber
@@ -27,7 +27,7 @@ func (s *Shadow) GetEthHeaderByNumber(
 	resp *GetEthHeaderByNumberResp,
 ) error {
 	var err error
-	resp.Header, err = util.Header(params.Number)
+	resp.Header, err = util.Header(params.Number, s.Config.Api)
 	return err
 }
 
@@ -66,10 +66,9 @@ func (s *Shadow) GetEthHeaderWithProofByNumber(
 	cache := EthHeaderWithProofCache{Number: params.Number}
 	rawResp, err := cache.Fetch()
 
-	fmt.Println("requsting")
 	// Fetch header from infura
 	if err != nil {
-		ethHeader, err := util.Header(params.Number)
+		ethHeader, err := util.Header(params.Number, s.Config.Api)
 		if err != nil {
 			return err
 		}
@@ -93,7 +92,6 @@ func (s *Shadow) GetEthHeaderWithProofByNumber(
 		}
 	}
 
-	fmt.Printf("%s\n", rawResp)
 	// Set response
 	*resp = rawResp
 

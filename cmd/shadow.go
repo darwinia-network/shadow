@@ -19,9 +19,19 @@ var cmdShadow = &cobra.Command{
 			args = []string{"3000"}
 		}
 
+		// Generate config
+		conf := new(util.Config)
+		err := conf.Load()
+		util.Assert(err)
+
+		// Generate Shadow
+		shadow := new(core.Shadow)
+		shadow.Config = *conf
+
+		// Start service
 		fmt.Printf("Shadow service start at %s\n", args[0])
-		err := rpc.ServeHTTP(
-			new(core.Shadow),
+		err = rpc.ServeHTTP(
+			shadow,
 			fmt.Sprintf(":%s", args[0]),
 		)
 		util.Assert(err)

@@ -28,7 +28,7 @@ var cmdProof = &cobra.Command{
 		util.Assert(err)
 
 		// get proof
-		proof, err := util.Proof(&header)
+		proof, err := util.Proof(&header, *conf)
 		util.Assert(err)
 
 		// output string

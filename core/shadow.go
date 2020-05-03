@@ -9,6 +9,7 @@ import (
 
 // Shadow genesis block error message
 const GENESIS_ERROR = "The requested block number is too low, only support blocks heigher than %v"
+const PROOF_LOCK = "proof.lock"
 
 /**
  * Genesis block checker
@@ -105,24 +106,24 @@ func (s *Shadow) GetEthHeaderWithProofByNumber(
 		}
 
 		// Check proof lock
-		if s.Config.CheckLock("proof.lock") {
+		if s.Config.CheckLock(PROOF_LOCK) {
 			return fmt.Errorf("Shadow service is busy now, please try again later")
 		} else {
-			err := s.Config.CreateLock("proof.lock")
+			err := s.Config.CreateLock(PROOF_LOCK, []byte(""))
 			if err != nil {
 				return err
 			}
 		}
 
 		// Proof header
-		proof, err := util.Proof(&ethHeader)
+		proof, err := util.Proof(&ethHeader, s.Config)
 		rawResp.Proof = proof.Format()
 		if err != nil {
 			return err
 		}
 
 		// Remove proof lock
-		err = s.Config.RemoveLock("proof.lock")
+		err = s.Config.RemoveLock(PROOF_LOCK)
 		if err != nil {
 			return err
 		}

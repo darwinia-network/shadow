@@ -26,7 +26,7 @@ type Config struct {
 func (c *Config) Load() error {
 	// Init root directory
 	var err error
-	c.Root, err = c.rootDir()
+	c.Root, err = RootDir()
 	if err != nil {
 		return err
 	}
@@ -57,44 +57,6 @@ func (c *Config) Load() error {
 	return nil
 }
 
-// Common load config
-func (c *Config) CheckLock(filename string) bool {
-	p := filepath.Join(c.Root, filename)
-	if _, err := os.Stat(p); os.IsNotExist(err) {
-		return false
-	}
-
-	return true
-
-}
-
-// Common load config
-func (c *Config) CreateLock(filename string) error {
-	p := filepath.Join(c.Root, filename)
-	if _, err := os.Stat(p); os.IsNotExist(err) {
-		_, err = os.Create(p)
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-// Common load config
-func (c *Config) RemoveLock(filename string) error {
-	p := filepath.Join(c.Root, filename)
-	_, err := os.Stat(p)
-	if err == nil {
-		err = os.Remove(p)
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
 // Load config from env
 func (c *Config) loadEnv() error {
 	// load infura key
@@ -110,7 +72,7 @@ func (c *Config) loadEnv() error {
 
 // Load Config from `.darwinia/config.json`
 func (c *Config) loadFromFile() error {
-	root, err := c.rootDir()
+	root, err := RootDir()
 	if err != nil {
 		return err
 	}
@@ -163,7 +125,7 @@ func (c *Config) readKeyWithPrompt() {
 }
 
 // Get darwinia config root directory
-func (c *Config) rootDir() (string, error) {
+func RootDir() (string, error) {
 	home, err := os.UserHomeDir()
 	Assert(err)
 

@@ -82,6 +82,13 @@ Fill the `~/.darwinia/config.json`
 dargo shadow 3000
 ```
 
+### Enviroment Variables
+
+| Key              | Description                                                    | default |
+|------------------|----------------------------------------------------------------|---------|
+| `INFURA_KEY`     | infura key, doesn't know what's [infura][infura]?              | `""`    |
+| `SHADOW_GENESIS` | shadow service will block all requests before `SHADOW_GENESIS` | `0`     |
+
 The shadow service of dargo follows the [spec][spec].
 
 ### Shadow.GetEthHeaderByNumber
@@ -106,6 +113,7 @@ and retry.
 GPL-3.0
 
 
+[infura]: https://infura.io
 [github]: https://github.com/darwinia-network/darwinia.go
 [spec]: https://github.com/darwinia-network/darwinia/wiki/Darwinia-offchain-worker-shadow-service-spec
 [workflow-badge]: https://github.com/darwinia-network/darwinia.go/workflows/Golang%20CI/badge.svg

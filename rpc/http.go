@@ -53,7 +53,7 @@ func ServeHTTP(methods interface{}, port string) error {
 	}
 
 	// Gather all requests to `/`
-	http.HandleFunc("/", func(w http.ResponseWriter, req *http.Request) {
+	go http.HandleFunc("/", func(w http.ResponseWriter, req *http.Request) {
 		defer req.Body.Close()
 		w.Header().Set("Content-Type", "application/json")
 

@@ -13,7 +13,7 @@ import (
 )
 
 // The post api of fetching eth header
-const GETBLOCK = "{\"jsonrpc\":\"2.0\",\"method\":\"eth_getBlockByNumber\",\"params\": [\"0x%x\", false],\"id\":1}"
+const GETBLOCK = "{\"jsonrpc\":\"2.0\",\"method\":\"eth_getBlockByNumber\",\"params\": [\"0x%x\", false],\"id\":1}\n"
 
 // The response of etherscan api
 type InfuraResponse struct {
@@ -23,16 +23,13 @@ type InfuraResponse struct {
 }
 
 // Get ethereum header by block number
-func Header(blockNum uint64) (types.Header, error) {
+func Header(blockNum uint64, api string) (types.Header, error) {
+	// Get header from infura
 	infuraResp := InfuraResponse{}
-	conf, err := LoadConfig()
-	if err != nil {
-		return infuraResp.Result, err
-	}
 
 	// Request infura
 	resp, err := http.Post(
-		conf.Api,
+		api,
 		"application/json",
 		strings.NewReader(fmt.Sprintf(GETBLOCK, blockNum)),
 	)
@@ -41,9 +38,8 @@ func Header(blockNum uint64) (types.Header, error) {
 		return infuraResp.Result, err
 	}
 
-	defer resp.Body.Close()
-
 	// Decode resp to json
+	defer resp.Body.Close()
 	err = json.NewDecoder(resp.Body).Decode(&infuraResp)
 	if err != nil {
 		return infuraResp.Result, err

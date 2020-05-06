@@ -1,7 +1,11 @@
 package util
 
 import (
+	"fmt"
+	"io/ioutil"
 	"math/big"
+	"os"
+	"path/filepath"
 
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
@@ -10,6 +14,11 @@ import (
 	"github.com/tranvictor/ethashproof/mtree"
 )
 
+// Constants
+const EPOCH_LOCK = "epoch.lock"
+const ETHASHPROOF_CACHE = ".ethashproof"
+
+// Final outputs of ethashproof
 type DoubleNodeWithMerkleProof struct {
 	DagNodes []string `json:"dag_nodes"`
 	Proof    []string `json:"proof"`
@@ -49,15 +58,76 @@ func (o *ProofOutput) Format() []DoubleNodeWithMerkleProof {
 	return dnmps
 }
 
+// Epoch in background
+func bgEpoch(epoch uint64, config Config) {
+	_, _ = ethashproof.CalculateDatasetMerkleRoot(epoch, true)
+	_ = config.RemoveLock(EPOCH_LOCK)
+}
+
+// Check if need epoch
+func epochGently(epoch uint64, config Config) error {
+	// Get home dir
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return err
+	}
+
+	// Find ethashproof cache
+	cache := filepath.Join(home, ETHASHPROOF_CACHE)
+	fs, err := ioutil.ReadDir(cache)
+	if err != nil {
+		return err
+	}
+
+	// Check if have epoched
+	hasEpoched := false
+	for _, f := range fs {
+		if f.Name() == fmt.Sprintf("%v.json", epoch) {
+			hasEpoched = true
+		}
+	}
+
+	// Check if is epoching
+	if config.CheckLock(EPOCH_LOCK) {
+		return nil
+	}
+
+	// Create epoching lock
+	err = config.CreateLock(EPOCH_LOCK, []byte(""))
+	if err != nil {
+		return err
+	}
+
+	// Run epoch
+	if !hasEpoched {
+		go bgEpoch(epoch, config)
+	}
+
+	return nil
+}
+
 // Proof eth blockheader
-func Proof(header *types.Header) (ProofOutput, error) {
+func Proof(header *types.Header, config Config) (ProofOutput, error) {
 	blockno := header.Number.Uint64()
 	epoch := blockno / 30000
 	output := &ProofOutput{}
 
-	// get proof from cache
+	// Check if need pre-epoch
+	if blockno%30000 > 15000 {
+		err := epochGently(epoch, config)
+		if err != nil {
+			return *output, err
+		}
+	}
+
+	// Get proof from cache
 	cache, err := ethashproof.LoadCache(int(epoch))
 	if err != nil {
+		err = config.RemoveLock(EPOCH_LOCK)
+		if err != nil {
+			return *output, err
+		}
+
 		_, err = ethashproof.CalculateDatasetMerkleRoot(epoch, true)
 		if err != nil {
 			return *output, err

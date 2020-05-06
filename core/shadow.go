@@ -1,15 +1,31 @@
 package core
 
 import (
-	// "encoding/hex"
-	// "fmt"
+	"fmt"
 
 	"github.com/darwinia-network/darwinia.go/util"
 	"github.com/ethereum/go-ethereum/core/types"
 )
 
+// Shadow genesis block error message
+const GENESIS_ERROR = "The requested block number is too low, only support blocks heigher than %v"
+const PROOF_LOCK = "proof.lock"
+
+/**
+ * Genesis block checker
+ */
+func checkGenesis(genesis uint64, number uint64) error {
+	if number <= genesis {
+		return fmt.Errorf(GENESIS_ERROR, genesis)
+	}
+
+	return nil
+}
+
 // Dimmy shadow service
-type Shadow int
+type Shadow struct {
+	Config util.Config
+}
 
 /**
  * GetEthHeaderByNumber
@@ -26,8 +42,13 @@ func (s *Shadow) GetEthHeaderByNumber(
 	params GetEthHeaderByNumberParams,
 	resp *GetEthHeaderByNumberResp,
 ) error {
-	var err error
-	resp.Header, err = util.Header(params.Number)
+	err := checkGenesis(s.Config.Genesis, params.Number)
+	if err != nil {
+		return err
+	}
+
+	// Return raw eth header
+	resp.Header, err = util.Header(params.Number, s.Config.Api)
 	return err
 }
 
@@ -62,20 +83,57 @@ func (s *Shadow) GetEthHeaderWithProofByNumber(
 	params GetEthHeaderWithProofByNumberParams,
 	resp *interface{},
 ) error {
-	header, err := util.Header(params.Number)
+	err := checkGenesis(s.Config.Genesis, params.Number)
 	if err != nil {
 		return err
 	}
 
-	rawResp := GetEthHeaderWithProofByNumberRawResp{}
-	rawResp.Header, err = util.IntoDarwiniaEthHeader(header)
-	if err != nil {
-		return err
-	}
+	// Fetch header from cache
+	cache := EthHeaderWithProofCache{Number: params.Number}
+	rawResp, err := cache.Fetch()
 
-	// Proof header
-	proof, err := util.Proof(&header)
-	rawResp.Proof = proof.Format()
+	// Fetch header from infura
+	if err != nil {
+		// Fetch eth header
+		ethHeader, err := util.Header(params.Number, s.Config.Api)
+		if err != nil {
+			return err
+		}
+
+		rawResp.Header, err = util.IntoDarwiniaEthHeader(ethHeader)
+		if err != nil {
+			return err
+		}
+
+		// Check proof lock
+		if s.Config.CheckLock(PROOF_LOCK) {
+			return fmt.Errorf("Shadow service is busy now, please try again later")
+		} else {
+			err := s.Config.CreateLock(PROOF_LOCK, []byte(""))
+			if err != nil {
+				return err
+			}
+		}
+
+		// Proof header
+		proof, err := util.Proof(&ethHeader, s.Config)
+		rawResp.Proof = proof.Format()
+		if err != nil {
+			return err
+		}
+
+		// Remove proof lock
+		err = s.Config.RemoveLock(PROOF_LOCK)
+		if err != nil {
+			return err
+		}
+
+		// Create cache
+		err = cache.FromResp(rawResp)
+		if err != nil {
+			return err
+		}
+	}
 
 	// Set response
 	*resp = rawResp
@@ -93,5 +151,5 @@ func (s *Shadow) GetEthHeaderWithProofByNumber(
 		}
 	}
 
-	return err
+	return nil
 }

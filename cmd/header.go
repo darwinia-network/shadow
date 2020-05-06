@@ -15,12 +15,16 @@ var cmdHeader = &cobra.Command{
 	Long:  "This command will use the config at `~/.darwinia/config.json`",
 	Args:  cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
+		conf := new(util.Config)
+		err := conf.Load()
+		util.Assert(err)
+
 		// parse block number
 		block, err := strconv.ParseUint(args[0], 10, 64)
 		util.Assert(err)
 
 		// get header
-		header, err := util.Header(block)
+		header, err := util.Header(block, conf.Api)
 		util.Assert(err)
 
 		// get the header string

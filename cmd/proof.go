@@ -15,16 +15,20 @@ var cmdProof = &cobra.Command{
 	Long:  "DANGEROUS! This cmd will fill up your screen!",
 	Args:  cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
+		conf := new(util.Config)
+		err := conf.Load()
+		util.Assert(err)
+
 		// parse block number
 		block, err := strconv.ParseUint(args[0], 10, 64)
 		util.Assert(err)
 
 		// get header
-		header, err := util.Header(block)
+		header, err := util.Header(block, conf.Api)
 		util.Assert(err)
 
 		// get proof
-		proof, err := util.Proof(&header)
+		proof, err := util.Proof(&header, *conf)
 		util.Assert(err)
 
 		// output string

@@ -14,6 +14,7 @@ import (
 
 // The post api of fetching eth header
 const GETBLOCK = "{\"jsonrpc\":\"2.0\",\"method\":\"eth_getBlockByNumber\",\"params\": [\"0x%x\", false],\"id\":1}\n"
+const GETBLOCK_BYHASH = "{\"jsonrpc\":\"2.0\",\"method\":\"eth_getBlockByHash\",\"params\": [\"%s\", false],\"id\":1}\n"
 
 // The response of etherscan api
 type InfuraResponse struct {
@@ -23,16 +24,31 @@ type InfuraResponse struct {
 }
 
 // Get ethereum header by block number
-func Header(blockNum uint64, api string) (types.Header, error) {
+func Header(block interface{}, api string) (types.Header, error) {
 	// Get header from infura
-	infuraResp := InfuraResponse{}
-
-	// Request infura
-	resp, err := http.Post(
-		api,
-		"application/json",
-		strings.NewReader(fmt.Sprintf(GETBLOCK, blockNum)),
+	var (
+		resp       *http.Response
+		err        error
+		infuraResp InfuraResponse
 	)
+
+	// Request block by number or hash
+	switch b := block.(type) {
+	case uint64:
+		resp, err = http.Post(
+			api,
+			"application/json",
+			strings.NewReader(fmt.Sprintf(GETBLOCK, b)),
+		)
+	case string:
+		resp, err = http.Post(
+			api,
+			"application/json",
+			strings.NewReader(fmt.Sprintf(GETBLOCK_BYHASH, b)),
+		)
+	default:
+		return infuraResp.Result, fmt.Errorf("Heaader function only accepts blockHash and blockNumber")
+	}
 
 	if err != nil {
 		return infuraResp.Result, err

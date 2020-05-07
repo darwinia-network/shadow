@@ -40,7 +40,7 @@ func (o *ProofOutput) Format() []DoubleNodeWithMerkleProof {
 	})
 
 	h512s = Map(h512s, func(i int, v string) string {
-		return v + o.Elements[(i*2)+1][1:]
+		return fmt.Sprintf("0x%064s%064s", v[2:], o.Elements[(i*2)+1][2:])
 	})
 
 	dnmps := []DoubleNodeWithMerkleProof{}
@@ -50,7 +50,12 @@ func (o *ProofOutput) Format() []DoubleNodeWithMerkleProof {
 	Map(sh512s, func(i int, v string) string {
 		dnmps = append(dnmps, DoubleNodeWithMerkleProof{
 			[]string{v, h512s[i*2+1]},
-			o.MerkleProofs[uint64(i)*o.ProofLength : (uint64(i)+1)*o.ProofLength],
+			Map(
+				o.MerkleProofs[uint64(i)*o.ProofLength:(uint64(i)+1)*o.ProofLength],
+				func(_ int, v string) string {
+					return fmt.Sprintf("0x%032s", v[2:])
+				},
+			),
 		})
 		return v
 	})

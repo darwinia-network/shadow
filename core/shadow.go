@@ -14,9 +14,30 @@ const PROOF_LOCK = "proof.lock"
 /**
  * Genesis block checker
  */
-func checkGenesis(genesis uint64, number uint64) error {
-	if number <= genesis {
-		return fmt.Errorf(GENESIS_ERROR, genesis)
+func checkGenesis(genesis uint64, block interface{}, api string) error {
+	switch b := block.(type) {
+	case uint64:
+		if b <= genesis {
+			return fmt.Errorf(GENESIS_ERROR, genesis)
+		}
+	case string:
+		eH, err := util.Header(b, api)
+		if err != nil {
+			return err
+		}
+
+		// convert ethHeader to darwinia header
+		dH, err := util.IntoDarwiniaEthHeader(eH)
+		if err != nil {
+			return err
+		}
+
+		// Check genesis by number
+		if dH.Number <= genesis {
+			return fmt.Errorf(GENESIS_ERROR, genesis)
+		}
+	default:
+		return fmt.Errorf("genesis block checker only supports blockHash and blockNumber")
 	}
 
 	return nil
@@ -42,13 +63,38 @@ func (s *Shadow) GetEthHeaderByNumber(
 	params GetEthHeaderByNumberParams,
 	resp *GetEthHeaderByNumberResp,
 ) error {
-	err := checkGenesis(s.Config.Genesis, params.Number)
+	err := checkGenesis(s.Config.Genesis, params.Number, s.Config.Api)
 	if err != nil {
 		return err
 	}
 
 	// Return raw eth header
 	resp.Header, err = util.Header(params.Number, s.Config.Api)
+	return err
+}
+
+/**
+ * GetEthHeaderByHash
+ */
+type GetEthHeaderByHashParams struct {
+	Hash string `json:"hash"`
+}
+
+type GetEthHeaderByHashResp struct {
+	Header types.Header `json:"header"`
+}
+
+func (s *Shadow) GetEthHeaderByHash(
+	params GetEthHeaderByHashParams,
+	resp *GetEthHeaderByHashResp,
+) error {
+	err := checkGenesis(s.Config.Genesis, params.Hash, s.Config.Api)
+	if err != nil {
+		return err
+	}
+
+	// Return raw eth header
+	resp.Header, err = util.Header(params.Hash, s.Config.Api)
 	return err
 }
 
@@ -83,7 +129,7 @@ func (s *Shadow) GetEthHeaderWithProofByNumber(
 	params GetEthHeaderWithProofByNumberParams,
 	resp *interface{},
 ) error {
-	err := checkGenesis(s.Config.Genesis, params.Number)
+	err := checkGenesis(s.Config.Genesis, params.Number, s.Config.Api)
 	if err != nil {
 		return err
 	}
@@ -152,4 +198,36 @@ func (s *Shadow) GetEthHeaderWithProofByNumber(
 	}
 
 	return nil
+}
+
+/**
+ * GetEthHeaderWithProofByNumber
+ */
+type GetEthHeaderWithProofByHashParams struct {
+	Hash    string                               `json:"hash"`
+	Options GetEthHeaderWithProofByNumberOptions `json:"options"`
+}
+
+func (s *Shadow) GetEthHeaderWithProofByHash(
+	params GetEthHeaderWithProofByHashParams,
+	resp *interface{},
+) error {
+	eH, err := util.Header(params.Hash, s.Config.Api)
+	if err != nil {
+		return err
+	}
+
+	// convert ethHeader to darwinia header
+	dH, err := util.IntoDarwiniaEthHeader(eH)
+	if err != nil {
+		return err
+	}
+
+	// construct number req
+	p := GetEthHeaderWithProofByNumberParams{
+		dH.Number,
+		params.Options,
+	}
+
+	return s.GetEthHeaderWithProofByNumber(p, resp)
 }

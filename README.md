@@ -7,7 +7,7 @@
 ## Config
 
 `dargo` use the same config file with `darwinia.js`, if you don't know what 
-`darwinia.js` is, run the scripts below before you start
+`darwinia.js` is, please run the scripts below before you start your dargo trip
 
 ```
 mkdir ~/.darwinia
@@ -65,7 +65,7 @@ Use "dargo [command] --help" for more information about a command.
 
 ## Shadow RPC examples
 
-Fill the `~/.darwinia/config.json`
+Fill the `~/.darwinia/config.json` with
 
 ```
 {
@@ -75,14 +75,14 @@ Fill the `~/.darwinia/config.json`
 }
 ```
 
-## Shadow Service
+And start shadow service:
 
 ```
 # Start shadow service at port 3000
 dargo shadow 3000
 ```
 
-### Enviroment Variables
+Avaiable enviroment variables:
 
 | Key              | Description                                                    | default |
 |------------------|----------------------------------------------------------------|---------|
@@ -97,10 +97,22 @@ The shadow service of dargo follows the [spec][spec].
 curl -d '{"method":"shadow_getEthHeaderByNumber","params":{"block_num": 0}, "id": 0}' http://127.0.0.1:3000
 ```
 
+### Shadow.GetEthHeaderByHash
+
+```
+curl -d '{"method":"shadow_getEthHeaderByHash","params":{"hash": "0x8d0dd9b1f5854bbdc60d06aa04e6e953000aa53f6c6486f18f08666bc17ea228"}, "id": 0}' http://127.0.0.1:3000
+```
+
 ### Shadow.GetEthHeaderWithProofByNumber
 
 ```
 curl -d '{"method":"shadow_getEthHeaderWithProofByNumber","params":{"block_num": 1, "transcation": false, "options": {"format": "json"}}, "id": 0}' http://127.0.0.1:3000
+```
+
+### Shadow.GetEthHeaderWithProofByHash
+
+```
+curl -d '{"method":"shadow_getEthHeaderWithProofByHash","params":{"hash": 1, "transcation": false, "options": {"format": "json"}}, "id": 0}' http://127.0.0.1:3000
 ```
 
 ## Trouble Shooting

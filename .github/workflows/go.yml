@@ -37,13 +37,6 @@ jobs:
     - name: Build
       run: make
 
-    # Trigger api tests when merge
-    - name: Test shadow API
-      env:
-        INFURA_KEY: ${{ secrets.INFURA_KEY }}
-      run: go test -v
-      working-directory: ${{ env.tests-root }}
-
     # Cache eth hash
     - name: Cache Eth Hash
       uses: actions/cache@v1
@@ -67,3 +60,10 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-build-
           ${{ runner.os }}-
+    
+    # Trigger api tests when merge
+    - name: Test shadow API
+      env:
+        INFURA_KEY: ${{ secrets.INFURA_KEY }}
+      run: go test -v
+      working-directory: ${{ env.tests-root }}

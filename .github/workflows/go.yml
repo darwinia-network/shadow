@@ -43,3 +43,27 @@ jobs:
         INFURA_KEY: ${{ secrets.INFURA_KEY }}
       run: go test -v
       working-directory: ${{ env.tests-root }}
+
+    # Cache eth hash
+    - name: Cache Eth Hash
+      uses: actions/cache@v1
+      env:
+        cache-name: cache-eth-hash
+      with:
+        path: ~/.ethash
+        key: ${{ runner.os }}-build-${{ env.cache-name }}
+        restore-keys: |
+          ${{ runner.os }}-build-
+          ${{ runner.os }}-
+
+    # Cache eth hash proof
+    - name: Cache Eth Hash Proof
+      uses: actions/cache@v1
+      env:
+        cache-name: cache-eth-hash-proof
+      with:
+        path: ~/.ethashproof
+        key: ${{ runner.os }}-build-${{ env.cache-name }}
+        restore-keys: |
+          ${{ runner.os }}-build-
+          ${{ runner.os }}-

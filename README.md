@@ -4,16 +4,6 @@
 
 [![Golang CI][workflow-badge]][github]
 
-## Config
-
-`dargo` use the same config file with `darwinia.js`, if you don't know what 
-`darwinia.js` is, please run the scripts below before you start your dargo trip
-
-```
-mkdir ~/.darwinia
-echo '{"eth": { "api": "infura api with your key"}}' > ~/.darwinia/config.json
-```
-
 ## Installation
 
 Just supports OSX now
@@ -65,17 +55,13 @@ Use "dargo [command] --help" for more information about a command.
 
 ## Shadow RPC examples
 
-Fill the `~/.darwinia/config.json` with
+Export your `INFURA_KEY` to envrioment
 
 ```
-{
-  "eth": { 
-    "api": "infura-api-with-your-key"
-  }
-}
+export INFURA_KEY='<your-infura-key>'
 ```
 
-And start shadow service:
+Start shadow service:
 
 ```
 # Start shadow service at port 3000
@@ -94,25 +80,25 @@ The shadow service of dargo follows the [spec][spec].
 ### Shadow.GetEthHeaderByNumber
 
 ```
-curl -d '{"method":"shadow_getEthHeaderByNumber","params":{"number": 0}, "id": 0}' http://127.0.0.1:3000
+curl -d '{"method":"shadow_getEthHeaderByNumber","params":{"number": 0}}' http://127.0.0.1:3000
 ```
 
 ### Shadow.GetEthHeaderByHash
 
 ```
-curl -d '{"method":"shadow_getEthHeaderByHash","params":{"hash": "0x8d0dd9b1f5854bbdc60d06aa04e6e953000aa53f6c6486f18f08666bc17ea228"}, "id": 0}' http://127.0.0.1:3000
+curl -d '{"method":"shadow_getEthHeaderByHash","params":{"hash": "0x8d0dd9b1f5854bbdc60d06aa04e6e953000aa53f6c6486f18f08666bc17ea228"}}' http://127.0.0.1:3000
 ```
 
 ### Shadow.GetEthHeaderWithProofByNumber
 
 ```
-curl -d '{"method":"shadow_getEthHeaderWithProofByNumber","params":{"block_num": 1, "transcation": false, "options": {"format": "json"}}, "id": 0}' http://127.0.0.1:3000
+curl -d '{"method":"shadow_getEthHeaderWithProofByNumber","params":{"block_num": 1, "transcation": false, "options": {"format": "json"}}}' http://127.0.0.1:3000
 ```
 
 ### Shadow.GetEthHeaderWithProofByHash
 
 ```
-curl -d '{"method":"shadow_getEthHeaderWithProofByHash","params":{"hash": "0x8d0dd9b1f5854bbdc60d06aa04e6e953000aa53f6c6486f18f08666bc17ea228", "transcation": false, "options": {"format": "json"}}, "id": 0}' http://127.0.0.1:3000
+curl -d '{"method":"shadow_getEthHeaderWithProofByHash","params":{"hash": "0x8d0dd9b1f5854bbdc60d06aa04e6e953000aa53f6c6486f18f08666bc17ea228", "transcation": false, "options": {"format": "json"}}}' http://127.0.0.1:3000
 ```
 
 ## Trouble Shooting

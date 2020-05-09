@@ -55,13 +55,13 @@ Use "dargo [command] --help" for more information about a command.
 
 ## Shadow RPC examples
 
-Export your `INFURA_KEY` to envrioment
+Exports your `INFURA_KEY` to envrioment
 
 ```
 export INFURA_KEY='<your-infura-key>'
 ```
 
-Start shadow service:
+Starts shadow service:
 
 ```
 # Start shadow service at port 3000

@@ -3,6 +3,7 @@ package core
 import (
 	"encoding/json"
 	"log"
+	"os"
 	"os/user"
 	"path"
 
@@ -99,6 +100,15 @@ func ConnectDb() (*gorm.DB, error) {
 	usr, err := user.Current()
 	if err != nil {
 		log.Fatal("Can not find current os user")
+	}
+
+	// Check path exists
+	cachePath := path.Join(usr.HomeDir, path.Dir(DB_PATH))
+	if _, err = os.Stat(cachePath); os.IsNotExist(err) {
+		err = os.MkdirAll(cachePath, 0700)
+		if err != nil {
+			log.Fatalf("Can not create cache folder at %s", cachePath)
+		}
 	}
 
 	db, err := gorm.Open("sqlite3", path.Join(usr.HomeDir, DB_PATH))

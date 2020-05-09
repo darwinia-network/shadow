@@ -94,7 +94,7 @@ The shadow service of dargo follows the [spec][spec].
 ### Shadow.GetEthHeaderByNumber
 
 ```
-curl -d '{"method":"shadow_getEthHeaderByNumber","params":{"block_num": 0}, "id": 0}' http://127.0.0.1:3000
+curl -d '{"method":"shadow_getEthHeaderByNumber","params":{"number": 0}, "id": 0}' http://127.0.0.1:3000
 ```
 
 ### Shadow.GetEthHeaderByHash
@@ -112,7 +112,7 @@ curl -d '{"method":"shadow_getEthHeaderWithProofByNumber","params":{"block_num":
 ### Shadow.GetEthHeaderWithProofByHash
 
 ```
-curl -d '{"method":"shadow_getEthHeaderWithProofByHash","params":{"hash": 1, "transcation": false, "options": {"format": "json"}}, "id": 0}' http://127.0.0.1:3000
+curl -d '{"method":"shadow_getEthHeaderWithProofByHash","params":{"hash": "0x8d0dd9b1f5854bbdc60d06aa04e6e953000aa53f6c6486f18f08666bc17ea228", "transcation": false, "options": {"format": "json"}}, "id": 0}' http://127.0.0.1:3000
 ```
 
 ## Trouble Shooting

@@ -2,10 +2,8 @@ package util
 
 import (
 	"bufio"
-	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -45,11 +43,6 @@ func (c *Config) Load() error {
 
 	// Load api from env
 	err = c.loadEnv()
-	if err != nil {
-		err = c.loadFromFile()
-	}
-
-	// Check load file result
 	if err != nil || c.Api == "" {
 		c.readKeyWithPrompt()
 	}
@@ -67,38 +60,6 @@ func (c *Config) loadEnv() error {
 
 	// construct config
 	c.Api = parseKey(api)
-	return nil
-}
-
-// Load Config from `.darwinia/config.json`
-func (c *Config) loadFromFile() error {
-	root, err := RootDir()
-	if err != nil {
-		return err
-	}
-
-	// Check `config.json`
-	conf := filepath.Join(root, "config.json")
-	if _, err = os.Stat(conf); os.IsNotExist(err) {
-		if err != nil {
-			return err
-		}
-	}
-
-	// Read `config.json`
-	confJson := RawConfig{}
-	bytes, err := ioutil.ReadFile(conf)
-	if err != nil {
-		return err
-	}
-
-	err = json.Unmarshal(bytes, &confJson)
-	if err != nil {
-		return err
-	}
-
-	// Return eth config
-	c.Api = parseKey(confJson.Eth.Api)
 	return nil
 }
 

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"reflect"
 	"strings"
 
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -49,7 +50,6 @@ func Header(block interface{}, api string) (types.Header, error) {
 	default:
 		return infuraResp.Result, fmt.Errorf("Heaader function only accepts blockHash and blockNumber")
 	}
-
 	if err != nil {
 		return infuraResp.Result, err
 	}
@@ -59,6 +59,11 @@ func Header(block interface{}, api string) (types.Header, error) {
 	err = json.NewDecoder(resp.Body).Decode(&infuraResp)
 	if err != nil {
 		return infuraResp.Result, err
+	}
+
+	// Empty result
+	if reflect.DeepEqual(types.Header{}, infuraResp.Result) {
+		return infuraResp.Result, fmt.Errorf("The requesting block does not exist")
 	}
 
 	// Return eth header
@@ -139,6 +144,7 @@ func IntoDarwiniaEthHeader(e types.Header) (DarwiniaEthHeader, error) {
 		"0x" + hex.EncodeToString(mixh),
 		"0x" + hex.EncodeToString(nonce),
 	}
+
 	h.ParentHash = e.ParentHash.Hex()
 	h.TimeStamp = e.Time.Uint64()
 	h.Number = e.Number.Uint64()

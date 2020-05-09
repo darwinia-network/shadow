@@ -32,6 +32,11 @@ func checkGenesis(genesis uint64, block interface{}, api string) error {
 			return err
 		}
 
+		// Check hash empty response
+		if util.IsEmpty(dH) {
+			return fmt.Errorf("Empty block: %s", b)
+		}
+
 		// Check genesis by number
 		if dH.Number <= genesis {
 			return fmt.Errorf(GENESIS_ERROR, genesis)

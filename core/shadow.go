@@ -17,7 +17,7 @@ const PROOF_LOCK = "proof.lock"
 func checkGenesis(genesis uint64, block interface{}, api string) error {
 	switch b := block.(type) {
 	case uint64:
-		if b <= genesis {
+		if b < genesis {
 			return fmt.Errorf(GENESIS_ERROR, genesis)
 		}
 	case string:
@@ -32,12 +32,17 @@ func checkGenesis(genesis uint64, block interface{}, api string) error {
 			return err
 		}
 
+		// Check hash empty response
+		if util.IsEmpty(dH) {
+			return fmt.Errorf("Empty block: %s", b)
+		}
+
 		// Check genesis by number
 		if dH.Number <= genesis {
 			return fmt.Errorf(GENESIS_ERROR, genesis)
 		}
 	default:
-		return fmt.Errorf("genesis block checker only supports blockHash and blockNumber")
+		return fmt.Errorf("Invaild block param: %v", block)
 	}
 
 	return nil
@@ -121,7 +126,7 @@ type GetEthHeaderWithProofByNumberJSONResp struct {
 }
 
 type GetEthHeaderWithProofByNumberCodecResp struct {
-	Header string `json:"header"`
+	Header string `json:"eth_header"`
 	Proof  string `json:"proof"`
 }
 

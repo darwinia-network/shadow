@@ -1,0 +1,82 @@
+package tests
+
+import (
+	// "os"
+	"fmt"
+	"testing"
+
+	"github.com/darwinia-network/darwinia.go/core"
+	"github.com/darwinia-network/darwinia.go/util"
+)
+
+/**
+ * Generate Shadow API
+ */
+func genShadow() core.Shadow {
+	conf := util.Config{}
+	err := conf.Load()
+	util.Assert(err)
+
+	// Generate shadow rpc
+	return core.Shadow{Config: conf}
+}
+
+func TestGetBlockByNumber(t *testing.T) {
+	t.Run("Test GetBlockByNumber", func(t *testing.T) {
+		shadow := genShadow()
+		params := core.GetEthHeaderByNumberParams{Number: uint64(1)}
+		resp := core.GetEthHeaderByNumberResp{}
+		err := shadow.GetEthHeaderByNumber(params, &resp)
+
+		util.Assert(err)
+		util.AssertEmpty(resp)
+	})
+}
+
+func TestGetBlockByHash(t *testing.T) {
+	t.Run("Test GetBlockByHash", func(t *testing.T) {
+		shadow := genShadow()
+		params := core.GetEthHeaderByHashParams{
+			Hash: fmt.Sprintf(
+				"%s%s",
+				"0x88e96d4537bea4d9c05d12549907b32",
+				"561d3bf31f45aae734cdc119f13406cb6",
+			),
+		}
+		resp := core.GetEthHeaderByHashResp{}
+		err := shadow.GetEthHeaderByHash(params, &resp)
+
+		util.Assert(err)
+		util.AssertEmpty(resp)
+	})
+}
+
+func TestGetEthHeaderWithProofByNumber(t *testing.T) {
+	t.Run("Test GetEthHeaderWithProofByNumber", func(t *testing.T) {
+		shadow := genShadow()
+		params := core.GetEthHeaderWithProofByNumberParams{Number: 1}
+		var resp interface{}
+		err := shadow.GetEthHeaderWithProofByNumber(params, &resp)
+
+		util.Assert(err)
+		util.AssertEmpty(resp)
+	})
+}
+
+func TestGetEthHeaderWithProofByHash(t *testing.T) {
+	t.Run("Test GetEthHeaderWithProofByHash", func(t *testing.T) {
+		shadow := genShadow()
+		params := core.GetEthHeaderWithProofByHashParams{
+			Hash: fmt.Sprintf(
+				"%s%s",
+				"0x88e96d4537bea4d9c05d12549907b32",
+				"561d3bf31f45aae734cdc119f13406cb6",
+			),
+		}
+		var resp interface{}
+		err := shadow.GetEthHeaderWithProofByHash(params, &resp)
+
+		util.Assert(err)
+		util.AssertEmpty(resp)
+	})
+}

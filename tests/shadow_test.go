@@ -80,3 +80,24 @@ func TestGetEthHeaderWithProofByHash(t *testing.T) {
 		util.AssertEmpty(resp)
 	})
 }
+
+func TestBatchEthHeaderWithProofByNumber(t *testing.T) {
+	t.Run("Test BatchEthHeaderWithProofByNumber", func(t *testing.T) {
+		shadow := genShadow()
+		params := core.BatchEthHeaderWithProofByNumberParams{Number: 1, Batch: 3}
+		var resp interface{}
+		err := shadow.BatchEthHeaderWithProofByNumber(params, &resp)
+
+		util.Assert(err)
+		util.AssertEmpty(resp)
+
+		switch r := resp.(type) {
+		case []interface{}:
+			if len(r) != 3 {
+				t.Errorf("Wrong length %v in batch header resp", r)
+			}
+		default:
+			t.Errorf("Wrong type %v in batch header", r)
+		}
+	})
+}

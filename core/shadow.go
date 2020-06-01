@@ -236,3 +236,35 @@ func (s *Shadow) GetEthHeaderWithProofByHash(
 
 	return s.GetEthHeaderWithProofByNumber(p, resp)
 }
+
+/**
+ * BatchEthHeaderWithProofByNumber
+ */
+type BatchEthHeaderWithProofByNumberParams struct {
+	Number  uint64                               `json:"number"`
+	Batch   int                                  `json:"batch"`
+	Options GetEthHeaderWithProofByNumberOptions `json:"options"`
+}
+
+func (s *Shadow) BatchEthHeaderWithProofByNumber(
+	params BatchEthHeaderWithProofByNumberParams,
+	resp *interface{},
+) error {
+	var nps []interface{}
+	for i := 0; i < params.Batch; i++ {
+		var np interface{}
+		err := s.GetEthHeaderWithProofByNumber(GetEthHeaderWithProofByNumberParams{
+			Number:  params.Number + uint64(i),
+			Options: params.Options,
+		}, &np)
+
+		if err != nil {
+			return err
+		}
+
+		nps = append(nps, np)
+	}
+
+	*resp = nps
+	return nil
+}

@@ -101,6 +101,12 @@ curl -d '{"method":"shadow_getEthHeaderWithProofByNumber","params":{"block_num":
 curl -d '{"method":"shadow_getEthHeaderWithProofByHash","params":{"hash": "0x8d0dd9b1f5854bbdc60d06aa04e6e953000aa53f6c6486f18f08666bc17ea228", "transcation": false, "options": {"format": "json"}}}' http://127.0.0.1:3000
 ```
 
+### Shadow.BatchGetEthHeaderWithProofByNumber
+
+```
+curl -d '{"method":"shadow_batchEthHeaderWithProofByNumber","params":{"number": 1, "batch": 3, "options": {"format": "json"}}}' http://127.0.0.1:3000
+```
+
 ## Trouble Shooting
 
 Everytime you run `proof` in error, please delete `~/.ethashproof` and `~/.ethash` 

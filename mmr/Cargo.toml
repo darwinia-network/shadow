@@ -1,0 +1,10 @@
+[package]
+name = "mmr-rs"
+version = "0.1.0"
+authors = ["clearloop <udtrokia@gmail.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+mmr = { version = "0.3.0", package = "ckb-merkle-mountain-range"}

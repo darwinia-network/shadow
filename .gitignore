@@ -1,3 +1,2 @@
-.DS_Store
-target
-go.sum
+**/*.DS_Store
+**/*target

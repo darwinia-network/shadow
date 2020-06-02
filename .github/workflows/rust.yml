@@ -1,0 +1,19 @@
+name: mmr
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [macOS-latest, ubuntu-latest]
+    steps:
+      - name: Checkout the source code
+        uses: actions/checkout@master
+      - name: Build
+        working-directory: ./mmr
+        run: cargo build --verbose
+      - name: Run tests
+        working-directory: ./mmr
+        run: cargo test --verbose

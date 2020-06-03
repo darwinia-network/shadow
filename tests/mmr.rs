@@ -24,7 +24,7 @@ fn test_mmr() {
 
     let root = mmr.get_root().expect("get root failed");
     let proof = mmr
-        .gen_proof((0..8).map(|e| pos[e]).collect())
+        .gen_proof((0..10).map(|e| pos[e]).collect())
         .expect("gen proof");
 
     mmr.commit().expect("commit changes");

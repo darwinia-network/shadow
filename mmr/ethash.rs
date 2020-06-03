@@ -22,12 +22,8 @@ pub struct MergeETHash;
 impl Merge for MergeETHash {
     type Item = ETHash;
     fn merge(lhs: &Self::Item, rhs: &Self::Item) -> Self::Item {
-        let conn = |alpha: &Self::Item, beta: &Self::Item| {
-            let mut ret = [0_u8; 32];
-            ret[0..16].copy_from_slice(&alpha.0[0..16]);
-            ret[17..].copy_from_slice(&beta.0[17..]);
-            ret
-        };
-        ETHash(conn(lhs, rhs))
+        let mut res: [u8; 32] = [0; 32];
+        blake2b_rs::blake2b(&lhs.0, &rhs.0, &mut res);
+        ETHash(res)
     }
 }

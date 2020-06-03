@@ -1,7 +1,7 @@
 package core
 
 import (
-	// "github.com/ethereum/go-ethereum/common"
+	"github.com/darwinia-network/darwinia.go/internal/util"
 	"github.com/ethereum/go-ethereum/core/rawdb"
 	"github.com/ethereum/go-ethereum/ethdb"
 )
@@ -27,11 +27,8 @@ func New(datadir string) (Geth, error) {
 	return Geth{Database: db, DataDir: datadir}, nil
 }
 
-func (g *Geth) GetBlock(number uint64) Block {
+func (g *Geth) GetBlock(number uint64) (util.DarwiniaEthHeader, error) {
 	hash := rawdb.ReadCanonicalHash(g.Database, number)
-
-	return Block{
-		Number: number,
-		Hash:   hash.Hex(),
-	}
+	block := rawdb.ReadBlock(g.Database, hash, number)
+	return util.IntoDarwiniaEthHeader(*block.Header())
 }

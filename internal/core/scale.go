@@ -5,7 +5,7 @@ import (
 	"encoding/hex"
 	"strings"
 
-	"github.com/darwinia-network/darwinia.go/util"
+	"github.com/darwinia-network/darwinia.go/internal/util"
 )
 
 // Pack encode proof

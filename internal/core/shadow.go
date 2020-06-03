@@ -3,7 +3,7 @@ package core
 import (
 	"fmt"
 
-	"github.com/darwinia-network/darwinia.go/util"
+	"github.com/darwinia-network/darwinia.go/internal/util"
 	"github.com/ethereum/go-ethereum/core/types"
 )
 

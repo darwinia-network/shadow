@@ -3,9 +3,9 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/darwinia-network/darwinia.go/core"
-	"github.com/darwinia-network/darwinia.go/rpc"
-	"github.com/darwinia-network/darwinia.go/util"
+	"github.com/darwinia-network/darwinia.go/internal/core"
+	"github.com/darwinia-network/darwinia.go/internal/rpc"
+	"github.com/darwinia-network/darwinia.go/internal/util"
 	"github.com/spf13/cobra"
 )
 

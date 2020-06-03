@@ -1,4 +1,4 @@
-package util
+package internal
 
 import (
 	"bufio"
@@ -8,6 +8,8 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+
+	"github.com/darwinia-network/darwinia.go/internal/util"
 )
 
 type RawConfig struct {
@@ -88,7 +90,7 @@ func (c *Config) readKeyWithPrompt() {
 // Get darwinia config root directory
 func RootDir() (string, error) {
 	home, err := os.UserHomeDir()
-	Assert(err)
+	util.Assert(err)
 
 	// Create root dir if not exist
 	root := filepath.Join(home, ".darwinia")

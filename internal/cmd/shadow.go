@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 
+	"github.com/darwinia-network/darwinia.go/internal"
 	"github.com/darwinia-network/darwinia.go/internal/core"
 	"github.com/darwinia-network/darwinia.go/internal/rpc"
 	"github.com/darwinia-network/darwinia.go/internal/util"
@@ -20,7 +21,7 @@ var cmdShadow = &cobra.Command{
 		}
 
 		// Generate config
-		conf := new(util.Config)
+		conf := new(internal.Config)
 		err := conf.Load()
 		util.Assert(err)
 

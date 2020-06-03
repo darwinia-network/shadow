@@ -5,11 +5,11 @@ import (
 	"encoding/hex"
 	"strings"
 
-	"github.com/darwinia-network/darwinia.go/internal/util"
+	"github.com/darwinia-network/darwinia.go/internal"
 )
 
 // Pack encode proof
-func encodeProofArray(arr []util.DoubleNodeWithMerkleProof) string {
+func encodeProofArray(arr []internal.DoubleNodeWithMerkleProof) string {
 	hex := "0x0101"
 	for _, v := range arr {
 		hex += encodeProof(v)
@@ -19,7 +19,7 @@ func encodeProofArray(arr []util.DoubleNodeWithMerkleProof) string {
 }
 
 // Encode proof to hex with exist hex
-func encodeProof(dnmp util.DoubleNodeWithMerkleProof) string {
+func encodeProof(dnmp internal.DoubleNodeWithMerkleProof) string {
 	hex := ""
 	for _, v := range dnmp.DagNodes {
 		hex += v[2:]
@@ -35,7 +35,7 @@ func encodeProof(dnmp util.DoubleNodeWithMerkleProof) string {
 }
 
 // Encode Darwinia Eth Header
-func encodeDarwiniaEthHeader(header util.DarwiniaEthHeader) string {
+func encodeDarwiniaEthHeader(header internal.DarwiniaEthHeader) string {
 	hex := "0x"
 	hex += header.ParentHash[2:]
 	hex += encodeUint(header.TimeStamp, 64)

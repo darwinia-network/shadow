@@ -11,6 +11,15 @@ jobs:
     steps:
       - name: Checkout the source code
         uses: actions/checkout@master
+      - name: Environment
+        run: |
+          if [[ "$(uname)" == 'Darwin' ]]; then
+              brew update
+              brew install sqlite3
+          else
+              sudo apt-get update -y
+              sudo apt-get install -y libsqlite3-dev libdbus-1-dev
+          fi
       - name: Build
         run: cargo build --verbose
       - name: Run tests

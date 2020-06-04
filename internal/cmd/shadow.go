@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/darwinia-network/darwinia.go/internal"
 	"github.com/darwinia-network/darwinia.go/internal/core"
@@ -9,6 +10,22 @@ import (
 	"github.com/darwinia-network/darwinia.go/internal/util"
 	"github.com/spf13/cobra"
 )
+
+func fetch(shadow *core.Shadow, genesis uint64) {
+	var n uint64 = genesis
+	for n > genesis {
+		var _dimmy core.GetEthHeaderByNumberResp
+		err := shadow.GetEthHeaderByNumber(core.GetEthHeaderByNumberParams{
+			Number: n,
+		}, &_dimmy)
+
+		if err != nil {
+			fmt.Println(fmt.Errorf("Get block failed, sleep for 1 min"))
+			time.Sleep(60 * time.Second)
+		}
+		n++
+	}
+}
 
 var cmdShadow = &cobra.Command{
 	Use:   "shadow [port]",
@@ -28,6 +45,11 @@ var cmdShadow = &cobra.Command{
 		// Generate Shadow
 		shadow := new(core.Shadow)
 		shadow.Config = *conf
+
+		// if need fetch
+		if Fetch {
+			go fetch(shadow, conf.Genesis)
+		}
 
 		// Start service
 		fmt.Printf("Shadow service start at %s\n", args[0])

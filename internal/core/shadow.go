@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/darwinia-network/darwinia.go/internal"
+	"github.com/darwinia-network/darwinia.go/internal/eth"
 	"github.com/darwinia-network/darwinia.go/internal/util"
 	"github.com/ethereum/go-ethereum/core/types"
 )
@@ -22,13 +23,13 @@ func checkGenesis(genesis uint64, block interface{}, api string) error {
 			return fmt.Errorf(GENESIS_ERROR, genesis)
 		}
 	case string:
-		eH, err := internal.Header(b, api)
+		eH, err := eth.Header(b, api)
 		if err != nil {
 			return err
 		}
 
 		// convert ethHeader to darwinia header
-		dH, err := internal.IntoDarwiniaEthHeader(eH)
+		dH, err := eth.IntoDarwiniaEthHeader(eH)
 		if err != nil {
 			return err
 		}
@@ -75,7 +76,7 @@ func (s *Shadow) GetEthHeaderByNumber(
 	}
 
 	// Return raw eth header
-	resp.Header, err = internal.Header(params.Number, s.Config.Api)
+	resp.Header, err = eth.Header(params.Number, s.Config.Api)
 	return err
 }
 
@@ -100,7 +101,7 @@ func (s *Shadow) GetEthHeaderByHash(
 	}
 
 	// Return raw eth header
-	resp.Header, err = internal.Header(params.Hash, s.Config.Api)
+	resp.Header, err = eth.Header(params.Hash, s.Config.Api)
 	return err
 }
 
@@ -117,13 +118,13 @@ type GetEthHeaderWithProofByNumberParams struct {
 }
 
 type GetEthHeaderWithProofByNumberRawResp struct {
-	Header internal.DarwiniaEthHeader           `json:"eth_header"`
-	Proof  []internal.DoubleNodeWithMerkleProof `json:"proof"`
+	Header eth.DarwiniaEthHeader           `json:"eth_header"`
+	Proof  []eth.DoubleNodeWithMerkleProof `json:"proof"`
 }
 
 type GetEthHeaderWithProofByNumberJSONResp struct {
-	Header internal.DarwiniaEthHeaderHexFormat  `json:"eth_header"`
-	Proof  []internal.DoubleNodeWithMerkleProof `json:"proof"`
+	Header eth.DarwiniaEthHeaderHexFormat  `json:"eth_header"`
+	Proof  []eth.DoubleNodeWithMerkleProof `json:"proof"`
 }
 
 type GetEthHeaderWithProofByNumberCodecResp struct {
@@ -147,12 +148,12 @@ func (s *Shadow) GetEthHeaderWithProofByNumber(
 	// Fetch header from infura
 	if err != nil {
 		// Fetch eth header
-		ethHeader, err := internal.Header(params.Number, s.Config.Api)
+		ethHeader, err := eth.Header(params.Number, s.Config.Api)
 		if err != nil {
 			return err
 		}
 
-		rawResp.Header, err = internal.IntoDarwiniaEthHeader(ethHeader)
+		rawResp.Header, err = eth.IntoDarwiniaEthHeader(ethHeader)
 		if err != nil {
 			return err
 		}
@@ -168,7 +169,7 @@ func (s *Shadow) GetEthHeaderWithProofByNumber(
 		}
 
 		// Proof header
-		proof, err := internal.Proof(&ethHeader, s.Config)
+		proof, err := eth.Proof(&ethHeader, s.Config)
 		rawResp.Proof = proof.Format()
 		if err != nil {
 			return err
@@ -218,13 +219,13 @@ func (s *Shadow) GetEthHeaderWithProofByHash(
 	params GetEthHeaderWithProofByHashParams,
 	resp *interface{},
 ) error {
-	eH, err := internal.Header(params.Hash, s.Config.Api)
+	eH, err := eth.Header(params.Hash, s.Config.Api)
 	if err != nil {
 		return err
 	}
 
 	// convert ethHeader to darwinia header
-	dH, err := internal.IntoDarwiniaEthHeader(eH)
+	dH, err := eth.IntoDarwiniaEthHeader(eH)
 	if err != nil {
 		return err
 	}

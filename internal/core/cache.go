@@ -7,7 +7,7 @@ import (
 	"os/user"
 	"path"
 
-	"github.com/darwinia-network/darwinia.go/internal"
+	"github.com/darwinia-network/darwinia.go/internal/eth"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
 )
@@ -55,7 +55,7 @@ func (c *EthHeaderWithProofCache) FromResp(resp GetEthHeaderWithProofByNumberRaw
 // Convert EthHeader
 func (c *EthHeaderWithProofCache) IntoResp() (GetEthHeaderWithProofByNumberRawResp, error) {
 	var rResp GetEthHeaderWithProofByNumberRawResp
-	header, proof := internal.DarwiniaEthHeader{}, []internal.DoubleNodeWithMerkleProof{}
+	header, proof := eth.DarwiniaEthHeader{}, []eth.DoubleNodeWithMerkleProof{}
 
 	// Decode header
 	err := json.Unmarshal([]byte(c.Header), &header)

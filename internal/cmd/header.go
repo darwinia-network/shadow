@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"github.com/darwinia-network/darwinia.go/internal"
+	"github.com/darwinia-network/darwinia.go/internal/eth"
 	"github.com/darwinia-network/darwinia.go/internal/util"
 	"github.com/spf13/cobra"
 )
@@ -25,7 +26,7 @@ var cmdHeader = &cobra.Command{
 		util.Assert(err)
 
 		// get header
-		header, err := internal.Header(block, conf.Api)
+		header, err := eth.Header(block, conf.Api)
 		util.Assert(err)
 
 		// get the header string

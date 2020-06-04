@@ -1,4 +1,4 @@
-package internal
+package eth
 
 import (
 	"fmt"
@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/darwinia-network/darwinia.go/internal"
 	"github.com/darwinia-network/darwinia.go/internal/util"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
@@ -65,13 +66,13 @@ func (o *ProofOutput) Format() []DoubleNodeWithMerkleProof {
 }
 
 // Epoch in background
-func bgEpoch(epoch uint64, config Config) {
+func bgEpoch(epoch uint64, config internal.Config) {
 	_, _ = ethashproof.CalculateDatasetMerkleRoot(epoch, true)
 	_ = config.RemoveLock(EPOCH_LOCK)
 }
 
 // Check if need epoch
-func epochGently(epoch uint64, config Config) error {
+func epochGently(epoch uint64, config internal.Config) error {
 	// Get home dir
 	home, err := os.UserHomeDir()
 	if err != nil {
@@ -113,7 +114,7 @@ func epochGently(epoch uint64, config Config) error {
 }
 
 // Proof eth blockheader
-func Proof(header *types.Header, config Config) (ProofOutput, error) {
+func Proof(header *types.Header, config internal.Config) (ProofOutput, error) {
 	blockno := header.Number.Uint64()
 	epoch := blockno / 30000
 	output := &ProofOutput{}

@@ -1,4 +1,4 @@
-package internal
+package eth
 
 import (
 	"encoding/hex"

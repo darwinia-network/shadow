@@ -1,5 +1,4 @@
 build:
-	@cargo build --release
 	@go mod tidy
 	@go build -o ./target/dargo -v github.com/darwinia-network/darwinia.go/dargo
 build-all: deps

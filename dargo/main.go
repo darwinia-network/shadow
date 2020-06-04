@@ -6,6 +6,5 @@ import (
 )
 
 func main() {
-	err := cmd.Execute()
-	util.Assert(err)
+	util.Assert(cmd.Execute())
 }

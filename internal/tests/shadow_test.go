@@ -6,26 +6,27 @@ import (
 	"testing"
 
 	"github.com/darwinia-network/darwinia.go/internal"
+	"github.com/darwinia-network/darwinia.go/internal/core"
 	"github.com/darwinia-network/darwinia.go/internal/util"
 )
 
 /**
  * Generate Shadow API
  */
-func genShadow() internal.Shadow {
-	conf := util.Config{}
+func genShadow() core.Shadow {
+	conf := internal.Config{}
 	err := conf.Load()
 	util.Assert(err)
 
 	// Generate shadow rpc
-	return internal.Shadow{Config: conf}
+	return core.Shadow{Config: conf}
 }
 
 func TestGetBlockByNumber(t *testing.T) {
 	t.Run("Test GetBlockByNumber", func(t *testing.T) {
 		shadow := genShadow()
-		params := internal.GetEthHeaderByNumberParams{Number: uint64(1)}
-		resp := internal.GetEthHeaderByNumberResp{}
+		params := core.GetEthHeaderByNumberParams{Number: uint64(1)}
+		resp := core.GetEthHeaderByNumberResp{}
 		err := shadow.GetEthHeaderByNumber(params, &resp)
 
 		util.Assert(err)
@@ -36,14 +37,14 @@ func TestGetBlockByNumber(t *testing.T) {
 func TestGetBlockByHash(t *testing.T) {
 	t.Run("Test GetBlockByHash", func(t *testing.T) {
 		shadow := genShadow()
-		params := internal.GetEthHeaderByHashParams{
+		params := core.GetEthHeaderByHashParams{
 			Hash: fmt.Sprintf(
 				"%s%s",
 				"0x88e96d4537bea4d9c05d12549907b32",
 				"561d3bf31f45aae734cdc119f13406cb6",
 			),
 		}
-		resp := internal.GetEthHeaderByHashResp{}
+		resp := core.GetEthHeaderByHashResp{}
 		err := shadow.GetEthHeaderByHash(params, &resp)
 
 		util.Assert(err)
@@ -54,7 +55,7 @@ func TestGetBlockByHash(t *testing.T) {
 func TestGetEthHeaderWithProofByNumber(t *testing.T) {
 	t.Run("Test GetEthHeaderWithProofByNumber", func(t *testing.T) {
 		shadow := genShadow()
-		params := internal.GetEthHeaderWithProofByNumberParams{Number: 1}
+		params := core.GetEthHeaderWithProofByNumberParams{Number: 1}
 		var resp interface{}
 		err := shadow.GetEthHeaderWithProofByNumber(params, &resp)
 
@@ -66,7 +67,7 @@ func TestGetEthHeaderWithProofByNumber(t *testing.T) {
 func TestGetEthHeaderWithProofByHash(t *testing.T) {
 	t.Run("Test GetEthHeaderWithProofByHash", func(t *testing.T) {
 		shadow := genShadow()
-		params := internal.GetEthHeaderWithProofByHashParams{
+		params := core.GetEthHeaderWithProofByHashParams{
 			Hash: fmt.Sprintf(
 				"%s%s",
 				"0x88e96d4537bea4d9c05d12549907b32",
@@ -84,7 +85,7 @@ func TestGetEthHeaderWithProofByHash(t *testing.T) {
 func TestBatchEthHeaderWithProofByNumber(t *testing.T) {
 	t.Run("Test BatchEthHeaderWithProofByNumber", func(t *testing.T) {
 		shadow := genShadow()
-		params := internal.BatchEthHeaderWithProofByNumberParams{Number: 1, Batch: 3}
+		params := core.BatchEthHeaderWithProofByNumberParams{Number: 1, Batch: 3}
 		var resp interface{}
 		err := shadow.BatchEthHeaderWithProofByNumber(params, &resp)
 

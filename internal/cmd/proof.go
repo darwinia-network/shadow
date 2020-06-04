@@ -26,7 +26,7 @@ var cmdProof = &cobra.Command{
 		util.Assert(err)
 
 		// get header
-		header, err := eth.Header(block, conf.Api)
+		header, err := eth.Header(block, conf.Api, eth.NewGeth(conf.DataDir))
 		util.Assert(err)
 
 		// get proof

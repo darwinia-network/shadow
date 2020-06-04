@@ -20,6 +20,7 @@ type Config struct {
 	Api     string `json:"api"`
 	Genesis uint64 `json:"genesis"`
 	Root    string `json:"root"`
+	DataDir string `json:"datadir"`
 }
 
 // Common load config
@@ -36,6 +37,9 @@ func (c *Config) Load() error {
 	if gen == "" {
 		gen = "0"
 	}
+
+	// Load data dir
+	c.DataDir = os.Getenv("GETH_DATADIR")
 
 	// Construct shadow genesis
 	c.Genesis, err = strconv.ParseUint(gen, 10, 64)

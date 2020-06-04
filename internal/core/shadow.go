@@ -13,17 +13,23 @@ import (
 const GENESIS_ERROR = "The requested block number is too low, only support blocks heigher than %v"
 const PROOF_LOCK = "proof.lock"
 
+// Dimmy shadow service
+type Shadow struct {
+	Config internal.Config
+	Geth   eth.Geth
+}
+
 /**
  * Genesis block checker
  */
-func checkGenesis(genesis uint64, block interface{}, api string) error {
+func (s *Shadow) checkGenesis(genesis uint64, block interface{}, api string) error {
 	switch b := block.(type) {
 	case uint64:
 		if b < genesis {
 			return fmt.Errorf(GENESIS_ERROR, genesis)
 		}
 	case string:
-		eH, err := eth.Header(b, api)
+		eH, err := eth.Header(b, api, s.Geth)
 		if err != nil {
 			return err
 		}
@@ -50,11 +56,6 @@ func checkGenesis(genesis uint64, block interface{}, api string) error {
 	return nil
 }
 
-// Dimmy shadow service
-type Shadow struct {
-	Config internal.Config
-}
-
 /**
  * GetEthHeaderByNumber
  */
@@ -70,13 +71,13 @@ func (s *Shadow) GetEthHeaderByNumber(
 	params GetEthHeaderByNumberParams,
 	resp *GetEthHeaderByNumberResp,
 ) error {
-	err := checkGenesis(s.Config.Genesis, params.Number, s.Config.Api)
+	err := s.checkGenesis(s.Config.Genesis, params.Number, s.Config.Api)
 	if err != nil {
 		return err
 	}
 
 	// Return raw eth header
-	resp.Header, err = eth.Header(params.Number, s.Config.Api)
+	resp.Header, err = eth.Header(params.Number, s.Config.Api, s.Geth)
 	return err
 }
 
@@ -95,13 +96,13 @@ func (s *Shadow) GetEthHeaderByHash(
 	params GetEthHeaderByHashParams,
 	resp *GetEthHeaderByHashResp,
 ) error {
-	err := checkGenesis(s.Config.Genesis, params.Hash, s.Config.Api)
+	err := s.checkGenesis(s.Config.Genesis, params.Hash, s.Config.Api)
 	if err != nil {
 		return err
 	}
 
 	// Return raw eth header
-	resp.Header, err = eth.Header(params.Hash, s.Config.Api)
+	resp.Header, err = eth.Header(params.Hash, s.Config.Api, s.Geth)
 	return err
 }
 
@@ -136,7 +137,7 @@ func (s *Shadow) GetEthHeaderWithProofByNumber(
 	params GetEthHeaderWithProofByNumberParams,
 	resp *interface{},
 ) error {
-	err := checkGenesis(s.Config.Genesis, params.Number, s.Config.Api)
+	err := s.checkGenesis(s.Config.Genesis, params.Number, s.Config.Api)
 	if err != nil {
 		return err
 	}
@@ -148,7 +149,7 @@ func (s *Shadow) GetEthHeaderWithProofByNumber(
 	// Fetch header from infura
 	if err != nil {
 		// Fetch eth header
-		ethHeader, err := eth.Header(params.Number, s.Config.Api)
+		ethHeader, err := eth.Header(params.Number, s.Config.Api, s.Geth)
 		if err != nil {
 			return err
 		}
@@ -219,7 +220,7 @@ func (s *Shadow) GetEthHeaderWithProofByHash(
 	params GetEthHeaderWithProofByHashParams,
 	resp *interface{},
 ) error {
-	eH, err := eth.Header(params.Hash, s.Config.Api)
+	eH, err := eth.Header(params.Hash, s.Config.Api, s.Geth)
 	if err != nil {
 		return err
 	}

@@ -12,8 +12,6 @@ on:
 jobs:
   build:
     runs-on: ${{ matrix.os }}
-    env:
-      tests-root: ./tests
     strategy:
       matrix:
         os: [macOS-latest, ubuntu-latest]
@@ -77,5 +75,4 @@ jobs:
     - name: Test shadow API
       env:
         INFURA_KEY: ${{ secrets.INFURA_KEY }}
-      run: go test ./...
-      working-directory: ${{ env.tests-root }}
+      run: go test -v ./...

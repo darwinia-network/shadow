@@ -19,7 +19,9 @@ const DB_PATH = ".darwinia/cache/shadow.db"
 type EthHeaderWithProofCache struct {
 	gorm.Model
 	Number uint64 `json:"number" gorm:"unique_index"`
+	Hash   string `json:"hash"`
 	Header string `json:"eth_header"`
+	Pos    string `json:"pos"`
 	Proof  string `json:"proof"`
 	Mmr    string `json:"mmr"`
 }
@@ -45,6 +47,7 @@ func (c *EthHeaderWithProofCache) FromResp(resp GetEthHeaderWithProofByNumberRaw
 	defer db.Close()
 	db.Create(&EthHeaderWithProofCache{
 		Number: resp.Header.Number,
+		Hash:   resp.Header.Hash,
 		Header: string(header),
 		Proof:  string(proof),
 	})

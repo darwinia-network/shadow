@@ -1,5 +1,5 @@
-use cmmr::{util::MemStore, MMR};
-use mmr::{ETHash, MergeETHash};
+use cmmr::MMR;
+use mmr::{ETHash, MergeETHash, Store};
 
 const HEADERS: [&str; 10] = [
     "d4e56740f876aef8c010b86a40d5f56745a118d0906a34e69aec8c0db1cb8fa3",
@@ -16,13 +16,13 @@ const HEADERS: [&str; 10] = [
 
 #[test]
 fn test_mmr() {
-    let store = MemStore::default();
-    let mut mmr = MMR::<_, MergeETHash, _>::new(0, &store);
+    let store = Store::default();
+    let mut mmr = MMR::<_, MergeETHash, _>::new(0, store);
     let pos: Vec<u64> = (0usize..10usize)
         .map(|h| mmr.push(ETHash::from(HEADERS[h])).unwrap())
         .collect();
 
-    println!("{:#?}", pos);
+    println!("{:#?}", &pos);
     let root = mmr.get_root().expect("get root failed");
     let proof = mmr
         .gen_proof((0..10).map(|e| pos[e]).collect())

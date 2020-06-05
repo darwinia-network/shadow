@@ -1,5 +1,6 @@
 //! MMR store
 use self::eth_header_with_proof_caches::{columns::pos, dsl::*};
+use super::ETHash;
 use cmmr::{Error, MMRStore, Result as MMRResult};
 use diesel::{dsl::count, prelude::*};
 use std::path::PathBuf;
@@ -40,20 +41,28 @@ impl Store {
     }
 }
 
-impl MMRStore<String> for Store {
-    fn get_elem(&self, rpos: u64) -> MMRResult<Option<String>> {
+impl Default for Store {
+    fn default() -> Store {
+        let mut root = dirs::home_dir().unwrap_or_default();
+        root.push(".darwinia/cache/shadow.db");
+        Store::new(&root)
+    }
+}
+
+impl MMRStore<ETHash> for Store {
+    fn get_elem(&self, rpos: u64) -> MMRResult<Option<ETHash>> {
         let shadow = eth_header_with_proof_caches
             .filter(pos.eq(rpos as i64))
             .first::<Shadow>(&self.conn);
 
         if shadow.is_ok() {
-            Ok(Some(shadow.unwrap_or_default().mmr))
+            Ok(Some(ETHash::from(shadow.unwrap_or_default().mmr.as_str())))
         } else {
             Ok(None)
         }
     }
 
-    fn append(&mut self, rpos: u64, elems: Vec<String>) -> MMRResult<()> {
+    fn append(&mut self, rpos: u64, elems: Vec<ETHash>) -> MMRResult<()> {
         let count_res = eth_header_with_proof_caches
             .select(count(mmr))
             .first::<i64>(&self.conn);
@@ -66,17 +75,22 @@ impl MMRStore<String> for Store {
 
         // Specify the count
         let count = count_res.unwrap() as u64;
-        if rpos != count {
-            Err(Error::InconsistentStore)?;
-        }
+        println!("rpos is {:#?}, the count is {:#?}", rpos, count);
+        // if rpos != count {
+        //     Err(Error::InconsistentStore)?;
+        // }
 
         for (i, elem) in elems.into_iter().enumerate() {
-            let target = eth_header_with_proof_caches.filter(pos.eq(count as i64 + i as i64));
-            let res = diesel::update(target).set(mmr.eq(elem)).execute(&self.conn);
+            let target = eth_header_with_proof_caches.filter(pos.eq(rpos as i64 + i as i64));
+            let res = diesel::update(target)
+                .set(mmr.eq(format!("{:x?}", &elem.0.to_vec())))
+                .execute(&self.conn);
             if res.is_err() {
-                return Err(Error::StoreError(
-                    "Updates mmr into sqlite3 failed".to_string(),
-                ));
+                // println!("{:#?}", &res);
+                return Err(Error::StoreError(format!(
+                    "Updates mmr of pos {} into sqlite3 failed",
+                    rpos as i64 + i as i64
+                )));
             }
         }
 

@@ -12,7 +12,6 @@ impl From<&str> for ETHash {
             .collect::<Result<Vec<u8>, _>>()
             .unwrap_or_default();
         ret.copy_from_slice(&bytes);
-
         ETHash(ret)
     }
 }

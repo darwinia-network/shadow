@@ -10,6 +10,8 @@ path = "mmr/lib.rs"
 crate_type = ["rlib", "dylib"]
 
 [dependencies]
+dirs = "2.0.2"
+etc = "0.1.7"
 cmmr = { version = "0.3.0", package = "ckb-merkle-mountain-range"}
 blake2b-rs = "0.1.5"
 

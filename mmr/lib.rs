@@ -4,4 +4,7 @@ extern crate diesel;
 mod ethash;
 mod store;
 
-pub use self::ethash::{ETHash, MergeETHash};
+pub use self::{
+    ethash::{ETHash, MergeETHash},
+    store::Store,
+};

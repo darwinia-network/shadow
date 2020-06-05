@@ -22,6 +22,7 @@ fn test_mmr() {
         .map(|h| mmr.push(ETHash::from(HEADERS[h])).unwrap())
         .collect();
 
+    println!("{:#?}", pos);
     let root = mmr.get_root().expect("get root failed");
     let proof = mmr
         .gen_proof((0..10).map(|e| pos[e]).collect())

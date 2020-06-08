@@ -5,6 +5,9 @@ use cmmr::{Error, MMRStore, Result as MMRResult};
 use diesel::{dsl::count, prelude::*};
 use std::{fmt, path::PathBuf};
 
+/// Constants
+const RELATIVE_DB: &str = ".darwinia/cache/shadow.db";
+
 /// Shadow db table
 #[derive(AsChangeset, Clone, Insertable, Queryable, Debug)]
 #[table_name = "mmr_store"]
@@ -39,7 +42,22 @@ pub struct Store {
 
 impl Store {
     /// New store with path
+    ///
+    /// This is the very begining part of mmr service, panic when connect db failed.
     pub fn new(p: &PathBuf) -> Store {
+        let op_dir = p.parent();
+        if op_dir.is_none() {
+            panic!("Wrong db path: {:?}", p);
+        }
+
+        let dir = op_dir.unwrap();
+        if !dir.exists() {
+            let res = std::fs::create_dir_all(dir);
+            if res.is_err() {
+                panic!("Create dir failed: {:?}", res);
+            }
+        }
+
         let conn = SqliteConnection::establish(&p.to_string_lossy())
             .unwrap_or_else(|_| panic!("Error connecting to {:?}", p));
         diesel::sql_query(CREATE_MMR_IF_NOT_EXISTS)
@@ -63,7 +81,7 @@ impl Store {
 impl Default for Store {
     fn default() -> Store {
         let mut root = dirs::home_dir().unwrap_or_default();
-        root.push(".darwinia/cache/shadow.db");
+        root.push(RELATIVE_DB);
         Store::new(&root)
     }
 }

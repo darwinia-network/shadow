@@ -2,6 +2,7 @@
 extern crate diesel;
 
 mod ethash;
+mod sql;
 mod store;
 
 pub use self::{

@@ -1,28 +1,34 @@
 //! MMR store
-use self::eth_header_with_proof_caches::{columns::pos, dsl::*};
-use super::ETHash;
+use self::mmr_store::{columns::pos, dsl::*};
+use super::{sql::*, ETHash};
 use cmmr::{Error, MMRStore, Result as MMRResult};
 use diesel::{dsl::count, prelude::*};
-use std::path::PathBuf;
+use std::{fmt, path::PathBuf};
 
 /// Shadow db table
-#[derive(Clone, Insertable, Queryable, Debug, Default)]
-#[table_name = "eth_header_with_proof_caches"]
-pub struct Shadow {
-    header: String,
-    mmr: String,
+#[derive(AsChangeset, Clone, Insertable, Queryable, Debug)]
+#[table_name = "mmr_store"]
+pub struct Header {
+    elem: String,
     number: i64,
     pos: i64,
-    proof: String,
+}
+
+impl Header {
+    fn new(relem: String, rnumber: i64, rpos: i64) -> Header {
+        Header {
+            elem: relem,
+            number: rnumber,
+            pos: rpos,
+        }
+    }
 }
 
 table! {
-    eth_header_with_proof_caches(number) {
-        header -> Text,
-        mmr -> Text,
+    mmr_store(number) {
+        elem -> Text,
         number -> BigInt,
         pos -> BigInt,
-        proof -> Text,
     }
 }
 
@@ -34,9 +40,22 @@ pub struct Store {
 impl Store {
     /// New store with path
     pub fn new(p: &PathBuf) -> Store {
-        Store {
-            conn: SqliteConnection::establish(&p.to_string_lossy())
-                .unwrap_or_else(|_| panic!("Error connecting to {:?}", p)),
+        let conn = SqliteConnection::establish(&p.to_string_lossy())
+            .unwrap_or_else(|_| panic!("Error connecting to {:?}", p));
+        diesel::sql_query(CREATE_MMR_IF_NOT_EXISTS)
+            .execute(&conn)
+            .unwrap_or_default();
+
+        Store { conn }
+    }
+
+    /// Drop mmr table
+    pub fn re_create(&self) -> Result<usize, diesel::result::Error> {
+        let r = diesel::sql_query(DROP_MMR_TABLE).execute(&self.conn);
+        if r.is_ok() {
+            diesel::sql_query(CREATE_MMR_IF_NOT_EXISTS).execute(&self.conn)
+        } else {
+            r
         }
     }
 }
@@ -49,46 +68,50 @@ impl Default for Store {
     }
 }
 
+// You can choose to implement multiple traits, like Lower and UpperHex
+impl fmt::Display for ETHash {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        for byte in &self.hash {
+            write!(f, "{:x}", byte)?;
+        }
+        Ok(())
+    }
+}
+
 impl MMRStore<ETHash> for Store {
     fn get_elem(&self, rpos: u64) -> MMRResult<Option<ETHash>> {
-        let shadow = eth_header_with_proof_caches
+        let store = mmr_store
             .filter(pos.eq(rpos as i64))
-            .first::<Shadow>(&self.conn);
+            .first::<Header>(&self.conn);
 
-        if shadow.is_ok() {
-            Ok(Some(ETHash::from(shadow.unwrap_or_default().mmr.as_str())))
+        if store.is_ok() {
+            Ok(Some(ETHash::from(store.unwrap().elem.as_str())))
         } else {
             Ok(None)
         }
     }
 
     fn append(&mut self, rpos: u64, elems: Vec<ETHash>) -> MMRResult<()> {
-        let count_res = eth_header_with_proof_caches
-            .select(count(mmr))
-            .first::<i64>(&self.conn);
-
-        if count_res.is_err() {
-            return Err(Error::StoreError(
-                "Counts mmr from sqlite3 failed".to_string(),
-            ));
+        let mut the_count: u64 = 0;
+        let count_res = mmr_store.select(count(elem)).first::<i64>(&self.conn);
+        if count_res.is_ok() {
+            the_count = count_res.unwrap() as u64;
         }
 
         // Specify the count
-        let count = count_res.unwrap() as u64;
-        println!("rpos is {:#?}, the count is {:#?}", rpos, count);
-        // if rpos != count {
-        //     Err(Error::InconsistentStore)?;
-        // }
+        if rpos != the_count {
+            Err(Error::InconsistentStore)?;
+        }
 
-        for (i, elem) in elems.into_iter().enumerate() {
-            let target = eth_header_with_proof_caches.filter(pos.eq(rpos as i64 + i as i64));
-            let res = diesel::update(target)
-                .set(mmr.eq(format!("{:x?}", &elem.0.to_vec())))
+        for (i, relem) in elems.into_iter().enumerate() {
+            let header = Header::new(relem.to_string(), rpos as i64 + i as i64, 0);
+            let res = diesel::replace_into(mmr_store)
+                .values(&vec![header])
                 .execute(&self.conn);
+
             if res.is_err() {
-                // println!("{:#?}", &res);
                 return Err(Error::StoreError(format!(
-                    "Updates mmr of pos {} into sqlite3 failed",
+                    "Insert mmr of pos {} into sqlite3 failed",
                     rpos as i64 + i as i64
                 )));
             }

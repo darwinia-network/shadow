@@ -17,12 +17,13 @@ const HEADERS: [&str; 10] = [
 #[test]
 fn test_mmr() {
     let store = Store::default();
+    store.re_create().unwrap_or_default();
+
     let mut mmr = MMR::<_, MergeETHash, _>::new(0, store);
     let pos: Vec<u64> = (0usize..10usize)
         .map(|h| mmr.push(ETHash::from(HEADERS[h])).unwrap())
         .collect();
 
-    println!("{:#?}", &pos);
     let root = mmr.get_root().expect("get root failed");
     let proof = mmr
         .gen_proof((0..10).map(|e| pos[e]).collect())

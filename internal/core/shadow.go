@@ -7,6 +7,7 @@ import (
 	"github.com/darwinia-network/darwinia.go/internal/eth"
 	"github.com/darwinia-network/darwinia.go/internal/util"
 	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/jinzhu/gorm"
 )
 
 // Shadow genesis block error message
@@ -17,6 +18,7 @@ const PROOF_LOCK = "proof.lock"
 type Shadow struct {
 	Config internal.Config
 	Geth   eth.Geth
+	DB     *gorm.DB
 }
 
 /**
@@ -144,49 +146,19 @@ func (s *Shadow) GetEthHeaderWithProofByNumber(
 
 	// Fetch header from cache
 	cache := EthHeaderWithProofCache{Number: params.Number}
-	rawResp, err := cache.Fetch()
-
-	// Fetch header from infura
+	err = cache.Fetch(s.Config, s.DB, s.Geth)
 	if err != nil {
-		// Fetch eth header
-		ethHeader, err := eth.Header(params.Number, s.Config.Api, s.Geth)
-		if err != nil {
-			return err
-		}
+		return err
+	}
 
-		rawResp.Header, err = eth.IntoDarwiniaEthHeader(ethHeader)
-		if err != nil {
-			return err
-		}
+	err = cache.ApplyProof(s.Config, s.Geth)
+	if err != nil {
+		return err
+	}
 
-		// Check proof lock
-		if s.Config.CheckLock(PROOF_LOCK) {
-			return fmt.Errorf("Shadow service is busy now, please try again later")
-		} else {
-			err := s.Config.CreateLock(PROOF_LOCK, []byte(""))
-			if err != nil {
-				return err
-			}
-		}
-
-		// Proof header
-		proof, err := eth.Proof(&ethHeader, s.Config)
-		rawResp.Proof = proof.Format()
-		if err != nil {
-			return err
-		}
-
-		// Remove proof lock
-		err = s.Config.RemoveLock(PROOF_LOCK)
-		if err != nil {
-			return err
-		}
-
-		// Create cache
-		err = cache.FromResp(rawResp)
-		if err != nil {
-			return err
-		}
+	rawResp, err := cache.IntoResp()
+	if err != nil {
+		return err
 	}
 
 	// Set response

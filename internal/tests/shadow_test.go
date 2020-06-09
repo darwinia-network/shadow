@@ -1,7 +1,6 @@
 package tests
 
 import (
-	// "os"
 	"fmt"
 	"testing"
 
@@ -18,8 +17,14 @@ func genShadow() core.Shadow {
 	err := conf.Load()
 	util.Assert(err)
 
+	// Generate Shadow
+	shadow := new(core.Shadow)
+	shadow.Config = conf
+	shadow.DB, err = core.ConnectDb()
+	util.Assert(err)
+
 	// Generate shadow rpc
-	return core.Shadow{Config: conf}
+	return *shadow
 }
 
 func TestGetBlockByNumber(t *testing.T) {

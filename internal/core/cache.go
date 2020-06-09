@@ -2,12 +2,16 @@ package core
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"os"
 	"os/user"
 	"path"
 
+	"github.com/darwinia-network/darwinia.go/internal"
 	"github.com/darwinia-network/darwinia.go/internal/eth"
+	"github.com/darwinia-network/darwinia.go/internal/util"
+	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
 )
@@ -19,20 +23,15 @@ const DB_PATH = ".darwinia/cache/shadow.db"
 type EthHeaderWithProofCache struct {
 	gorm.Model
 	Number uint64 `json:"number" gorm:"unique_index"`
-	Hash   string `json:"hash"`
 	Header string `json:"eth_header"`
-	Pos    string `json:"pos"`
 	Proof  string `json:"proof"`
-	Mmr    string `json:"mmr"`
 }
 
 // Save header to cache
-func (c *EthHeaderWithProofCache) FromResp(resp GetEthHeaderWithProofByNumberRawResp) error {
-	db, err := ConnectDb()
-	if err != nil {
-		return err
-	}
-
+func (c *EthHeaderWithProofCache) FromResp(
+	db *gorm.DB,
+	resp GetEthHeaderWithProofByNumberRawResp,
+) error {
 	// Convert header to string
 	header, err := json.Marshal(resp.Header)
 	if err != nil {
@@ -44,15 +43,63 @@ func (c *EthHeaderWithProofCache) FromResp(resp GetEthHeaderWithProofByNumberRaw
 		return err
 	}
 
-	defer db.Close()
 	db.Create(&EthHeaderWithProofCache{
 		Number: resp.Header.Number,
-		Hash:   resp.Header.Hash,
 		Header: string(header),
 		Proof:  string(proof),
 	})
 
-	// Return nil
+	return nil
+}
+
+/// The func should run after `Fetch`
+func (c *EthHeaderWithProofCache) ApplyProof(config internal.Config, geth eth.Geth) error {
+	var (
+		ethHeader types.Header
+		err       error
+	)
+
+	if util.IsEmpty(c.Number) {
+		return fmt.Errorf("Empty eth number")
+	} else if util.IsEmpty(c.Header) || c.Header == "" {
+		return fmt.Errorf("Empty eth header")
+	} else {
+		ethHeader, err = eth.Header(c.Number, config.Api, geth)
+		if err != nil {
+			return err
+		}
+	}
+
+	// Check proof lock
+	if util.IsEmpty(c.Proof) || c.Proof == "" {
+		if config.CheckLock(PROOF_LOCK) {
+			return fmt.Errorf("Shadow service is busy now, please try again later")
+		} else {
+			err := config.CreateLock(PROOF_LOCK, []byte(""))
+			if err != nil {
+				return err
+			}
+		}
+
+		// Proof header
+		proof, err := eth.Proof(&ethHeader, config)
+		if err != nil {
+			return err
+		}
+
+		proofBytes, err := json.Marshal(proof.Format())
+		if err != nil {
+			return err
+		}
+
+		c.Proof = string(proofBytes)
+
+		// Remove proof lock
+		err = config.RemoveLock(PROOF_LOCK)
+		if err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
@@ -81,22 +128,34 @@ func (c *EthHeaderWithProofCache) IntoResp() (GetEthHeaderWithProofByNumberRawRe
 }
 
 // Fetch Eth Header by number
-func (c *EthHeaderWithProofCache) Fetch() (GetEthHeaderWithProofByNumberRawResp, error) {
-	var resp GetEthHeaderWithProofByNumberRawResp
-	db, err := ConnectDb()
-	if err != nil {
-		return resp, err
-	}
-
+func (c *EthHeaderWithProofCache) Fetch(
+	config internal.Config,
+	db *gorm.DB,
+	geth eth.Geth,
+) error {
 	// Get header from sqlite3
-	defer db.Close()
-	err = db.Where("number = ?", c.Number).Take(&c).Error
-	if err != nil {
-		return resp, err
+	err := db.Where("number = ?", c.Number).Take(&c).Error
+	if err != nil || util.IsEmpty(c.Header) || c.Header == "" {
+		ethHeader, err := eth.Header(c.Number, config.Api, geth)
+		if err != nil {
+			return err
+		}
+
+		header, err := eth.IntoDarwiniaEthHeader(ethHeader)
+		if err != nil {
+			return err
+		}
+
+		bytes, err := json.Marshal(header)
+		if err != nil {
+			return err
+		}
+
+		c.Header = string(bytes)
 	}
 
 	// Return resp
-	return c.IntoResp()
+	return nil
 }
 
 // Connect to cache

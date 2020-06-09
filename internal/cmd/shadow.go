@@ -45,6 +45,8 @@ var cmdShadow = &cobra.Command{
 		// Generate Shadow
 		shadow := new(core.Shadow)
 		shadow.Config = *conf
+		shadow.DB, err = core.ConnectDb()
+		util.Assert(err)
 
 		// if need fetch
 		if Fetch {

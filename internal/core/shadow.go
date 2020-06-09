@@ -151,7 +151,7 @@ func (s *Shadow) GetEthHeaderWithProofByNumber(
 		return err
 	}
 
-	err = cache.ApplyProof(s.Config, s.Geth)
+	err = cache.ApplyProof(s.Config, s.DB, s.Geth)
 	if err != nil {
 		return err
 	}

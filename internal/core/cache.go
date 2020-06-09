@@ -53,7 +53,11 @@ func (c *EthHeaderWithProofCache) FromResp(
 }
 
 /// The func should run after `Fetch`
-func (c *EthHeaderWithProofCache) ApplyProof(config internal.Config, geth eth.Geth) error {
+func (c *EthHeaderWithProofCache) ApplyProof(
+	config internal.Config,
+	db *gorm.DB,
+	geth eth.Geth,
+) error {
 	var (
 		ethHeader types.Header
 		err       error
@@ -72,6 +76,7 @@ func (c *EthHeaderWithProofCache) ApplyProof(config internal.Config, geth eth.Ge
 
 	// Check proof lock
 	if util.IsEmpty(c.Proof) || c.Proof == "" {
+		fmt.Println("proof is empty")
 		if config.CheckLock(PROOF_LOCK) {
 			return fmt.Errorf("Shadow service is busy now, please try again later")
 		} else {
@@ -93,6 +98,10 @@ func (c *EthHeaderWithProofCache) ApplyProof(config internal.Config, geth eth.Ge
 		}
 
 		c.Proof = string(proofBytes)
+		err = db.Model(&c).Where("number = ?", c.Number).Update("proof", c.Proof).Error
+		if err != nil {
+			return err
+		}
 
 		// Remove proof lock
 		err = config.RemoveLock(PROOF_LOCK)
@@ -152,6 +161,11 @@ func (c *EthHeaderWithProofCache) Fetch(
 		}
 
 		c.Header = string(bytes)
+		db.Create(&c)
+		log.Printf(
+			"import header #%v\n",
+			c.Number,
+		)
 	}
 
 	// Return resp

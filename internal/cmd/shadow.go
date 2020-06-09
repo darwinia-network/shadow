@@ -2,7 +2,7 @@ package cmd
 
 import (
 	"fmt"
-	"time"
+	"log"
 
 	"github.com/darwinia-network/darwinia.go/internal"
 	"github.com/darwinia-network/darwinia.go/internal/core"
@@ -12,18 +12,21 @@ import (
 )
 
 func fetch(shadow *core.Shadow, genesis uint64) {
-	var n uint64 = genesis
-	for n > genesis {
-		var _dimmy core.GetEthHeaderByNumberResp
-		err := shadow.GetEthHeaderByNumber(core.GetEthHeaderByNumberParams{
-			Number: n,
-		}, &_dimmy)
-
+	ptr := core.EthHeaderWithProofCache{Number: genesis}
+	for ptr.Number >= genesis {
+		err := ptr.Fetch(shadow.Config, shadow.DB, shadow.Geth)
 		if err != nil {
-			fmt.Println(fmt.Errorf("Get block failed, sleep for 1 min"))
-			time.Sleep(60 * time.Second)
+			log.Printf(
+				"fetch header %v failed\n",
+				ptr.Number,
+			)
+			continue
 		}
-		n++
+
+		ptr = core.EthHeaderWithProofCache{
+			Number: ptr.Number + 1,
+			Header: "",
+		}
 	}
 }
 

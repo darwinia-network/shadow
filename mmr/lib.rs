@@ -6,6 +6,6 @@ mod sql;
 mod store;
 
 pub use self::{
-    hash::{MergeETHash, H256},
+    hash::{hash, MergeHash, H256},
     store::Store,
 };

@@ -13,8 +13,7 @@ crate_type = ["rlib", "dylib"]
 dirs = "2.0.2"
 etc = "0.1.7"
 cmmr = { version = "0.3.0", package = "ckb-merkle-mountain-range"}
-codec = { package = "parity-scale-codec", version = "1.3.0", default-features = false }
-blake2b-rs = "0.1.5"
+codec = { package = "parity-scale-codec", version = "1.3.0", features = ["derive"]}
 blake2-rfc = "0.2.18"
 
 [dependencies.diesel]

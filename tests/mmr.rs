@@ -1,5 +1,5 @@
 use cmmr::{Merge, MMR};
-use mmr::{MergeETHash, Store, H256};
+use mmr::{MergeHash, Store, H256};
 use std::{env, fs};
 
 const HEADERS_N_ROOTS: [(&str, &str); 10] = [
@@ -48,8 +48,24 @@ const HEADERS_N_ROOTS: [(&str, &str); 10] = [
 #[test]
 fn test_hex() {
     &HEADERS_N_ROOTS.iter().for_each(|h| {
-        assert_eq!(<[u8; 32] as H256>::from(h.0).to_hex(), String::from(h.0));
+        assert_eq!(<[u8; 32] as H256>::from(h.0).hex(), String::from(h.0));
     });
+}
+
+#[test]
+fn test_mmr_root() {
+    let db = env::temp_dir().join("test_mmr_root.db");
+    let store = Store::new(&db);
+    store.re_create().unwrap_or_default();
+
+    let mut mmr = MMR::<_, MergeHash, _>::new(0, store);
+    (0..10).for_each(|i| {
+        let cur = HEADERS_N_ROOTS[i];
+        mmr.push(<[u8; 32] as H256>::from(cur.0).into()).unwrap();
+        assert_eq!(H256::hex(&mmr.get_root().unwrap()), cur.1);
+    });
+
+    assert!(fs::remove_file(db).is_ok());
 }
 
 #[test]
@@ -58,7 +74,7 @@ fn test_mmr_proof() {
     let store = Store::new(&db);
     store.re_create().unwrap_or_default();
 
-    let mut mmr = MMR::<_, MergeETHash, _>::new(0, store);
+    let mut mmr = MMR::<_, MergeHash, _>::new(0, store);
     let pos: Vec<u64> = (0usize..2usize)
         .map(|h| {
             mmr.push(<[u8; 32] as H256>::from(HEADERS_N_ROOTS[h].0))
@@ -85,14 +101,11 @@ fn test_mmr_proof() {
 }
 
 #[test]
-fn test_mmr_root() {
-    let lhs = <[u8; 32] as H256>::from(HEADERS_N_ROOTS[0].0);
-    let rhs = <[u8; 32] as H256>::from(HEADERS_N_ROOTS[1].0);
-    let res = MergeETHash::merge(&lhs, &rhs);
-    let mut hash: [u8; 32] = [0; 32];
-    println!("{}", &lhs.to_hex());
-    println!("{}", &rhs.to_hex());
-
-    blake2b_rs::blake2b(&lhs, &rhs, &mut hash);
-    println!("\n{}", H256::to_hex(&res));
+fn test_mmr_merge() {
+    let lhs: [u8; 32] = <[u8; 32] as H256>::from(HEADERS_N_ROOTS[0].0);
+    let rhs: [u8; 32] = <[u8; 32] as H256>::from(HEADERS_N_ROOTS[1].0);
+    assert_eq!(
+        "3aafcc7fe12cb8fad62c261458f1c19dba0a3756647fa4e8bff6e248883938be",
+        H256::hex(&MergeHash::merge(&lhs, &rhs))
+    );
 }

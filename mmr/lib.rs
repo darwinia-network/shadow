@@ -1,11 +1,11 @@
 #[macro_use]
 extern crate diesel;
 
-mod ethash;
+mod hash;
 mod sql;
 mod store;
 
 pub use self::{
-    ethash::{ETHash, MergeETHash},
+    hash::{MergeETHash, H256},
     store::Store,
 };

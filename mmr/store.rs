@@ -1,9 +1,9 @@
 //! MMR store
 use self::mmr_store::{columns::pos, dsl::*};
-use super::{sql::*, ETHash};
+use super::{sql::*, H256};
 use cmmr::{Error, MMRStore, Result as MMRResult};
 use diesel::{dsl::count, prelude::*};
-use std::{fmt, path::PathBuf};
+use std::path::PathBuf;
 
 /// Constants
 const RELATIVE_DB: &str = ".darwinia/cache/shadow.db";
@@ -37,6 +37,7 @@ table! {
 
 /// MMR Store
 pub struct Store {
+    pub path: PathBuf,
     pub conn: SqliteConnection,
 }
 
@@ -64,10 +65,13 @@ impl Store {
             .execute(&conn)
             .unwrap_or_default();
 
-        Store { conn }
+        Store {
+            path: p.to_path_buf(),
+            conn,
+        }
     }
 
-    /// Drop mmr table
+    /// Drop mmr table and create it again
     pub fn re_create(&self) -> Result<usize, diesel::result::Error> {
         let r = diesel::sql_query(DROP_MMR_TABLE).execute(&self.conn);
         if r.is_ok() {
@@ -86,43 +90,35 @@ impl Default for Store {
     }
 }
 
-// You can choose to implement multiple traits, like Lower and UpperHex
-impl fmt::Display for ETHash {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        for byte in &self.hash {
-            write!(f, "{:x}", byte)?;
-        }
-        Ok(())
-    }
-}
-
-impl MMRStore<ETHash> for Store {
-    fn get_elem(&self, rpos: u64) -> MMRResult<Option<ETHash>> {
+impl<H> MMRStore<H> for Store
+where
+    H: H256,
+{
+    fn get_elem(&self, rpos: u64) -> MMRResult<Option<H>> {
         let store = mmr_store
             .filter(pos.eq(rpos as i64))
             .first::<Header>(&self.conn);
 
         if store.is_ok() {
-            Ok(Some(ETHash::from(store.unwrap().elem.as_str())))
+            Ok(Some(H::from(store.unwrap().elem.as_str())))
         } else {
             Ok(None)
         }
     }
 
-    fn append(&mut self, rpos: u64, elems: Vec<ETHash>) -> MMRResult<()> {
+    fn append(&mut self, rpos: u64, elems: Vec<H>) -> MMRResult<()> {
         let mut the_count: u64 = 0;
         let count_res = mmr_store.select(count(elem)).first::<i64>(&self.conn);
         if count_res.is_ok() {
             the_count = count_res.unwrap() as u64;
         }
 
-        // Specify the count
         if rpos != the_count {
             Err(Error::InconsistentStore)?;
         }
 
         for (i, relem) in elems.into_iter().enumerate() {
-            let header = Header::new(relem.to_string(), rpos as i64 + i as i64, 0);
+            let header = Header::new(relem.to_hex(), rpos as i64 + i as i64, 0);
             let res = diesel::replace_into(mmr_store)
                 .values(&vec![header])
                 .execute(&self.conn);

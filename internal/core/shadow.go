@@ -126,16 +126,19 @@ type GetEthHeaderWithProofByNumberParams struct {
 type GetEthHeaderWithProofByNumberRawResp struct {
 	Header eth.DarwiniaEthHeader           `json:"eth_header"`
 	Proof  []eth.DoubleNodeWithMerkleProof `json:"proof"`
+	Root   string                          `json:"root"`
 }
 
 type GetEthHeaderWithProofByNumberJSONResp struct {
 	Header eth.DarwiniaEthHeaderHexFormat  `json:"eth_header"`
 	Proof  []eth.DoubleNodeWithMerkleProof `json:"proof"`
+	Root   string                          `json:"root"`
 }
 
 type GetEthHeaderWithProofByNumberCodecResp struct {
 	Header string `json:"eth_header"`
 	Proof  string `json:"proof"`
+	Root   string `json:"root"`
 }
 
 func (s *Shadow) GetEthHeaderWithProofByNumber(
@@ -173,11 +176,13 @@ func (s *Shadow) GetEthHeaderWithProofByNumber(
 		*resp = GetEthHeaderWithProofByNumberCodecResp{
 			encodeDarwiniaEthHeader(rawResp.Header),
 			encodeProofArray(rawResp.Proof),
+			rawResp.Root,
 		}
 	} else if params.Options.Format == "json" {
 		*resp = GetEthHeaderWithProofByNumberJSONResp{
 			rawResp.Header.HexFormat(),
 			rawResp.Proof,
+			rawResp.Root,
 		}
 	}
 

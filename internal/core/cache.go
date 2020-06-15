@@ -135,6 +135,7 @@ func (c *EthHeaderWithProofCache) IntoResp() (GetEthHeaderWithProofByNumberRawRe
 	return GetEthHeaderWithProofByNumberRawResp{
 		header,
 		proof,
+		c.Root,
 	}, nil
 }
 

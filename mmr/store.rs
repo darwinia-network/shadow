@@ -16,6 +16,12 @@ pub struct Store {
 }
 
 impl Store {
+    /// new conn
+    pub fn conn(&self) -> SqliteConnection {
+        SqliteConnection::establish(&self.path.to_string_lossy())
+            .unwrap_or_else(|_| panic!("Error connecting to {:?}", &self.path))
+    }
+
     /// New store with path
     ///
     /// This is the very begining part of mmr service, panic when connect db failed.
@@ -35,7 +41,9 @@ impl Store {
 
         let conn = SqliteConnection::establish(&p.to_string_lossy())
             .unwrap_or_else(|_| panic!("Error connecting to {:?}", p));
-        diesel::sql_query(CREATE_MMR_IF_NOT_EXISTS)
+
+        // Create store table
+        diesel::sql_query(CREATE_MMR_STORE_IF_NOT_EXISTS)
             .execute(&conn)
             .unwrap_or_default();
 
@@ -49,7 +57,7 @@ impl Store {
     pub fn re_create(&self) -> Result<usize, diesel::result::Error> {
         let r = diesel::sql_query(DROP_MMR_TABLE).execute(&self.conn);
         if r.is_ok() {
-            diesel::sql_query(CREATE_MMR_IF_NOT_EXISTS).execute(&self.conn)
+            diesel::sql_query(CREATE_MMR_STORE_IF_NOT_EXISTS).execute(&self.conn)
         } else {
             r
         }

@@ -22,9 +22,11 @@ const DB_PATH = ".darwinia/cache/shadow.db"
 // EthHeaderWithProof Cache
 type EthHeaderWithProofCache struct {
 	gorm.Model
+	Hash   string `json:"hash"`
 	Number uint64 `json:"number" gorm:"unique_index"`
 	Header string `json:"eth_header"`
 	Proof  string `json:"proof"`
+	Root   string `json:"root"`
 }
 
 // Save header to cache
@@ -44,6 +46,7 @@ func (c *EthHeaderWithProofCache) FromResp(
 	}
 
 	db.Create(&EthHeaderWithProofCache{
+		Hash:   resp.Header.Hash,
 		Number: resp.Header.Number,
 		Header: string(header),
 		Proof:  string(proof),
@@ -160,13 +163,14 @@ func (c *EthHeaderWithProofCache) Fetch(
 		}
 
 		c.Header = string(bytes)
+		c.Hash = ethHeader.Hash().Hex()
 		db.Create(&c)
 
 		// Prints logs every 100 headers
-		if c.Number % 100 == 0 {
+		if c.Number%100 == 0 {
 			log.Printf(
 				"imported headers from #%v to #%v\n",
-				c.Number - 100,
+				c.Number-100,
 				c.Number,
 			)
 		}

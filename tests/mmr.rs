@@ -90,6 +90,7 @@ fn test_mmr_proof() {
         .gen_proof((0..10).map(|e| pos[e]).collect())
         .expect("gen proof");
 
+    mmr.commit().expect("commit changes");
     let result = proof
         .verify(
             root,
@@ -98,7 +99,7 @@ fn test_mmr_proof() {
                 .collect(),
         )
         .unwrap();
-    mmr.commit().expect("commit changes");
+
     assert!(result);
     assert!(fs::remove_file(db).is_ok());
 }

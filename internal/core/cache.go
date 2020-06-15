@@ -26,7 +26,9 @@ type EthHeaderWithProofCache struct {
 	Number uint64 `json:"number" gorm:"unique_index"`
 	Header string `json:"eth_header"`
 	Proof  string `json:"proof"`
-	Root   string `json:"root" gorm:"DEFAULT:NULL"`
+	// MMR
+	Pos  string `json:"pos"`
+	Root string `json:"root" gorm:"DEFAULT:NULL"`
 }
 
 // Save header to cache

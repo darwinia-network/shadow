@@ -3,7 +3,10 @@ use super::{
     hash::{MergeHash, H256},
     model::Cache,
     result::Error,
-    schema::{eth_header_with_proof_caches::dsl::*, mmr_store::dsl::*},
+    schema::{
+        eth_header_with_proof_caches::dsl::{pos as cpos, *},
+        mmr_store::dsl::*,
+    },
     store::{Store, DEFAULT_RELATIVE_MMR_DB},
 };
 use cmmr::MMR;
@@ -81,12 +84,12 @@ impl Runner {
             .first::<Cache>(&store.conn)?;
 
         let mut mmr = MMR::<_, MergeHash, _>::new(count as u64, store);
-        mmr.push(H256::from(&cache.hash[2..]))?;
+        let rpos = mmr.push(H256::from(&cache.hash[2..]))?;
 
         // eth_header_with_proof_caches
         let proot = mmr.get_root()?;
         diesel::update(eth_header_with_proof_caches.filter(number.eq(pnumber)))
-            .set(root.eq(Some(H256::hex(&proot))))
+            .set((root.eq(Some(H256::hex(&proot))), cpos.eq(rpos as i64)))
             .execute(&conn)?;
 
         mmr.commit()?;

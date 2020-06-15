@@ -26,7 +26,7 @@ type EthHeaderWithProofCache struct {
 	Number uint64 `json:"number" gorm:"unique_index"`
 	Header string `json:"eth_header"`
 	Proof  string `json:"proof"`
-	Root   string `json:"root"`
+	Root   string `json:"root" gorm:"DEFAULT:NULL"`
 }
 
 // Save header to cache
@@ -167,7 +167,7 @@ func (c *EthHeaderWithProofCache) Fetch(
 		db.Create(&c)
 
 		// Prints logs every 100 headers
-		if c.Number%100 == 0 {
+		if c.Number > 0 && c.Number%100 == 0 {
 			log.Printf(
 				"imported headers from #%v to #%v\n",
 				c.Number-100,

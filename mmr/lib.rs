@@ -3,18 +3,15 @@
 
 #[macro_use]
 extern crate diesel;
+#[macro_use]
+extern crate log;
 
-mod hash;
 mod model;
-mod result;
-mod runner;
 mod schema;
 mod sql;
-mod store;
 
-pub use self::{
-    hash::{hash, MergeHash, H256},
-    result::Error,
-    runner::Runner,
-    store::Store,
-};
+pub mod bridge;
+pub mod hash;
+pub mod result;
+pub mod runner;
+pub mod store;

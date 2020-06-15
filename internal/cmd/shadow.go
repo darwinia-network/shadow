@@ -1,5 +1,9 @@
 package cmd
 
+//#cgo LDFLAGS: -L${SRCDIR}/../../target/release -lmmr -ldl
+//#include <stdint.h>
+//extern int32_t run();
+import "C"
 import (
 	"fmt"
 	"log"
@@ -12,6 +16,10 @@ import (
 )
 
 func fetch(shadow *core.Shadow, genesis uint64) {
+	// run mmr service
+	go C.run()
+
+	// fetcher
 	ptr := core.EthHeaderWithProofCache{Number: genesis}
 	for ptr.Number >= genesis {
 		err := ptr.Fetch(shadow.Config, shadow.DB, shadow.Geth)

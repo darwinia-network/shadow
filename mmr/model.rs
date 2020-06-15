@@ -30,5 +30,5 @@ pub struct Cache {
     /// MMR Result Number
     pub number: i64,
     /// MMR Result Root
-    pub root: String,
+    pub root: Option<String>,
 }

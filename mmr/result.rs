@@ -3,6 +3,7 @@ use cmmr::Error as MMRError;
 use diesel::result::Error as DieselError;
 
 /// MMR Errors
+#[derive(Debug)]
 pub enum Error {
     /// Diesel Error
     Diesel(DieselError),

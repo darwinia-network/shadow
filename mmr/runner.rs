@@ -1,9 +1,10 @@
 //! MMR Runner
 use super::{
+    hash::{MergeHash, H256},
     model::Cache,
+    result::Error,
     schema::{eth_header_with_proof_caches::dsl::*, mmr_store::dsl::*},
-    store::DEFAULT_RELATIVE_MMR_DB,
-    Error, MergeHash, Store, H256,
+    store::{Store, DEFAULT_RELATIVE_MMR_DB},
 };
 use cmmr::MMR;
 use diesel::{dsl::count, prelude::*};
@@ -32,11 +33,12 @@ impl Runner {
                 if let Ok(_) = self.push(base) {
                     base += 1;
                 } else {
-                    thread::sleep(time::Duration::from_secs(3));
+                    thread::sleep(time::Duration::from_secs(10));
                     return self.start();
                 }
             }
         } else {
+            info!("init mmr database");
             thread::sleep(time::Duration::from_secs(3));
             return self.start();
         }
@@ -46,6 +48,7 @@ impl Runner {
     fn cache_count(&self) -> Result<i64, Error> {
         let store = Store::new(&self.path);
         let res = eth_header_with_proof_caches
+            .filter(root.is_not_null())
             .select(count(root))
             .first::<i64>(&store.conn);
         if let Err(e) = res {
@@ -67,9 +70,9 @@ impl Runner {
     }
 
     /// Push new header hash into storage
-    pub fn push(&mut self, pnumber: i64) -> Result<(), Error> {
+    fn push(&mut self, pnumber: i64) -> Result<(), Error> {
         let store = Store::new(&self.path);
-        let count = self.mmr_count()?;
+        let count = self.mmr_count().unwrap_or(0);
 
         // Get Hash
         let conn = store.conn();
@@ -78,12 +81,12 @@ impl Runner {
             .first::<Cache>(&store.conn)?;
 
         let mut mmr = MMR::<_, MergeHash, _>::new(count as u64, store);
-        mmr.push(H256::from(&cache.hash))?;
+        mmr.push(H256::from(&cache.hash[2..]))?;
 
         // eth_header_with_proof_caches
         let proot = mmr.get_root()?;
-        diesel::replace_into(eth_header_with_proof_caches)
-            .values(&vec![(number.eq(pnumber), root.eq(H256::hex(&proot)))])
+        diesel::update(eth_header_with_proof_caches.filter(number.eq(pnumber)))
+            .set(root.eq(Some(H256::hex(&proot))))
             .execute(&conn)?;
 
         mmr.commit()?;

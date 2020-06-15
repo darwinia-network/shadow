@@ -1,5 +1,8 @@
 use cmmr::{Merge, MMR};
-use mmr::{MergeHash, Store, H256};
+use mmr::{
+    hash::{MergeHash, H256},
+    store::Store,
+};
 use std::{env, fs};
 
 const HEADERS_N_ROOTS: [(&str, &str); 10] = [

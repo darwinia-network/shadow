@@ -1,5 +1,5 @@
 //! MMR store
-use super::{model::*, schema::mmr_store::dsl::*, sql::*, H256};
+use super::{hash::H256, model::*, schema::mmr_store::dsl::*, sql::*};
 use cmmr::{Error, MMRStore, Result as MMRResult};
 use diesel::{dsl::count, prelude::*};
 use std::path::PathBuf;

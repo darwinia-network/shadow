@@ -2,6 +2,7 @@ package core
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/darwinia-network/darwinia.go/internal"
 	"github.com/darwinia-network/darwinia.go/internal/eth"
@@ -73,6 +74,7 @@ func (s *Shadow) GetEthHeaderByNumber(
 	params GetEthHeaderByNumberParams,
 	resp *GetEthHeaderByNumberResp,
 ) error {
+	log.Println("Request /GetEthHeaderByNumber")
 	err := s.checkGenesis(s.Config.Genesis, params.Number, s.Config.Api)
 	if err != nil {
 		return err
@@ -98,6 +100,7 @@ func (s *Shadow) GetEthHeaderByHash(
 	params GetEthHeaderByHashParams,
 	resp *GetEthHeaderByHashResp,
 ) error {
+	log.Println("Request /GetEthHeaderByHash")
 	err := s.checkGenesis(s.Config.Genesis, params.Hash, s.Config.Api)
 	if err != nil {
 		return err
@@ -139,6 +142,7 @@ func (s *Shadow) GetEthHeaderWithProofByNumber(
 	params GetEthHeaderWithProofByNumberParams,
 	resp *interface{},
 ) error {
+	log.Println("Request /GetEthHeaderWithProofByNumber")
 	err := s.checkGenesis(s.Config.Genesis, params.Number, s.Config.Api)
 	if err != nil {
 		return err
@@ -192,6 +196,7 @@ func (s *Shadow) GetEthHeaderWithProofByHash(
 	params GetEthHeaderWithProofByHashParams,
 	resp *interface{},
 ) error {
+	log.Println("Request /GetEthHeaderWithProofByHash")
 	eH, err := eth.Header(params.Hash, s.Config.Api, s.Geth)
 	if err != nil {
 		return err
@@ -225,6 +230,7 @@ func (s *Shadow) BatchEthHeaderWithProofByNumber(
 	params BatchEthHeaderWithProofByNumberParams,
 	resp *interface{},
 ) error {
+	log.Println("Request /BatchEthHeaderWithProofByNumber")
 	var nps []interface{}
 	for i := 0; i < params.Batch; i++ {
 		var np interface{}

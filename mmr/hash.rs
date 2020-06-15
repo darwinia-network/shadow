@@ -1,9 +1,12 @@
+//! MMR Hashes
 use blake2_rfc::blake2b::blake2b;
 use cmmr::Merge;
 
 /// H256 trait for `[u8;32]`
 pub trait H256 {
+    /// Generate `H256` from `&str`
     fn from(s: &str) -> Self;
+    /// Convert `H256` bytes to hex string
     fn hex(&self) -> String;
 }
 

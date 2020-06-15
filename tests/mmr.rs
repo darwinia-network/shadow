@@ -75,7 +75,7 @@ fn test_mmr_proof() {
     store.re_create().unwrap_or_default();
 
     let mut mmr = MMR::<_, MergeHash, _>::new(0, store);
-    let pos: Vec<u64> = (0usize..2usize)
+    let pos: Vec<u64> = (0..10)
         .map(|h| {
             mmr.push(<[u8; 32] as H256>::from(HEADERS_N_ROOTS[h].0))
                 .unwrap()
@@ -84,18 +84,18 @@ fn test_mmr_proof() {
 
     let root = mmr.get_root().expect("get root failed");
     let proof = mmr
-        .gen_proof((0..2).map(|e| pos[e]).collect())
+        .gen_proof((0..10).map(|e| pos[e]).collect())
         .expect("gen proof");
 
-    mmr.commit().expect("commit changes");
     let result = proof
         .verify(
             root,
-            (0..2)
+            (0..10)
                 .map(|e| (pos[e], <[u8; 32] as H256>::from(HEADERS_N_ROOTS[e].0)))
                 .collect(),
         )
         .unwrap();
+    mmr.commit().expect("commit changes");
     assert!(result);
     assert!(fs::remove_file(db).is_ok());
 }

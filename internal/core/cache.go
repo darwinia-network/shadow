@@ -76,7 +76,6 @@ func (c *EthHeaderWithProofCache) ApplyProof(
 
 	// Check proof lock
 	if util.IsEmpty(c.Proof) || c.Proof == "" {
-		fmt.Println("proof is empty")
 		if config.CheckLock(PROOF_LOCK) {
 			return fmt.Errorf("Shadow service is busy now, please try again later")
 		} else {
@@ -162,10 +161,15 @@ func (c *EthHeaderWithProofCache) Fetch(
 
 		c.Header = string(bytes)
 		db.Create(&c)
-		log.Printf(
-			"import header #%v\n",
-			c.Number,
-		)
+
+		// Prints logs every 100 headers
+		if c.Number % 100 == 0 {
+			log.Printf(
+				"imported headers from #%v to #%v\n",
+				c.Number - 100,
+				c.Number,
+			)
+		}
 	}
 
 	// Return resp

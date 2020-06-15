@@ -1,43 +1,17 @@
 //! MMR store
-use self::mmr_store::{columns::pos, dsl::*};
-use super::{sql::*, H256};
+use super::{model::*, schema::mmr_store::dsl::*, sql::*, H256};
 use cmmr::{Error, MMRStore, Result as MMRResult};
 use diesel::{dsl::count, prelude::*};
 use std::path::PathBuf;
 
 /// Constants
-const RELATIVE_DB: &str = ".darwinia/cache/shadow.db";
-
-/// Shadow db table
-#[derive(AsChangeset, Clone, Insertable, Queryable, Debug)]
-#[table_name = "mmr_store"]
-pub struct Header {
-    elem: String,
-    number: i64,
-    pos: i64,
-}
-
-impl Header {
-    fn new(relem: String, rnumber: i64, rpos: i64) -> Header {
-        Header {
-            elem: relem,
-            number: rnumber,
-            pos: rpos,
-        }
-    }
-}
-
-table! {
-    mmr_store(number) {
-        elem -> Text,
-        number -> BigInt,
-        pos -> BigInt,
-    }
-}
+pub const DEFAULT_RELATIVE_MMR_DB: &str = ".darwinia/cache/shadow.db";
 
 /// MMR Store
 pub struct Store {
+    /// Database path
     pub path: PathBuf,
+    /// Sqlite3 Connection
     pub conn: SqliteConnection,
 }
 
@@ -85,7 +59,7 @@ impl Store {
 impl Default for Store {
     fn default() -> Store {
         let mut root = dirs::home_dir().unwrap_or_default();
-        root.push(RELATIVE_DB);
+        root.push(DEFAULT_RELATIVE_MMR_DB);
         Store::new(&root)
     }
 }
@@ -118,15 +92,16 @@ where
         }
 
         for (i, relem) in elems.into_iter().enumerate() {
-            let header = Header::new(relem.hex(), rpos as i64 + i as i64, 0);
+            let header = Header::new(relem.hex(), rpos as i64 + i as i64);
             let res = diesel::replace_into(mmr_store)
                 .values(&vec![header])
                 .execute(&self.conn);
 
             if res.is_err() {
                 return Err(Error::StoreError(format!(
-                    "Insert mmr of pos {} into sqlite3 failed",
-                    rpos as i64 + i as i64
+                    "Insert mmr of pos {} into sqlite3 failed, {:?}",
+                    rpos as i64 + i as i64,
+                    res,
                 )));
             }
         }

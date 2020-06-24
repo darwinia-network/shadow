@@ -7,7 +7,6 @@ import (
 	"github.com/darwinia-network/darwinia.go/internal"
 	"github.com/darwinia-network/darwinia.go/internal/eth"
 	"github.com/darwinia-network/darwinia.go/internal/util"
-	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/jinzhu/gorm"
 )
 
@@ -62,17 +61,9 @@ func (s *Shadow) checkGenesis(genesis uint64, block interface{}, api string) err
 /**
  * GetEthHeaderByNumber
  */
-type GetEthHeaderByNumberParams struct {
-	Number uint64 `json:"number"`
-}
-
-type GetEthHeaderByNumberResp struct {
-	Header types.Header `json:"header"`
-}
-
 func (s *Shadow) GetEthHeaderByNumber(
 	params GetEthHeaderByNumberParams,
-	resp *GetEthHeaderByNumberResp,
+	resp *GetEthHeaderResp,
 ) error {
 	log.Println("Request /GetEthHeaderByNumber")
 	err := s.checkGenesis(s.Config.Genesis, params.Number, s.Config.Api)
@@ -88,17 +79,9 @@ func (s *Shadow) GetEthHeaderByNumber(
 /**
  * GetEthHeaderByHash
  */
-type GetEthHeaderByHashParams struct {
-	Hash string `json:"hash"`
-}
-
-type GetEthHeaderByHashResp struct {
-	Header types.Header `json:"header"`
-}
-
 func (s *Shadow) GetEthHeaderByHash(
 	params GetEthHeaderByHashParams,
-	resp *GetEthHeaderByHashResp,
+	resp *GetEthHeaderResp,
 ) error {
 	log.Println("Request /GetEthHeaderByHash")
 	err := s.checkGenesis(s.Config.Genesis, params.Hash, s.Config.Api)
@@ -114,33 +97,6 @@ func (s *Shadow) GetEthHeaderByHash(
 /**
  * GetEthHeaderWithProofByNumber
  */
-type GetEthHeaderWithProofByNumberOptions struct {
-	Format string `json:"format"`
-}
-
-type GetEthHeaderWithProofByNumberParams struct {
-	Number  uint64                               `json:"block_num"`
-	Options GetEthHeaderWithProofByNumberOptions `json:"options"`
-}
-
-type GetEthHeaderWithProofByNumberRawResp struct {
-	Header eth.DarwiniaEthHeader           `json:"eth_header"`
-	Proof  []eth.DoubleNodeWithMerkleProof `json:"proof"`
-	Root   string                          `json:"root"`
-}
-
-type GetEthHeaderWithProofByNumberJSONResp struct {
-	Header eth.DarwiniaEthHeaderHexFormat  `json:"eth_header"`
-	Proof  []eth.DoubleNodeWithMerkleProof `json:"proof"`
-	Root   string                          `json:"root"`
-}
-
-type GetEthHeaderWithProofByNumberCodecResp struct {
-	Header string `json:"eth_header"`
-	Proof  string `json:"proof"`
-	Root   string `json:"root"`
-}
-
 func (s *Shadow) GetEthHeaderWithProofByNumber(
 	params GetEthHeaderWithProofByNumberParams,
 	resp *interface{},
@@ -192,11 +148,6 @@ func (s *Shadow) GetEthHeaderWithProofByNumber(
 /**
  * GetEthHeaderWithProofByNumber
  */
-type GetEthHeaderWithProofByHashParams struct {
-	Hash    string                               `json:"hash"`
-	Options GetEthHeaderWithProofByNumberOptions `json:"options"`
-}
-
 func (s *Shadow) GetEthHeaderWithProofByHash(
 	params GetEthHeaderWithProofByHashParams,
 	resp *interface{},
@@ -225,12 +176,6 @@ func (s *Shadow) GetEthHeaderWithProofByHash(
 /**
  * BatchEthHeaderWithProofByNumber
  */
-type BatchEthHeaderWithProofByNumberParams struct {
-	Number  uint64                               `json:"number"`
-	Batch   int                                  `json:"batch"`
-	Options GetEthHeaderWithProofByNumberOptions `json:"options"`
-}
-
 func (s *Shadow) BatchEthHeaderWithProofByNumber(
 	params BatchEthHeaderWithProofByNumberParams,
 	resp *interface{},

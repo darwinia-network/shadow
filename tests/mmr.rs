@@ -113,3 +113,17 @@ fn test_mmr_merge() {
         H256::hex(&MergeHash::merge(&lhs, &rhs))
     );
 }
+
+#[test]
+fn test_mmr_peaks() {
+    let lhs: [u8; 32] = <[u8; 32] as H256>::from(
+        "70d641860d40937920de1eae29530cdc956be830f145128ebb2b496f151c1afb",
+    );
+    let rhs: [u8; 32] = <[u8; 32] as H256>::from(
+        "3aafcc7fe12cb8fad62c261458f1c19dba0a3756647fa4e8bff6e248883938be",
+    );
+    assert_eq!(
+        "3aafcc7fe12cb8fad62c261458f1c19dba0a3756647fa4e8bff6e248883938be",
+        H256::hex(&MergeHash::merge(&lhs, &rhs))
+    );
+}

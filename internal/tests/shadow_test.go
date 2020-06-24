@@ -31,7 +31,7 @@ func TestGetBlockByNumber(t *testing.T) {
 	t.Run("Test GetBlockByNumber", func(t *testing.T) {
 		shadow := genShadow()
 		params := core.GetEthHeaderByNumberParams{Number: uint64(1)}
-		resp := core.GetEthHeaderByNumberResp{}
+		resp := core.GetEthHeaderResp{}
 		err := shadow.GetEthHeaderByNumber(params, &resp)
 
 		util.Assert(err)
@@ -49,7 +49,7 @@ func TestGetBlockByHash(t *testing.T) {
 				"561d3bf31f45aae734cdc119f13406cb6",
 			),
 		}
-		resp := core.GetEthHeaderByHashResp{}
+		resp := core.GetEthHeaderResp{}
 		err := shadow.GetEthHeaderByHash(params, &resp)
 
 		util.Assert(err)

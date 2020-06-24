@@ -1,6 +1,4 @@
-<h1 align="center">
-𝓭𝓪𝓻𝔀𝓲𝓷𝓲𝓪.𝓰𝓸
-</h1>
+# Shadow
 
 [![Golang CI][workflow-badge]][github]
 
@@ -105,6 +103,12 @@ curl -d '{"method":"shadow_getEthHeaderWithProofByHash","params":{"hash": "0x8d0
 
 ```
 curl -d '{"method":"shadow_batchEthHeaderWithProofByNumber","params":{"number": 1, "batch": 3, "options": {"format": "json"}}}' http://127.0.0.1:3000
+```
+
+### Shadow.GetProposalEthHeaders
+
+```
+curl -d '{"method":"shadow_getProposalEthHeaders","params":{"number": [1, 2, 3], "batch": 3, "options": {"format": "json"}}}' http://127.0.0.1:3000
 ```
 
 ## Trouble Shooting

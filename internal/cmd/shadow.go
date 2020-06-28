@@ -8,10 +8,10 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/darwinia-network/darwinia.go/internal"
-	"github.com/darwinia-network/darwinia.go/internal/core"
-	"github.com/darwinia-network/darwinia.go/internal/rpc"
-	"github.com/darwinia-network/darwinia.go/internal/util"
+	"github.com/darwinia-network/shadow/internal"
+	"github.com/darwinia-network/shadow/internal/core"
+	"github.com/darwinia-network/shadow/internal/rpc"
+	"github.com/darwinia-network/shadow/internal/util"
 	"github.com/spf13/cobra"
 )
 
@@ -38,8 +38,8 @@ func fetch(shadow *core.Shadow, genesis uint64) {
 	}
 }
 
-var cmdShadow = &cobra.Command{
-	Use:   "shadow [port]",
+var cmdRun = &cobra.Command{
+	Use:   "run [port]",
 	Short: "Start shadow service",
 	Long:  "This command will use the config at `~/.darwinia/config.json`",
 	Args:  cobra.MinimumNArgs(0),

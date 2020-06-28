@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/darwinia-network/darwinia.go/internal"
-	"github.com/darwinia-network/darwinia.go/internal/core"
-	"github.com/darwinia-network/darwinia.go/internal/util"
+	"github.com/darwinia-network/shadow/internal"
+	"github.com/darwinia-network/shadow/internal/core"
+	"github.com/darwinia-network/shadow/internal/util"
 )
 
 /**

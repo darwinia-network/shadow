@@ -1,7 +1,7 @@
 package core
 
 import (
-	"github.com/darwinia-network/darwinia.go/internal/eth"
+	"github.com/darwinia-network/shadow/internal/eth"
 	"github.com/ethereum/go-ethereum/core/types"
 )
 

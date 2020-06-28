@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/darwinia-network/darwinia.go/internal/util"
+	"github.com/darwinia-network/shadow/internal/util"
 )
 
 type RawConfig struct {

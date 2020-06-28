@@ -61,7 +61,6 @@ func (c *EthHeaderWithProofCache) FromResp(
 func (c *EthHeaderWithProofCache) ApplyProof(
 	config internal.Config,
 	db *gorm.DB,
-	// geth eth.Geth,
 ) error {
 	var (
 		ethHeader types.Header
@@ -145,7 +144,6 @@ func (c *EthHeaderWithProofCache) IntoResp() (GetEthHeaderWithProofByNumberRawRe
 func (c *EthHeaderWithProofCache) Fetch(
 	config internal.Config,
 	db *gorm.DB,
-	// geth eth.Geth,
 ) error {
 	// Get header from sqlite3
 	err := db.Where("number = ?", c.Number).Take(&c).Error

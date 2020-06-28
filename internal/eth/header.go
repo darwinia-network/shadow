@@ -33,14 +33,6 @@ func Header(block interface{}, api string) (types.Header, error) {
 		infuraResp InfuraResponse
 	)
 
-	// try to get headers from db
-	// if !util.IsEmpty(geth) {
-	// 	block := geth.GetBlock(block)
-	// 	if !util.IsEmpty(block) {
-	// 		return block, nil
-	// 	}
-	// }
-
 	// Request block by number or hash
 	switch b := block.(type) {
 	case uint64:

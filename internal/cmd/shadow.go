@@ -38,8 +38,8 @@ func fetch(shadow *core.Shadow, genesis uint64) {
 	}
 }
 
-var cmdShadow = &cobra.Command{
-	Use:   "shadow [port]",
+var cmdRun = &cobra.Command{
+	Use:   "run [port]",
 	Short: "Start shadow service",
 	Long:  "This command will use the config at `~/.darwinia/config.json`",
 	Args:  cobra.MinimumNArgs(0),

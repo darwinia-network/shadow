@@ -15,7 +15,7 @@ var (
 
 // Init commands to dargo
 func init() {
-	cmdShadow.PersistentFlags().BoolVarP(
+	cmdRun.PersistentFlags().BoolVarP(
 		&Fetch,
 		"fetch",
 		"f",
@@ -27,7 +27,7 @@ func init() {
 		cmdEpoch,
 		cmdHeader,
 		cmdProof,
-		cmdShadow,
+		cmdRun,
 		cmdVersion,
 	)
 }

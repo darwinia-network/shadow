@@ -5,8 +5,8 @@ import (
 	"strconv"
 
 	"github.com/darwinia-network/shadow/internal/util"
+	"github.com/darwinia-network/shadow/pkg/ethashproof"
 	"github.com/spf13/cobra"
-	"github.com/tranvictor/ethashproof"
 )
 
 var cmdEpoch = &cobra.Command{

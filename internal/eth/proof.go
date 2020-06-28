@@ -9,11 +9,11 @@ import (
 
 	"github.com/darwinia-network/shadow/internal"
 	"github.com/darwinia-network/shadow/internal/util"
+	"github.com/darwinia-network/shadow/pkg/ethashproof"
+	"github.com/darwinia-network/shadow/pkg/ethashproof/ethash"
+	"github.com/darwinia-network/shadow/pkg/ethashproof/mtree"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/tranvictor/ethashproof"
-	"github.com/tranvictor/ethashproof/ethash"
-	"github.com/tranvictor/ethashproof/mtree"
 )
 
 // Constants

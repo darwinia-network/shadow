@@ -26,7 +26,7 @@ var cmdHeader = &cobra.Command{
 		util.Assert(err)
 
 		// get header
-		header, err := eth.Header(block, conf.Api, eth.NewGeth(conf.DataDir))
+		header, err := eth.Header(block, conf.Api)
 		util.Assert(err)
 
 		// get the header string

@@ -8,7 +8,6 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/darwinia-network/shadow/internal/util"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/rlp"
@@ -26,21 +25,13 @@ type InfuraResponse struct {
 }
 
 // Get ethereum header by block number
-func Header(block interface{}, api string, geth Geth) (types.Header, error) {
+func Header(block interface{}, api string) (types.Header, error) {
 	// Get header from infura
 	var (
 		resp       *http.Response
 		err        error
 		infuraResp InfuraResponse
 	)
-
-	// try to get headers from db
-	if !util.IsEmpty(geth) {
-		block := geth.GetBlock(block)
-		if !util.IsEmpty(block) {
-			return block, nil
-		}
-	}
 
 	// Request block by number or hash
 	switch b := block.(type) {
@@ -155,7 +146,7 @@ func IntoDarwiniaEthHeader(e types.Header) (DarwiniaEthHeader, error) {
 	}
 
 	h.ParentHash = e.ParentHash.Hex()
-	h.TimeStamp = e.Time.Uint64()
+	h.TimeStamp = e.Time
 	h.Number = e.Number.Uint64()
 	h.Author = e.Coinbase.Hex()
 	h.TransactionsRoot = e.TxHash.Hex()

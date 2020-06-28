@@ -6,6 +6,6 @@ endif
 
 build: target/debug/libmmr.$(EXT)
 	@go mod tidy
-	@go build -o ./target/dargo -v github.com/darwinia-network/darwinia.go/dargo
+	@go build -o ./target/dargo -v github.com/darwinia-network/shadow/dargo
 target/debug/libmmr.$(EXT): mmr/lib.rs Cargo.toml
 	@cargo build --verbose --release

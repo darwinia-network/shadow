@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/darwinia-network/darwinia.go/internal"
-	"github.com/darwinia-network/darwinia.go/internal/eth"
-	"github.com/darwinia-network/darwinia.go/internal/util"
+	"github.com/darwinia-network/shadow/internal"
+	"github.com/darwinia-network/shadow/internal/eth"
+	"github.com/darwinia-network/shadow/internal/util"
 	"github.com/jinzhu/gorm"
 )
 

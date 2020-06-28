@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/darwinia-network/darwinia.go/internal/cmd"
-	"github.com/darwinia-network/darwinia.go/internal/util"
+	"github.com/darwinia-network/shadow/internal/cmd"
+	"github.com/darwinia-network/shadow/internal/util"
 )
 
 func main() {

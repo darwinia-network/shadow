@@ -5,7 +5,7 @@ import (
 	"encoding/hex"
 	"strings"
 
-	"github.com/darwinia-network/darwinia.go/internal/eth"
+	"github.com/darwinia-network/shadow/internal/eth"
 )
 
 // Pack encode proof

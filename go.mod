@@ -1,4 +1,4 @@
-module github.com/darwinia-network/darwinia.go
+module github.com/darwinia-network/shadow
 
 go 1.14
 

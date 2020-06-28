@@ -13,9 +13,12 @@ require (
 	github.com/huandu/xstrings v1.3.2
 	github.com/jinzhu/gorm v1.9.12
 	github.com/kr/text v0.2.0 // indirect
+	github.com/mitchellh/mapstructure v1.1.2
 	github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e // indirect
 	github.com/onsi/ginkgo v1.11.0 // indirect
 	github.com/onsi/gomega v1.8.1 // indirect
+	github.com/orcaman/concurrent-map v0.0.0-20190826125027-8c72a8bb44f6
+	github.com/panjf2000/ants v1.2.0
 	github.com/regcostajr/go-web3 v0.0.0-20180609031449-555e83b623dd
 	github.com/shopspring/decimal v1.2.0
 	github.com/spf13/cobra v1.0.0

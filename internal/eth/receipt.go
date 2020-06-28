@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"context"
 	"errors"
-	"fmt"
 	"math"
+	"strings"
 	"sync"
 
 	"github.com/darwinia-network/shadow/internal"
@@ -23,6 +23,16 @@ import (
 	"github.com/regcostajr/go-web3/providers"
 )
 
+var (
+	API string
+)
+
+func init() {
+	conf := new(internal.Config)
+	_ = conf.LoadEnv()
+	API = conf.Api
+}
+
 func GetChainBlockInfo(blockNum int64) (*BlockResult, error) {
 	params := []interface{}{util.IntToHex(blockNum), true}
 	if result, err := RPC("eth_getBlockByNumber", params); err != nil {
@@ -35,12 +45,13 @@ func GetChainBlockInfo(blockNum int64) (*BlockResult, error) {
 }
 
 func RPC(method string, params interface{}) (*dto.RequestResult, error) {
-	provider := providers.NewHTTPProvider("", 10, false)
+	provider := providers.NewHTTPProvider(strings.ReplaceAll(API, "https://", ""), 10, true)
 	pointer := &dto.RequestResult{}
 	err := provider.SendRequest(pointer, method, params)
 	if err != nil {
 		return nil, err
 	}
+
 	return pointer, nil
 }
 
@@ -101,28 +112,6 @@ type RedeemFor struct {
 	Deposit *ProofRecord `json:"deposit,omitempty"`
 }
 
-func (b *BlockResult) buildEthHeader() *EthHeader {
-	header := EthHeader{
-		ParentHash:      b.ParentHash,
-		Timestamp:       util.U256(b.Timestamp).Int64(),
-		Number:          util.U256(b.Number).Int64(),
-		Auth:            b.Miner,
-		TransactionRoot: b.TransactionsRoot,
-		UnclesHash:      b.Sha3Uncles,
-		ExtraData:       b.ExtraData,
-		StateRoot:       b.StateRoot,
-		ReceiptsRoot:    b.ReceiptsRoot,
-		LogBloom:        b.LogsBloom,
-		GasUsed:         b.GasUsed,
-		GasLimit:        b.GasLimit,
-		Difficulty:      b.Difficulty,
-		Hash:            b.Hash,
-		Seal:            []string{RlpEncode(b.MixHash), RlpEncode(b.Nonce)},
-	}
-	fmt.Println(header)
-	return &header
-}
-
 func BuildProofRecord(r *Receipts) (*ProofRecord, error) {
 	proofRecord := ProofRecord{
 		Index:      r.TransactionIndex,
@@ -179,13 +168,7 @@ func BuildProofRecord(r *Receipts) (*ProofRecord, error) {
 }
 
 func GetReceiptRlpEncode(tx string) (*types.Receipt, error) {
-	conf := new(internal.Config)
-	err := conf.LoadEnv()
-	if err != nil {
-		return nil, err
-	}
-
-	client, err := ethclient.Dial(conf.Api)
+	client, err := ethclient.Dial(API)
 	if err != nil {
 		return nil, err
 	}

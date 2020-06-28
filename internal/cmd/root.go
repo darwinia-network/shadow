@@ -27,6 +27,7 @@ func init() {
 		cmdEpoch,
 		cmdHeader,
 		cmdProof,
+		cmdReceipt,
 		cmdRun,
 		cmdVersion,
 	)

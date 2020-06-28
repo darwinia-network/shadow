@@ -1,31 +1,37 @@
 package tests
 
 import (
-	// "os"
 	"fmt"
 	"testing"
 
-	"github.com/darwinia-network/darwinia.go/core"
-	"github.com/darwinia-network/darwinia.go/util"
+	"github.com/darwinia-network/darwinia.go/internal"
+	"github.com/darwinia-network/darwinia.go/internal/core"
+	"github.com/darwinia-network/darwinia.go/internal/util"
 )
 
 /**
  * Generate Shadow API
  */
 func genShadow() core.Shadow {
-	conf := util.Config{}
+	conf := internal.Config{}
 	err := conf.Load()
 	util.Assert(err)
 
+	// Generate Shadow
+	shadow := new(core.Shadow)
+	shadow.Config = conf
+	shadow.DB, err = core.ConnectDb()
+	util.Assert(err)
+
 	// Generate shadow rpc
-	return core.Shadow{Config: conf}
+	return *shadow
 }
 
 func TestGetBlockByNumber(t *testing.T) {
 	t.Run("Test GetBlockByNumber", func(t *testing.T) {
 		shadow := genShadow()
 		params := core.GetEthHeaderByNumberParams{Number: uint64(1)}
-		resp := core.GetEthHeaderByNumberResp{}
+		resp := core.GetEthHeaderResp{}
 		err := shadow.GetEthHeaderByNumber(params, &resp)
 
 		util.Assert(err)
@@ -43,7 +49,7 @@ func TestGetBlockByHash(t *testing.T) {
 				"561d3bf31f45aae734cdc119f13406cb6",
 			),
 		}
-		resp := core.GetEthHeaderByHashResp{}
+		resp := core.GetEthHeaderResp{}
 		err := shadow.GetEthHeaderByHash(params, &resp)
 
 		util.Assert(err)

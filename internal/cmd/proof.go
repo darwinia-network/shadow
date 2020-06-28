@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/darwinia-network/darwinia.go/util"
+	"github.com/darwinia-network/darwinia.go/internal"
+	"github.com/darwinia-network/darwinia.go/internal/eth"
+	"github.com/darwinia-network/darwinia.go/internal/util"
 	"github.com/spf13/cobra"
 )
 
@@ -15,7 +17,7 @@ var cmdProof = &cobra.Command{
 	Long:  "DANGEROUS! This cmd will fill up your screen!",
 	Args:  cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		conf := new(util.Config)
+		conf := new(internal.Config)
 		err := conf.Load()
 		util.Assert(err)
 
@@ -24,11 +26,11 @@ var cmdProof = &cobra.Command{
 		util.Assert(err)
 
 		// get header
-		header, err := util.Header(block, conf.Api)
+		header, err := eth.Header(block, conf.Api, eth.NewGeth(conf.DataDir))
 		util.Assert(err)
 
 		// get proof
-		proof, err := util.Proof(&header, *conf)
+		proof, err := eth.Proof(&header, *conf)
 		util.Assert(err)
 
 		// output string

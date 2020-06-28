@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/darwinia-network/darwinia.go/util"
+	"github.com/darwinia-network/darwinia.go/internal"
+	"github.com/darwinia-network/darwinia.go/internal/eth"
+	"github.com/darwinia-network/darwinia.go/internal/util"
 	"github.com/spf13/cobra"
 )
 
@@ -15,7 +17,7 @@ var cmdHeader = &cobra.Command{
 	Long:  "This command will use the config at `~/.darwinia/config.json`",
 	Args:  cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		conf := new(util.Config)
+		conf := new(internal.Config)
 		err := conf.Load()
 		util.Assert(err)
 
@@ -24,7 +26,7 @@ var cmdHeader = &cobra.Command{
 		util.Assert(err)
 
 		// get header
-		header, err := util.Header(block, conf.Api)
+		header, err := eth.Header(block, conf.Api, eth.NewGeth(conf.DataDir))
 		util.Assert(err)
 
 		// get the header string

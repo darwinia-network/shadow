@@ -1,4 +1,4 @@
-package util
+package eth
 
 import (
 	"fmt"
@@ -7,6 +7,8 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/darwinia-network/darwinia.go/internal"
+	"github.com/darwinia-network/darwinia.go/internal/util"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/tranvictor/ethashproof"
@@ -35,22 +37,22 @@ type ProofOutput struct {
 
 // Format ProofOutput to double node with merkle proofs
 func (o *ProofOutput) Format() []DoubleNodeWithMerkleProof {
-	h512s := Filter(o.Elements, func(i int, _ string) bool {
+	h512s := util.Filter(o.Elements, func(i int, _ string) bool {
 		return i%2 == 0
 	})
 
-	h512s = Map(h512s, func(i int, v string) string {
+	h512s = util.Map(h512s, func(i int, v string) string {
 		return fmt.Sprintf("0x%064s%064s", v[2:], o.Elements[(i*2)+1][2:])
 	})
 
 	dnmps := []DoubleNodeWithMerkleProof{}
-	sh512s := Filter(h512s, func(i int, _ string) bool {
+	sh512s := util.Filter(h512s, func(i int, _ string) bool {
 		return i%2 == 0
 	})
-	Map(sh512s, func(i int, v string) string {
+	util.Map(sh512s, func(i int, v string) string {
 		dnmps = append(dnmps, DoubleNodeWithMerkleProof{
 			[]string{v, h512s[i*2+1]},
-			Map(
+			util.Map(
 				o.MerkleProofs[uint64(i)*o.ProofLength:(uint64(i)+1)*o.ProofLength],
 				func(_ int, v string) string {
 					return fmt.Sprintf("0x%032s", v[2:])
@@ -64,13 +66,13 @@ func (o *ProofOutput) Format() []DoubleNodeWithMerkleProof {
 }
 
 // Epoch in background
-func bgEpoch(epoch uint64, config Config) {
+func bgEpoch(epoch uint64, config internal.Config) {
 	_, _ = ethashproof.CalculateDatasetMerkleRoot(epoch, true)
 	_ = config.RemoveLock(EPOCH_LOCK)
 }
 
 // Check if need epoch
-func epochGently(epoch uint64, config Config) error {
+func epochGently(epoch uint64, config internal.Config) error {
 	// Get home dir
 	home, err := os.UserHomeDir()
 	if err != nil {
@@ -112,7 +114,7 @@ func epochGently(epoch uint64, config Config) error {
 }
 
 // Proof eth blockheader
-func Proof(header *types.Header, config Config) (ProofOutput, error) {
+func Proof(header *types.Header, config internal.Config) (ProofOutput, error) {
 	blockno := header.Number.Uint64()
 	epoch := blockno / 30000
 	output := &ProofOutput{}

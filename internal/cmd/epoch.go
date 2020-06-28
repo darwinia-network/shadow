@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/darwinia-network/darwinia.go/util"
+	"github.com/darwinia-network/darwinia.go/internal/util"
 	"github.com/spf13/cobra"
 	"github.com/tranvictor/ethashproof"
 )

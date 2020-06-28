@@ -10,10 +10,19 @@ var (
 		Short: "Darwinia.go cmd-tool",
 		Long:  `The way to Go`,
 	}
+	Fetch bool
 )
 
 // Init commands to dargo
 func init() {
+	cmdShadow.PersistentFlags().BoolVarP(
+		&Fetch,
+		"fetch",
+		"f",
+		false,
+		"keep fetching blocks in background",
+	)
+
 	rootCmd.AddCommand(
 		cmdEpoch,
 		cmdHeader,

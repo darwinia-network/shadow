@@ -1,4 +1,4 @@
-package util
+package internal
 
 import (
 	"bufio"
@@ -8,6 +8,8 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+
+	"github.com/darwinia-network/darwinia.go/internal/util"
 )
 
 type RawConfig struct {
@@ -18,6 +20,7 @@ type Config struct {
 	Api     string `json:"api"`
 	Genesis uint64 `json:"genesis"`
 	Root    string `json:"root"`
+	DataDir string `json:"datadir"`
 }
 
 // Common load config
@@ -34,6 +37,9 @@ func (c *Config) Load() error {
 	if gen == "" {
 		gen = "0"
 	}
+
+	// Load data dir
+	c.DataDir = os.Getenv("GETH_DATADIR")
 
 	// Construct shadow genesis
 	c.Genesis, err = strconv.ParseUint(gen, 10, 64)
@@ -88,7 +94,7 @@ func (c *Config) readKeyWithPrompt() {
 // Get darwinia config root directory
 func RootDir() (string, error) {
 	home, err := os.UserHomeDir()
-	Assert(err)
+	util.Assert(err)
 
 	// Create root dir if not exist
 	root := filepath.Join(home, ".darwinia")

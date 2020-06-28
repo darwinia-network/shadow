@@ -61,7 +61,7 @@ func (c *EthHeaderWithProofCache) FromResp(
 func (c *EthHeaderWithProofCache) ApplyProof(
 	config internal.Config,
 	db *gorm.DB,
-	geth eth.Geth,
+	// geth eth.Geth,
 ) error {
 	var (
 		ethHeader types.Header
@@ -73,7 +73,7 @@ func (c *EthHeaderWithProofCache) ApplyProof(
 	} else if util.IsEmpty(c.Header) || c.Header == "" {
 		return fmt.Errorf("Empty eth header")
 	} else {
-		ethHeader, err = eth.Header(c.Number, config.Api, geth)
+		ethHeader, err = eth.Header(c.Number, config.Api)
 		if err != nil {
 			return err
 		}
@@ -145,12 +145,12 @@ func (c *EthHeaderWithProofCache) IntoResp() (GetEthHeaderWithProofByNumberRawRe
 func (c *EthHeaderWithProofCache) Fetch(
 	config internal.Config,
 	db *gorm.DB,
-	geth eth.Geth,
+	// geth eth.Geth,
 ) error {
 	// Get header from sqlite3
 	err := db.Where("number = ?", c.Number).Take(&c).Error
 	if err != nil || util.IsEmpty(c.Header) || c.Header == "" {
-		ethHeader, err := eth.Header(c.Number, config.Api, geth)
+		ethHeader, err := eth.Header(c.Number, config.Api)
 		if err != nil {
 			return err
 		}

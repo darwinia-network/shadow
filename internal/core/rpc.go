@@ -17,7 +17,6 @@ const PROOF_LOCK = "proof.lock"
 // Dimmy shadow service
 type Shadow struct {
 	Config internal.Config
-	Geth   eth.Geth
 	DB     *gorm.DB
 }
 
@@ -31,7 +30,7 @@ func (s *Shadow) checkGenesis(genesis uint64, block interface{}, api string) err
 			return fmt.Errorf(GENESIS_ERROR, genesis)
 		}
 	case string:
-		eH, err := eth.Header(b, api, s.Geth)
+		eH, err := eth.Header(b, api)
 		if err != nil {
 			return err
 		}
@@ -72,7 +71,7 @@ func (s *Shadow) GetEthHeaderByNumber(
 	}
 
 	// Return raw eth header
-	resp.Header, err = eth.Header(params.Number, s.Config.Api, s.Geth)
+	resp.Header, err = eth.Header(params.Number, s.Config.Api)
 	return err
 }
 
@@ -90,7 +89,7 @@ func (s *Shadow) GetEthHeaderByHash(
 	}
 
 	// Return raw eth header
-	resp.Header, err = eth.Header(params.Hash, s.Config.Api, s.Geth)
+	resp.Header, err = eth.Header(params.Hash, s.Config.Api)
 	return err
 }
 
@@ -109,12 +108,12 @@ func (s *Shadow) GetEthHeaderWithProofByNumber(
 
 	// Fetch header from cache
 	cache := EthHeaderWithProofCache{Number: params.Number}
-	err = cache.Fetch(s.Config, s.DB, s.Geth)
+	err = cache.Fetch(s.Config, s.DB)
 	if err != nil {
 		return err
 	}
 
-	err = cache.ApplyProof(s.Config, s.DB, s.Geth)
+	err = cache.ApplyProof(s.Config, s.DB)
 	if err != nil {
 		return err
 	}
@@ -153,7 +152,7 @@ func (s *Shadow) GetEthHeaderWithProofByHash(
 	resp *interface{},
 ) error {
 	log.Println("Request /GetEthHeaderWithProofByHash")
-	eH, err := eth.Header(params.Hash, s.Config.Api, s.Geth)
+	eH, err := eth.Header(params.Hash, s.Config.Api)
 	if err != nil {
 		return err
 	}

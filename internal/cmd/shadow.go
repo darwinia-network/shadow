@@ -22,7 +22,7 @@ func fetch(shadow *core.Shadow, genesis uint64) {
 	// fetcher
 	ptr := core.EthHeaderWithProofCache{Number: genesis}
 	for ptr.Number >= genesis {
-		err := ptr.Fetch(shadow.Config, shadow.DB, shadow.Geth)
+		err := ptr.Fetch(shadow.Config, shadow.DB)
 		if err != nil {
 			log.Printf(
 				"fetch header %v failed\n",

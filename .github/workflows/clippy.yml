@@ -13,8 +13,8 @@ jobs:
       matrix:
         os: [macOS-latest, ubuntu-latest]
     steps:
+      - uses: actions/checkout@v1
       - name: Environment
-        uses: actions/checkout@v1
         run: |
           if [[ "$(uname)" == 'Darwin' ]]; then
               brew update

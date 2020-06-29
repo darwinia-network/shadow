@@ -150,17 +150,17 @@ func BuildProofRecord(r *Receipts) (*ProofRecord, error) {
 	}
 	proof := memorydb.New()
 	buf := new(bytes.Buffer)
-	rlp.Encode(buf, uint(util.U256(r.TransactionIndex).Uint64()))
+	_ = rlp.Encode(buf, uint(util.U256(r.TransactionIndex).Uint64()))
 	key := buf.Bytes()
 	proofs := make([]interface{}, 0)
-	tr.Prove(key, 0, proof)
+	_ = tr.Prove(key, 0, proof)
 	if it := trie.NewIterator(tr.NodeIterator(key)); it.Next() && bytes.Equal(key, it.Key) {
 		for _, p := range it.Prove() {
 			proofs = append(proofs, p)
 		}
 	}
 	buf.Reset()
-	rlp.Encode(buf, proofs)
+	_ = rlp.Encode(buf, proofs)
 	length := rlpLength(len(buf.Bytes()), 0xc0)
 	ProofRlpBytes := append(length[:], buf.Bytes()...)
 	proofRecord.Proof = util.AddHex(util.BytesToHex(ProofRlpBytes))

@@ -37,11 +37,11 @@ func rev(b []byte) []byte {
 	return b
 }
 
-func msbPadding(a []byte, size uint32) []byte {
-	result := make([]byte, len(a))
-	copy(result, a)
-	for i := uint32(len(a)); i < size; i++ {
-		result = append([]byte{0}, result...)
-	}
-	return result
-}
+// func msbPadding(a []byte, size uint32) []byte {
+// 	result := make([]byte, len(a))
+// 	copy(result, a)
+// 	for i := uint32(len(a)); i < size; i++ {
+// 		result = append([]byte{0}, result...)
+// 	}
+// 	return result
+// }

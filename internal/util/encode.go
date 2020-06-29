@@ -30,16 +30,12 @@ func CamelString(s string) string {
 }
 
 func Padding(str string) string {
-	if strings.HasPrefix(str, "0x") {
-		str = str[2:]
-	}
+	str = strings.TrimPrefix(str, "0x")
 	return xstrings.RightJustify(str, 64, "0")
 }
 
 func PaddingF(str string) string {
-	if strings.HasPrefix(str, "0x") {
-		str = str[2:]
-	}
+	str = strings.TrimPrefix(str, "0x")
 	return xstrings.RightJustify(str, 64, "f")
 }
 
@@ -261,13 +257,14 @@ func StringsIntersection(a []string, b []string) []string {
 	return refresh
 }
 
-func StringsExclude(a []string, b []string) {
+func StringsExclude(a []string, b []string) []string {
 	var refresh []string
 	for _, v := range a {
-		if StringInSlice(v, b) == false {
+		if !StringInSlice(v, b) {
 			refresh = append(refresh, v)
 		}
 	}
+	return refresh
 }
 
 func BoolToString(b bool) string {

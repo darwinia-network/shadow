@@ -48,7 +48,7 @@ func (c *Config) Load() error {
 	}
 
 	// Load api from env
-	err = c.loadEnv()
+	err = c.LoadEnv()
 	if err != nil || c.Api == "" {
 		c.readKeyWithPrompt()
 	}
@@ -57,7 +57,7 @@ func (c *Config) Load() error {
 }
 
 // Load config from env
-func (c *Config) loadEnv() error {
+func (c *Config) LoadEnv() error {
 	// load infura key
 	api := os.Getenv("INFURA_KEY")
 	if api == "" {

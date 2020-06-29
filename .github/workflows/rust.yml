@@ -1,4 +1,4 @@
-name: mmr
+name: Rust MMR
 
 on:
   push:

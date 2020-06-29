@@ -10,7 +10,7 @@ on:
     branches: [ master ]
 
 jobs:
-  build:
+  golangci-lint:
     runs-on: ubuntu-latest
     steps:
     # Checkout Go module directory

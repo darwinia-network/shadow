@@ -10,7 +10,7 @@ on:
     branches: [ master ]
 
 jobs:
-  build:
+  shadow:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:

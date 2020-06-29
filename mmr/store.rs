@@ -81,8 +81,8 @@ where
             .filter(pos.eq(rpos as i64))
             .first::<Header>(&self.conn);
 
-        if store.is_ok() {
-            Ok(Some(H::from(store.unwrap().elem.as_str())))
+        if let Ok(store) = store {
+            Ok(Some(H::from(store.elem.as_str())))
         } else {
             Ok(None)
         }
@@ -91,12 +91,12 @@ where
     fn append(&mut self, rpos: u64, elems: Vec<H>) -> MMRResult<()> {
         let mut the_count: u64 = 0;
         let count_res = mmr_store.select(count(elem)).first::<i64>(&self.conn);
-        if count_res.is_ok() {
-            the_count = count_res.unwrap() as u64;
+        if let Ok(count) = count_res {
+            the_count = count as u64;
         }
 
         if rpos != the_count {
-            Err(Error::InconsistentStore)?;
+            return Err(Error::InconsistentStore);
         }
 
         for (i, relem) in elems.into_iter().enumerate() {

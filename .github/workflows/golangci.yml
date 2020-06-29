@@ -13,6 +13,7 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
+
     # Checkout Go module directory
     - name: Check out code into the Go module directory
       uses: actions/checkout@v2

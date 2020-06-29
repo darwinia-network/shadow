@@ -1,4 +1,3 @@
-//nolint
 package ffi
 
 //#cgo LDFLAGS: -L${SRCDIR}/../../target/release -lmmr -ldl

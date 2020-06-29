@@ -33,7 +33,7 @@ impl Runner {
     pub fn start(&mut self) -> Result<(), Error> {
         if let Ok(mut base) = self.cache_count() {
             loop {
-                if let Ok(_) = self.push(base) {
+                if self.push(base).is_ok() {
                     base += 1;
                 } else {
                     thread::sleep(time::Duration::from_secs(10));
@@ -43,7 +43,7 @@ impl Runner {
         } else {
             info!("init mmr database");
             thread::sleep(time::Duration::from_secs(3));
-            return self.start();
+            self.start()
         }
     }
 

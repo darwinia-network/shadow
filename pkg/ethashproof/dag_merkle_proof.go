@@ -24,7 +24,10 @@ func CalculateProof(blockno uint64, index uint32, cache *DatasetMerkleTreeCache)
 		return mtree.Word{}, []mtree.Hash{}, err
 	}
 	defer f.Close()
-	processDuringRead(f, int(subtreeStart), uint32(1<<(uint64(branchDepth)-CACHE_LEVEL)), dt)
+	err = processDuringRead(f, int(subtreeStart), uint32(1<<(uint64(branchDepth)-CACHE_LEVEL)), dt)
+	if err != nil {
+		return mtree.Word{}, []mtree.Hash{}, err
+	}
 	dt.Finalize()
 	element := dt.AllDAGElements()[0]
 	proof := dt.ProofsForRegisteredIndices()[0]

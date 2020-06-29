@@ -38,7 +38,9 @@ func TestRemoteNotify(t *testing.T) {
 	}
 	defer listener.Close()
 
-	go server.Serve(listener)
+	go func() {
+		_ = server.Serve(listener)
+	}()
 
 	// Wait for server to start listening
 	var tries int
@@ -60,7 +62,7 @@ func TestRemoteNotify(t *testing.T) {
 	header := &types.Header{Number: big.NewInt(1), Difficulty: big.NewInt(100)}
 	block := types.NewBlockWithHeader(header)
 
-	ethash.Seal(nil, block, nil, nil)
+	_ = ethash.Seal(nil, block, nil, nil)
 	select {
 	case work := <-sink:
 		if want := ethash.SealHash(header).Hex(); work[0] != want {
@@ -104,7 +106,9 @@ func TestRemoteMultiNotify(t *testing.T) {
 	}
 	defer listener.Close()
 
-	go server.Serve(listener)
+	go func() {
+		_ = server.Serve(listener)
+	}()
 
 	// Create the custom ethash engine
 	ethash := NewTester([]string{"http://" + listener.Addr().String()}, false)
@@ -115,7 +119,7 @@ func TestRemoteMultiNotify(t *testing.T) {
 		header := &types.Header{Number: big.NewInt(int64(i)), Difficulty: big.NewInt(100)}
 		block := types.NewBlockWithHeader(header)
 
-		ethash.Seal(nil, block, nil, nil)
+		_ = ethash.Seal(nil, block, nil, nil)
 	}
 	for i := 0; i < cap(sink); i++ {
 		select {
@@ -179,7 +183,7 @@ func TestStaleSubmission(t *testing.T) {
 
 	for id, c := range testcases {
 		for _, h := range c.headers {
-			ethash.Seal(nil, types.NewBlockWithHeader(h), results, nil)
+			_ = ethash.Seal(nil, types.NewBlockWithHeader(h), results, nil)
 		}
 		if res := api.SubmitWork(fakeNonce, ethash.SealHash(c.headers[c.submitIndex]), fakeDigest); res != c.submitRes {
 			t.Errorf("case %d submit result mismatch, want %t, get %t", id+1, c.submitRes, res)

@@ -1,15 +1,12 @@
 package cmd
 
-//#cgo LDFLAGS: -L${SRCDIR}/../../target/release -lmmr -ldl
-//#include <stdint.h>
-//extern int32_t run();
-import "C"
 import (
 	"fmt"
 	"log"
 
 	"github.com/darwinia-network/shadow/internal"
 	"github.com/darwinia-network/shadow/internal/core"
+	"github.com/darwinia-network/shadow/internal/ffi"
 	"github.com/darwinia-network/shadow/internal/rpc"
 	"github.com/darwinia-network/shadow/internal/util"
 	"github.com/spf13/cobra"
@@ -17,7 +14,7 @@ import (
 
 func fetch(shadow *core.Shadow, genesis uint64) {
 	// run mmr service
-	go C.run()
+	ffi.RunMMR()
 
 	// fetcher
 	ptr := core.EthHeaderWithProofCache{Number: genesis}

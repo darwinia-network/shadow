@@ -78,7 +78,7 @@ func CalculateDatasetMerkleRoot(epoch uint64, saveCache bool) (mtree.Hash, error
 		return mtree.Hash{}, err
 	}
 	defer f.Close()
-	processDuringRead(f, 0, uint32(fullSizeIn128Resolution), dt)
+	_ = processDuringRead(f, 0, uint32(fullSizeIn128Resolution), dt)
 	dt.Finalize()
 	if saveCache {
 		result := &DatasetMerkleTreeCache{
@@ -90,7 +90,7 @@ func CalculateDatasetMerkleRoot(epoch uint64, saveCache bool) (mtree.Hash, error
 		}
 		proofs := dt.ProofsForRegisteredIndices()
 		for _, proof := range proofs {
-			oneProof := proof[(uint64(branchDepth) - CACHE_LEVEL):len(proof)]
+			oneProof := proof[(uint64(branchDepth) - CACHE_LEVEL):]
 			result.Proofs = append(result.Proofs, oneProof)
 		}
 		err = PersistCache(result)

@@ -251,7 +251,7 @@ func (ethash *Ethash) verifyHeader(chain consensus.ChainReader, header, parent *
 			return consensus.ErrFutureBlock
 		}
 	}
-	if header.Time-parent.Time <= 0 {
+	if header.Time-parent.Time == 0 {
 		return errZeroBlockTime
 	}
 	// Verify the block's difficulty based in it's timestamp and parent's difficulty
@@ -577,7 +577,7 @@ func (ethash *Ethash) Finalize(chain consensus.ChainReader, header *types.Header
 func (ethash *Ethash) SealHash(header *types.Header) (hash common.Hash) {
 	hasher := sha3.NewLegacyKeccak256()
 
-	rlp.Encode(hasher, []interface{}{
+	_ = rlp.Encode(hasher, []interface{}{
 		header.ParentHash,
 		header.UncleHash,
 		header.Coinbase,

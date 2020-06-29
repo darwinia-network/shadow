@@ -111,8 +111,8 @@ func makeHasher(h hash.Hash) hasher {
 	outputLen := rh.Size()
 	return func(dest []byte, data []byte) {
 		rh.Reset()
-		rh.Write(data)
-		rh.Read(dest[:outputLen])
+		_, _ = rh.Write(data)
+		_, _ = rh.Read(dest[:outputLen])
 	}
 }
 

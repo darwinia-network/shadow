@@ -212,6 +212,7 @@ func (ethash *Ethash) remote(notify []string, noverify bool) {
 		for i, url := range notify {
 			// Terminate any previously pending request and create the new work
 			if notifyReqs[i] != nil {
+				//nolint:staticcheck
 				notifyTransport.CancelRequest(notifyReqs[i])
 			}
 			notifyReqs[i], _ = http.NewRequest("POST", url, bytes.NewReader(blob))

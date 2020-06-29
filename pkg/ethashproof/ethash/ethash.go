@@ -79,7 +79,7 @@ func memoryMap(path string) (*os.File, mmap.MMap, []uint32, error) {
 	}
 	for i, magic := range dumpMagic {
 		if buffer[i] != magic {
-			mem.Unmap()
+			_ = mem.Unmap()
 			file.Close()
 			return nil, nil, nil, ErrInvalidDumpMagic
 		}
@@ -269,7 +269,7 @@ func (c *cache) generate(dir string, limit int, test bool) {
 // finalizer unmaps the memory and closes the file.
 func (c *cache) finalizer() {
 	if c.mmap != nil {
-		c.mmap.Unmap()
+		_ = c.mmap.Unmap()
 		c.dump.Close()
 		c.mmap, c.dump = nil, nil
 	}
@@ -365,7 +365,7 @@ func (d *dataset) generated() bool {
 // finalizer closes any file handlers and memory maps open.
 func (d *dataset) finalizer() {
 	if d.mmap != nil {
-		d.mmap.Unmap()
+		_ = d.mmap.Unmap()
 		d.dump.Close()
 		d.mmap, d.dump = nil, nil
 	}

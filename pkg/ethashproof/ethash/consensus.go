@@ -577,7 +577,7 @@ func (ethash *Ethash) Finalize(chain consensus.ChainReader, header *types.Header
 func (ethash *Ethash) SealHash(header *types.Header) (hash common.Hash) {
 	hasher := sha3.NewLegacyKeccak256()
 
-	rlp.Encode(hasher, []interface{}{
+	_ = rlp.Encode(hasher, []interface{}{
 		header.ParentHash,
 		header.UncleHash,
 		header.Coinbase,

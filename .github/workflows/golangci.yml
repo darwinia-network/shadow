@@ -26,6 +26,18 @@ jobs:
               sudo apt-get update -y
               sudo apt-get install -y libsqlite3-dev libdbus-1-dev
           fi
+    # Cache MMR Library
+    - name: Cache MMR Library
+      uses: actions/cache@v1
+      env:
+        cache-name: mmr-cache
+      with:
+        path: ~/target
+        key: ${{ runner.os }}-build-${{ env.cache-name }}
+        restore-keys: |
+          ${{ runner.os }}-build-
+          ${{ runner.os }}-
+
     # Build packages
     - name: Build
       run: cargo build --release

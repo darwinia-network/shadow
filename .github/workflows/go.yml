@@ -47,7 +47,7 @@ jobs:
           ${{ runner.os }}-build-
           ${{ runner.os }}-
           
-    # Cache eth hash
+    # Cache ethash
     - name: Cache Eth Hash
       uses: actions/cache@v1
       env:

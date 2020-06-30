@@ -31,7 +31,7 @@ jobs:
           cache-name: mmr-cache
         with:
           path: ./target
-          key: ${{ runner.os }}-build-${{ env.cache-name }}
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('./Cargo.lock') }}
       - name: Build
         run: cargo build --verbose
       - name: Run tests

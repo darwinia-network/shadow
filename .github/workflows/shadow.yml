@@ -42,7 +42,7 @@ jobs:
         cache-name: cache-go-modules
       with:
         path: ~/go/pkg/mod
-        key: ${{ runner.os }}-build-${{ env.cache-name }}
+        key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('./go.sum') }}
           
     # Cache ethash
     - name: Cache Eth Hash
@@ -60,7 +60,7 @@ jobs:
         cache-name: mmr-cache
       with:
         path: ./target
-        key: ${{ runner.os }}-build-${{ env.cache-name }}
+        key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('./Cargo.lock') }}
 
     # Get deps
     - name: Get dependencies

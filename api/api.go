@@ -73,8 +73,14 @@ func Swagger() {
 			header.GET("/hash/:hash", c.GetEthHeaderByHash)
 			header.GET("/number/:number", c.GetEthHeaderByNumber)
 		}
-
+		proof := v1.Group("/proof")
+		{
+			proof.GET("/hash/:hash", c.GetEthProofByHash)
+			proof.GET("/number/:number", c.GetEthProofByNumber)
+		}
+		header.POST("/proposal", c.GetEthHeaderByHash)
 	}
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+	gin.SetMode(gin.ReleaseMode)
 	util.Assert(r.Run(":3600"))
 }

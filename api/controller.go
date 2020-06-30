@@ -2,8 +2,10 @@ package api
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/darwinia-network/shadow/internal/core"
+	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/gin-gonic/gin"
 )
 
@@ -28,30 +30,50 @@ func (c *Controller) FromShadow(shadow core.Shadow) Controller {
 	}
 }
 
-// ShowAccount godoc
+// Get ETH Header by hash godoc
 // @Summary Show a account
 // @Description get string by ID
 // @ID get-string-by-int
 // @Accept  json
 // @Produce  json
-// @Param id path int true "Account ID"
-// @Success 200 {object} string
+// @Param hash path string true "Eth header hash"
+// @Success 200 {object} types.Header
 // @Header 200 {string} Token "qwerty"
-// @Router /accounts/{id} [get]
-func (c *Controller) ShowAccount(ctx *gin.Context) {
-	id := ctx.Param("id")
-	ctx.JSON(http.StatusOK, id)
+// @Failure 400 {object} HTTPError
+// @Router /header/hash/{hash} [get]
+func (c *Controller) GetEthHeaderByHash(ctx *gin.Context) {
+	var resp core.GetEthHeaderResp
+	hash := ctx.Param("hash")
+	err := c.Shadow.GetEthHeaderByHash(core.GetEthHeaderByHashParams{Hash: hash}, &resp)
+	if err != nil {
+		NewError(ctx, http.StatusBadRequest, err)
+		return
+	}
+
+	var header types.Header = resp.Header
+	ctx.JSON(http.StatusOK, header)
 }
 
-// ListAccounts godoc
-// @Summary List accounts
-// @Description get accounts
+// Get ETH Header by number godoc
+// @Summary Show a account
+// @Description get string by ID
+// @ID get-string-by-int
 // @Accept  json
 // @Produce  json
-// @Param q query string false "name search by q"
-// @Success 200 {array} string
+// @Param number path uint64 true "Eth header number"
+// @Success 200 {object} types.Header
 // @Header 200 {string} Token "qwerty"
-// @Router /accounts [get]
-func (c *Controller) ListAccounts(ctx *gin.Context) {
-	ctx.JSON(http.StatusOK, "abc")
+// @Failure 400 {object} HTTPError
+// @Router /header/number/{number} [get]
+func (c *Controller) GetEthHeaderByNumber(ctx *gin.Context) {
+	var resp core.GetEthHeaderResp
+	num, _ := strconv.ParseUint(ctx.Param("number"), 10, 64)
+	err := c.Shadow.GetEthHeaderByNumber(core.GetEthHeaderByNumberParams{Number: num}, &resp)
+	if err != nil {
+		NewError(ctx, http.StatusBadRequest, err)
+		return
+	}
+
+	var header types.Header = resp.Header
+	ctx.JSON(http.StatusOK, header)
 }

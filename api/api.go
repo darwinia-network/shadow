@@ -63,21 +63,18 @@ func Swagger() {
 	docs.SwaggerInfo.Schemes = []string{"http", "https"}
 
 	r := gin.Default()
-	// c := NewController()
+	c, err := NewController()
+	util.Assert(err)
 
-	// v1 := r.Group("/api/v1")
-	// {
-	// 	accounts := v1.Group("/accounts")
-	// 	{
-	// 		accounts.GET(":id", c.ShowAccount)
-	// 		accounts.GET("", c.ListAccounts)
-	// 		accounts.POST("", c.AddAccount)
-	// 		accounts.DELETE(":id", c.DeleteAccount)
-	// 		accounts.PATCH(":id", c.UpdateAccount)
-	// 		accounts.POST(":id/images", c.UploadAccountImage)
-	// 	}
-	//
-	// }
+	v1 := r.Group("/api/v1")
+	{
+		header := v1.Group("/header")
+		{
+			header.GET("/hash/:hash", c.GetEthHeaderByHash)
+			header.GET("/number/:number", c.GetEthHeaderByNumber)
+		}
+
+	}
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
-	util.Assert(r.Run(":8080"))
+	util.Assert(r.Run(":3600"))
 }

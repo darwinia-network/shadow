@@ -55,7 +55,43 @@
                 }
             }
         },
-        "/accounts/{id}": {
+        "/header/{hash}": {
+            "get": {
+                "description": "get string by ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Show a account",
+                "operationId": "get-string-by-int",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Eth header hash",
+                        "name": "hash",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/types.Header"
+                        },
+                        "headers": {
+                            "Token": {
+                                "type": "string",
+                                "description": "qwerty"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/header/{number}": {
             "get": {
                 "description": "get string by ID",
                 "consumes": [
@@ -69,8 +105,8 @@
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "Account ID",
-                        "name": "id",
+                        "description": "Eth header number",
+                        "name": "number",
                         "in": "path",
                         "required": true
                     }
@@ -79,7 +115,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/types.Header"
                         },
                         "headers": {
                             "Token": {
@@ -88,6 +124,61 @@
                             }
                         }
                     }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "types.Header": {
+            "type": "object",
+            "properties": {
+                "difficulty": {
+                    "type": "string"
+                },
+                "extraData": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "gasLimit": {
+                    "type": "integer"
+                },
+                "gasUsed": {
+                    "type": "integer"
+                },
+                "logsBloom": {
+                    "type": "Bloom"
+                },
+                "miner": {
+                    "type": "string"
+                },
+                "mixHash": {
+                    "type": "string"
+                },
+                "nonce": {
+                    "type": "BlockNonce"
+                },
+                "number": {
+                    "type": "string"
+                },
+                "parentHash": {
+                    "type": "string"
+                },
+                "receiptsRoot": {
+                    "type": "string"
+                },
+                "sha3Uncles": {
+                    "type": "string"
+                },
+                "stateRoot": {
+                    "type": "string"
+                },
+                "timestamp": {
+                    "type": "integer"
+                },
+                "transactionsRoot": {
+                    "type": "string"
                 }
             }
         }

@@ -1,4 +1,40 @@
 basePath: /api/v1
+definitions:
+  types.Header:
+    properties:
+      difficulty:
+        type: string
+      extraData:
+        items:
+          type: integer
+        type: array
+      gasLimit:
+        type: integer
+      gasUsed:
+        type: integer
+      logsBloom:
+        type: Bloom
+      miner:
+        type: string
+      mixHash:
+        type: string
+      nonce:
+        type: BlockNonce
+      number:
+        type: string
+      parentHash:
+        type: string
+      receiptsRoot:
+        type: string
+      sha3Uncles:
+        type: string
+      stateRoot:
+        type: string
+      timestamp:
+        type: integer
+      transactionsRoot:
+        type: string
+    type: object
 host: localhost:8080
 info:
   contact:
@@ -37,16 +73,40 @@ paths:
               type: string
             type: array
       summary: List accounts
-  /accounts/{id}:
+  /header/{hash}:
     get:
       consumes:
       - application/json
       description: get string by ID
       operationId: get-string-by-int
       parameters:
-      - description: Account ID
+      - description: Eth header hash
         in: path
-        name: id
+        name: hash
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          headers:
+            Token:
+              description: qwerty
+              type: string
+          schema:
+            $ref: '#/definitions/types.Header'
+      summary: Show a account
+  /header/{number}:
+    get:
+      consumes:
+      - application/json
+      description: get string by ID
+      operationId: get-string-by-int
+      parameters:
+      - description: Eth header number
+        in: path
+        name: number
         required: true
         type: integer
       produces:
@@ -59,7 +119,7 @@ paths:
               description: qwerty
               type: string
           schema:
-            type: string
+            $ref: '#/definitions/types.Header'
       summary: Show a account
 securityDefinitions:
   ApiKeyAuth:

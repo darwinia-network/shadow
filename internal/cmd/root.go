@@ -27,7 +27,7 @@ func init() {
 	cmdRun.PersistentFlags().BoolVarP(
 		&Http,
 		"http",
-		"h",
+		"",
 		false,
 		"start http api server",
 	)

@@ -32,16 +32,12 @@ jobs:
       env:
         cache-name: mmr-cache
       with:
-        path: ~/target
-        key: ${{ runner.os }}-build-${{ env.cache-name }}
-        restore-keys: |
-          ${{ runner.os }}-build-
-          ${{ runner.os }}-
-
+        path: ./target
+        key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('./Cargo.lock') }}
+        
     # Build packages
     - name: Build
       run: cargo build --release
-
     # Lint code
     - name: Lint
       uses: golangci/golangci-lint-action@v1

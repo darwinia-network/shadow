@@ -43,9 +43,6 @@ jobs:
       with:
         path: ~/go/pkg/mod
         key: ${{ runner.os }}-build-${{ env.cache-name }}
-        restore-keys: |
-          ${{ runner.os }}-build-
-          ${{ runner.os }}-
           
     # Cache ethash
     - name: Cache Eth Hash
@@ -55,9 +52,6 @@ jobs:
       with:
         path: ~/.ethash
         key: ${{ runner.os }}-build-${{ env.cache-name }}
-        restore-keys: |
-          ${{ runner.os }}-build-
-          ${{ runner.os }}-
 
     # Cache MMR Library
     - name: Cache MMR Library
@@ -67,9 +61,6 @@ jobs:
       with:
         path: ./target
         key: ${{ runner.os }}-build-${{ env.cache-name }}
-        restore-keys: |
-          ${{ runner.os }}-build-
-          ${{ runner.os }}-
 
     # Get deps
     - name: Get dependencies

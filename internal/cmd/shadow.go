@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/darwinia-network/shadow/internal"
+	"github.com/darwinia-network/shadow/api"
 	"github.com/darwinia-network/shadow/internal/core"
 	"github.com/darwinia-network/shadow/internal/ffi"
 	"github.com/darwinia-network/shadow/internal/rpc"
@@ -45,20 +45,19 @@ var cmdRun = &cobra.Command{
 			args = []string{"3000"}
 		}
 
-		// Generate config
-		conf := new(internal.Config)
-		err := conf.Load()
-		util.Assert(err)
-
 		// Generate Shadow
-		shadow := new(core.Shadow)
-		shadow.Config = *conf
-		shadow.DB, err = core.ConnectDb()
+		shadow, err := core.NewShadow()
 		util.Assert(err)
 
 		// if need fetch
 		if Fetch {
-			go fetch(shadow, conf.Genesis)
+			go fetch(&shadow, shadow.Config.Genesis)
+		}
+
+		if Http {
+			go func() {
+				api.Swagger()
+			}()
 		}
 
 		// Start service

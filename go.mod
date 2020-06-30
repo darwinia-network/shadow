@@ -3,6 +3,7 @@ module github.com/darwinia-network/shadow
 go 1.14
 
 require (
+	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751
 	github.com/aristanetworks/goarista v0.0.0-20190204200901-2166578f3448 // indirect
 	github.com/btcsuite/btcd v0.0.0-20181123190223-3dcf298fed2d // indirect
 	github.com/cespare/cp v1.0.0 // indirect
@@ -38,7 +39,7 @@ require (
 	github.com/stretchr/testify v1.5.1 // indirect
 	github.com/swaggo/files v0.0.0-20190704085106-630677cd5c14
 	github.com/swaggo/gin-swagger v1.2.0
-	github.com/swaggo/swag v1.6.7 // indirect
+	github.com/swaggo/swag v1.6.7
 	github.com/ttacon/builder v0.0.0-20170518171403-c099f663e1c2 // indirect
 	github.com/ttacon/libphonenumber v1.1.0
 	github.com/tuvistavie/securerandom v0.0.0-20140719024926-15512123a948

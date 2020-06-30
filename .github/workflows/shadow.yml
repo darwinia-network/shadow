@@ -65,7 +65,7 @@ jobs:
       env:
         cache-name: mmr-cache
       with:
-        path: ~/target
+        path: ./target
         key: ${{ runner.os }}-build-${{ env.cache-name }}
         restore-keys: |
           ${{ runner.os }}-build-

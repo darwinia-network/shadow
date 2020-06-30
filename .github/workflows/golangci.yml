@@ -32,16 +32,14 @@ jobs:
       env:
         cache-name: mmr-cache
       with:
-        path: ~/target
+        path: ./target
         key: ${{ runner.os }}-build-${{ env.cache-name }}
         restore-keys: |
           ${{ runner.os }}-build-
           ${{ runner.os }}-
-
     # Build packages
     - name: Build
       run: cargo build --release
-
     # Lint code
     - name: Lint
       uses: golangci/golangci-lint-action@v1

@@ -85,7 +85,7 @@ func (c *Controller) GetEthHeaderByNumber(ctx *gin.Context) {
 // @Accept  json
 // @Produce  json
 // @Param number path uint64 true "Eth header number"
-// @Success 200 {object} types.Header
+// @Success 200 {object} core.GetEthHeaderByNumberParams
 // @Header 200 {string} Token "qwerty"
 // @Failure 400 {object} HTTPError
 // @Router /proof/number/{number} [get]
@@ -115,8 +115,8 @@ func (c *Controller) GetEthProofByNumber(ctx *gin.Context) {
 // @ID get-string-by-int
 // @Accept  json
 // @Produce  json
-// @Param number path uint64 true "Eth header number"
-// @Success 200 {object} types.Header
+// @Param hash query string true "Eth header hash"
+// @Success 200 {object} core.GetEthHeaderWithProofByNumberJSONResp
 // @Header 200 {string} Token "qwerty"
 // @Failure 400 {object} HTTPError
 // @Router /proof/hash [post]
@@ -140,17 +140,17 @@ func (c *Controller) GetEthProofByHash(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, resp)
 }
 
-// Get ETH header with proof by hash godoc
+// Get headers by proposal
 // @Summary Show a account
 // @Description get string by ID
 // @ID get-string-by-int
 // @Accept  json
 // @Produce  json
-// @Param number path uint64 true "Eth header number"
-// @Success 200 {object} types.Header
+// @Param numbers query []uint64 true "Eth header numbers"
+// @Success 200 {array} core.GetEthHeaderWithProofByNumberJSONResp
 // @Header 200 {string} Token "qwerty"
 // @Failure 400 {object} HTTPError
-// @Router /proof/hash [post]
+// @Router /proposal [post]
 func (c *Controller) Proposal(ctx *gin.Context) {
 	var resp interface{}
 	var numbers []uint64

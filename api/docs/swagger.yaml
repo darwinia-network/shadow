@@ -1,0 +1,307 @@
+basePath: /api/v1
+definitions:
+  api.HTTPError:
+    properties:
+      code:
+        example: 400
+        type: integer
+      message:
+        example: status bad request
+        type: string
+    type: object
+  core.GetEthHeaderByNumberParams:
+    properties:
+      number:
+        type: integer
+    type: object
+  core.GetEthHeaderWithProofByNumberJSONResp:
+    properties:
+      eth_header:
+        $ref: '#/definitions/eth.DarwiniaEthHeaderHexFormat'
+        type: object
+      proof:
+        items:
+          $ref: '#/definitions/eth.DoubleNodeWithMerkleProof'
+        type: array
+      root:
+        type: string
+    type: object
+  eth.DarwiniaEthHeaderHexFormat:
+    properties:
+      author:
+        type: string
+      difficulty:
+        type: string
+      extra_data:
+        type: string
+      gas_limit:
+        type: string
+      gas_used:
+        type: string
+      hash:
+        type: string
+      log_bloom:
+        type: string
+      number:
+        type: string
+      parent_hash:
+        type: string
+      receipts_root:
+        type: string
+      seal:
+        items:
+          type: string
+        type: array
+      state_root:
+        type: string
+      timestamp:
+        type: string
+      transactions_root:
+        type: string
+      uncles_hash:
+        type: string
+    type: object
+  eth.DoubleNodeWithMerkleProof:
+    properties:
+      dag_nodes:
+        items:
+          type: string
+        type: array
+      proof:
+        items:
+          type: string
+        type: array
+    type: object
+  types.Header:
+    properties:
+      difficulty:
+        type: string
+      extraData:
+        items:
+          type: integer
+        type: array
+      gasLimit:
+        type: integer
+      gasUsed:
+        type: integer
+      logsBloom:
+        type: Bloom
+      miner:
+        type: string
+      mixHash:
+        type: string
+      nonce:
+        type: BlockNonce
+      number:
+        type: string
+      parentHash:
+        type: string
+      receiptsRoot:
+        type: string
+      sha3Uncles:
+        type: string
+      stateRoot:
+        type: string
+      timestamp:
+        type: integer
+      transactionsRoot:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: support@swagger.io
+    name: API Support
+    url: http://www.swagger.io/support
+  description: This is a sample server celler server.
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: Swagger Example API
+  version: "1.0"
+paths:
+  /header/hash/{hash}:
+    get:
+      consumes:
+      - application/json
+      description: get string by ID
+      operationId: get-string-by-int
+      parameters:
+      - description: Eth header hash
+        in: path
+        name: hash
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          headers:
+            Token:
+              description: qwerty
+              type: string
+          schema:
+            $ref: '#/definitions/types.Header'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api.HTTPError'
+      summary: Show a account
+  /header/number/{number}:
+    get:
+      consumes:
+      - application/json
+      description: get string by ID
+      operationId: get-string-by-int
+      parameters:
+      - description: Eth header number
+        in: path
+        name: number
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          headers:
+            Token:
+              description: qwerty
+              type: string
+          schema:
+            $ref: '#/definitions/types.Header'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api.HTTPError'
+      summary: Show a account
+  /proof/hash:
+    post:
+      consumes:
+      - application/json
+      description: get string by ID
+      operationId: get-string-by-int
+      parameters:
+      - description: Eth header hash
+        in: query
+        name: hash
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          headers:
+            Token:
+              description: qwerty
+              type: string
+          schema:
+            $ref: '#/definitions/core.GetEthHeaderWithProofByNumberJSONResp'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api.HTTPError'
+      summary: Show a account
+  /proof/number/{number}:
+    get:
+      consumes:
+      - application/json
+      description: get string by ID
+      operationId: get-string-by-int
+      parameters:
+      - description: Eth header number
+        in: path
+        name: number
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          headers:
+            Token:
+              description: qwerty
+              type: string
+          schema:
+            $ref: '#/definitions/core.GetEthHeaderByNumberParams'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api.HTTPError'
+      summary: Show a account
+  /proposal:
+    post:
+      consumes:
+      - application/json
+      description: get string by ID
+      operationId: get-string-by-int
+      parameters:
+      - collectionFormat: multi
+        description: Eth header numbers
+        in: query
+        items:
+          type: integer
+        name: numbers
+        required: true
+        type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          headers:
+            Token:
+              description: qwerty
+              type: string
+          schema:
+            items:
+              $ref: '#/definitions/core.GetEthHeaderWithProofByNumberJSONResp'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api.HTTPError'
+      summary: Show a account
+securityDefinitions:
+  ApiKeyAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+  BasicAuth:
+    type: basic
+  OAuth2AccessCode:
+    authorizationUrl: https://example.com/oauth/authorize
+    flow: accessCode
+    scopes:
+      admin: ' Grants read and write access to administrative information'
+    tokenUrl: https://example.com/oauth/token
+    type: oauth2
+  OAuth2Application:
+    flow: application
+    scopes:
+      admin: ' Grants read and write access to administrative information'
+      write: ' Grants write access'
+    tokenUrl: https://example.com/oauth/token
+    type: oauth2
+  OAuth2Implicit:
+    authorizationUrl: https://example.com/oauth/authorize
+    flow: implicit
+    scopes:
+      admin: ' Grants read and write access to administrative information'
+      write: ' Grants write access'
+    type: oauth2
+  OAuth2Password:
+    flow: password
+    scopes:
+      admin: ' Grants read and write access to administrative information'
+      read: ' Grants read access'
+      write: ' Grants write access'
+    tokenUrl: https://example.com/oauth/token
+    type: oauth2
+swagger: "2.0"
+x-extension-openapi:
+  example: value on a json format

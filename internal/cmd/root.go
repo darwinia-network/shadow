@@ -11,6 +11,7 @@ var (
 		Long:  `The way to Go`,
 	}
 	Fetch bool
+	Http  bool
 )
 
 // Init commands to dargo
@@ -21,6 +22,14 @@ func init() {
 		"f",
 		false,
 		"keep fetching blocks in background",
+	)
+
+	cmdRun.PersistentFlags().BoolVarP(
+		&Http,
+		"http",
+		"",
+		false,
+		"start http api server",
 	)
 
 	rootCmd.AddCommand(

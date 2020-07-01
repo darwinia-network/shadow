@@ -38,6 +38,12 @@ func NewShadow() (Shadow, error) {
 	}, err
 }
 
+func (s *Shadow) ToRPC() ShadowRPC {
+	return ShadowRPC{
+		Shadow: *s,
+	}
+}
+
 /**
  * Genesis block checker
  */
@@ -74,12 +80,6 @@ func (s *Shadow) checkGenesis(genesis uint64, block interface{}) (uint64, error)
 		return dH.Number, nil
 	default:
 		return genesis, fmt.Errorf("Invaild block param: %v", block)
-	}
-}
-
-func (s *Shadow) ToRPC() ShadowRPC {
-	return ShadowRPC{
-		Core: *s,
 	}
 }
 

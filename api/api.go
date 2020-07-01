@@ -50,6 +50,7 @@ import (
 	"github.com/swaggo/gin-swagger"
 
 	"github.com/darwinia-network/shadow/api/docs"
+	"github.com/darwinia-network/shadow/internal/core"
 	"github.com/darwinia-network/shadow/internal/util"
 )
 
@@ -63,7 +64,7 @@ func Swagger() {
 	docs.SwaggerInfo.Schemes = []string{"http", "https"}
 
 	r := gin.Default()
-	c, err := NewController()
+	c, err := core.NewShadowHTTP()
 	util.Assert(err)
 
 	v1 := r.Group("/api/v1")

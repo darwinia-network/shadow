@@ -1,7 +1,7 @@
 package core
 
 type ShadowRPC struct {
-	Core Shadow
+	Shadow Shadow
 }
 
 /**
@@ -12,7 +12,7 @@ func (s *ShadowRPC) GetEthHeaderByHash(
 	resp *GetEthHeaderResp,
 ) error {
 	var err error
-	resp.Header, err = s.Core.GetHeader(Ethereum, params.Hash)
+	resp.Header, err = s.Shadow.GetHeader(Ethereum, params.Hash)
 	return err
 }
 
@@ -24,7 +24,7 @@ func (s *ShadowRPC) GetEthHeaderByNumber(
 	resp *GetEthHeaderResp,
 ) error {
 	var err error
-	resp.Header, err = s.Core.GetHeader(Ethereum, params.Number)
+	resp.Header, err = s.Shadow.GetHeader(Ethereum, params.Number)
 	return err
 }
 
@@ -36,7 +36,7 @@ func (s *ShadowRPC) GetEthHeaderWithProofByNumber(
 	resp *interface{},
 ) error {
 	var err error
-	*resp, err = s.Core.GetHeaderWithProof(
+	*resp, err = s.Shadow.GetHeaderWithProof(
 		Ethereum,
 		params.Number,
 		new(ProofFormat).From(params.Options.Format),
@@ -52,7 +52,7 @@ func (s *ShadowRPC) GetEthHeaderWithProofByHash(
 	resp *interface{},
 ) error {
 	var err error
-	*resp, err = s.Core.GetHeaderWithProof(
+	*resp, err = s.Shadow.GetHeaderWithProof(
 		Ethereum,
 		params.Hash,
 		new(ProofFormat).From(params.Options.Format),
@@ -68,7 +68,7 @@ func (s *ShadowRPC) BatchEthHeaderWithProofByNumber(
 	resp *interface{},
 ) error {
 	var err error
-	*resp, err = s.Core.BatchHeaderWithProof(
+	*resp, err = s.Shadow.BatchHeaderWithProof(
 		params.Number,
 		params.Batch,
 		new(ProofFormat).From(params.Options.Format),
@@ -85,7 +85,7 @@ func (s *ShadowRPC) GetProposalEthHeaders(
 	resp *interface{},
 ) error {
 	var err error
-	*resp, err = s.Core.GetProposalHeaders(
+	*resp, err = s.Shadow.GetProposalHeaders(
 		params.Numbers,
 		new(ProofFormat).From(params.Options.Format),
 	)

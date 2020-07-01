@@ -16,6 +16,21 @@ import (
 	"github.com/tuvistavie/securerandom"
 )
 
+func NumberOrString(ns interface{}) (interface{}, error) {
+	switch t := ns.(type) {
+	case uint64:
+		return t, nil
+	case string:
+		r, err := strconv.ParseUint(t, 10, 64)
+		if err != nil {
+			return t, nil
+		}
+		return r, err
+	default:
+		return "", fmt.Errorf("Parse number/string failed")
+	}
+}
+
 func RandStr(length int) string {
 	str, _ := securerandom.Hex(length)
 	return str

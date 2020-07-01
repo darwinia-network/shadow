@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	"github.com/darwinia-network/shadow/internal/core"
+	"github.com/darwinia-network/shadow/internal/util"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/gin-gonic/gin"
 )
@@ -40,41 +41,21 @@ func (c *Controller) FromShadow(shadow core.Shadow) Controller {
 // @Success 200 {object} types.Header
 // @Header 200 {string} Token "qwerty"
 // @Failure 400 {object} HTTPError
-// @Router /header/hash/{hash} [get]
-func (c *Controller) GetEthHeaderByHash(ctx *gin.Context) {
-	var resp core.GetEthHeaderResp
-	hash := ctx.Param("hash")
-	err := c.Shadow.GetEthHeaderByHash(core.GetEthHeaderByHashParams{Hash: hash}, &resp)
+// @Router /header/{block} [get]
+func (c *Controller) GetHeader(ctx *gin.Context) {
+	var header types.Header
+	block, err := util.NumberOrString(ctx.Param("block"))
 	if err != nil {
 		NewError(ctx, http.StatusBadRequest, err)
 		return
 	}
 
-	var header types.Header = resp.Header
-	ctx.JSON(http.StatusOK, header)
-}
-
-// Get ETH Header by number godoc
-// @Summary Show a account
-// @Description get string by ID
-// @ID get-string-by-int
-// @Accept  json
-// @Produce  json
-// @Param number path uint64 true "Eth header number"
-// @Success 200 {object} types.Header
-// @Header 200 {string} Token "qwerty"
-// @Failure 400 {object} HTTPError
-// @Router /header/number/{number} [get]
-func (c *Controller) GetEthHeaderByNumber(ctx *gin.Context) {
-	var resp core.GetEthHeaderResp
-	num, _ := strconv.ParseUint(ctx.Param("number"), 10, 64)
-	err := c.Shadow.GetEthHeaderByNumber(core.GetEthHeaderByNumberParams{Number: num}, &resp)
+	header, err = c.Shadow.GetHeader(core.Ethereum, block)
 	if err != nil {
 		NewError(ctx, http.StatusBadRequest, err)
 		return
 	}
 
-	var header types.Header = resp.Header
 	ctx.JSON(http.StatusOK, header)
 }
 
@@ -89,48 +70,20 @@ func (c *Controller) GetEthHeaderByNumber(ctx *gin.Context) {
 // @Header 200 {string} Token "qwerty"
 // @Failure 400 {object} HTTPError
 // @Router /proof/number/{number} [get]
-func (c *Controller) GetEthProofByNumber(ctx *gin.Context) {
+func (c *Controller) GetProof(ctx *gin.Context) {
 	var resp interface{}
-	num, _ := strconv.ParseUint(ctx.Query("number"), 10, 64)
-	format := ctx.DefaultQuery("format", "json")
-	err := c.Shadow.GetEthHeaderWithProofByNumber(
-		core.GetEthHeaderWithProofByNumberParams{
-			Number: num,
-			Options: core.GetEthHeaderWithProofByNumberOptions{
-				Format: format,
-			},
-		}, &resp)
-
+	block, err := util.NumberOrString(ctx.Param("block"))
 	if err != nil {
 		NewError(ctx, http.StatusBadRequest, err)
 		return
 	}
 
-	ctx.JSON(http.StatusOK, resp)
-}
-
-// Get ETH header with proof by hash godoc
-// @Summary Show a account
-// @Description get string by ID
-// @ID get-string-by-int
-// @Accept  json
-// @Produce  json
-// @Param hash query string true "Eth header hash"
-// @Success 200 {object} core.GetEthHeaderWithProofByNumberJSONResp
-// @Header 200 {string} Token "qwerty"
-// @Failure 400 {object} HTTPError
-// @Router /proof/hash [post]
-func (c *Controller) GetEthProofByHash(ctx *gin.Context) {
-	var resp interface{}
-	hash := ctx.Query("hash")
 	format := ctx.DefaultQuery("format", "json")
-	err := c.Shadow.GetEthHeaderWithProofByHash(
-		core.GetEthHeaderWithProofByHashParams{
-			Hash: hash,
-			Options: core.GetEthHeaderWithProofByNumberOptions{
-				Format: format,
-			},
-		}, &resp)
+	resp, err = c.Shadow.GetHeaderWithProof(
+		core.Ethereum,
+		block,
+		new(core.ProofFormat).From(format),
+	)
 
 	if err != nil {
 		NewError(ctx, http.StatusBadRequest, err)
@@ -152,8 +105,11 @@ func (c *Controller) GetEthProofByHash(ctx *gin.Context) {
 // @Failure 400 {object} HTTPError
 // @Router /proposal [post]
 func (c *Controller) Proposal(ctx *gin.Context) {
-	var resp interface{}
-	var numbers []uint64
+	var (
+		resp    interface{}
+		numbers []uint64
+		err     error
+	)
 	ns := ctx.Request.URL.Query()["numbers"]
 	for _, n := range ns {
 		num, _ := strconv.ParseUint(n, 10, 64)
@@ -161,14 +117,10 @@ func (c *Controller) Proposal(ctx *gin.Context) {
 	}
 
 	format := ctx.DefaultQuery("format", "json")
-	err := c.Shadow.GetProposalEthHeaders(
-		core.GetProposalEthHeadersParams{
-			Numbers: numbers,
-			Options: core.GetEthHeaderWithProofByNumberOptions{
-				Format: format,
-			},
-		}, &resp)
-
+	resp, err = c.Shadow.GetProposalHeaders(
+		numbers,
+		new(core.ProofFormat).From(format),
+	)
 	if err != nil {
 		NewError(ctx, http.StatusBadRequest, err)
 		return

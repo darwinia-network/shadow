@@ -63,7 +63,7 @@ var cmdRun = &cobra.Command{
 		// Start service
 		fmt.Printf("Shadow service start at %s\n", args[0])
 		err = rpc.ServeHTTP(
-			&shadow,
+			shadow.ToRPC,
 			fmt.Sprintf(":%s", args[0]),
 		)
 		util.Assert(err)

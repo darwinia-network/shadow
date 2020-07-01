@@ -12,19 +12,17 @@ import (
 /**
  * Generate Shadow API
  */
-func genShadow() core.Shadow {
+func genShadow() core.ShadowRPC {
 	conf := internal.Config{}
 	err := conf.Load()
 	util.Assert(err)
 
 	// Generate Shadow
-	shadow := new(core.Shadow)
-	shadow.Config = conf
-	shadow.DB, err = core.ConnectDb()
+	shadow, err := core.NewShadow()
 	util.Assert(err)
 
 	// Generate shadow rpc
-	return *shadow
+	return shadow.ToRPC()
 }
 
 func TestGetBlockByNumber(t *testing.T) {

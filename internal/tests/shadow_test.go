@@ -18,11 +18,11 @@ func genShadow() core.ShadowRPC {
 	util.Assert(err)
 
 	// Generate Shadow
-	shadow, err := core.NewShadow()
+	shadow, err := core.NewShadowRPC()
 	util.Assert(err)
 
 	// Generate shadow rpc
-	return shadow.ToRPC()
+	return shadow
 }
 
 func TestGetBlockByNumber(t *testing.T) {

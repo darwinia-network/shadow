@@ -6,30 +6,37 @@ import (
 
 var (
 	rootCmd = &cobra.Command{
-		Use:   "dargo",
-		Short: "Darwinia.go cmd-tool",
+		Use:   "shadow",
+		Short: "Darwinia shadow service",
 		Long:  `The way to Go`,
 	}
-	Fetch bool
-	Http  bool
+	FETCH bool
+	HTTP  string
+	RPC   string
 )
 
 // Init commands to dargo
 func init() {
 	cmdRun.PersistentFlags().BoolVarP(
-		&Fetch,
+		&FETCH,
 		"fetch",
 		"f",
 		false,
 		"keep fetching blocks in background",
 	)
 
-	cmdRun.PersistentFlags().BoolVarP(
-		&Http,
+	cmdRun.PersistentFlags().StringVar(
+		&HTTP,
 		"http",
-		"",
-		false,
-		"start http api server",
+		"3001",
+		"set port of http api server",
+	)
+
+	cmdRun.PersistentFlags().StringVar(
+		&RPC,
+		"rpc",
+		"3000",
+		"set port of http rpc server",
 	)
 
 	rootCmd.AddCommand(

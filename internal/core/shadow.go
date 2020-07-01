@@ -38,16 +38,15 @@ func NewShadow() (Shadow, error) {
 	}, err
 }
 
-func (s *Shadow) ToRPC() ShadowRPC {
-	return ShadowRPC{
-		Shadow: *s,
-	}
-}
-
 /**
  * Genesis block checker
  */
 func (s *Shadow) checkGenesis(genesis uint64, block interface{}) (uint64, error) {
+	block, err := util.NumberOrString(block)
+	if err != nil {
+		return genesis, err
+	}
+
 	switch b := block.(type) {
 	case uint64:
 		if b < genesis {
@@ -92,12 +91,12 @@ func (s *Shadow) GetHeader(
 ) (types.Header, error) {
 	switch chain {
 	default:
-		_, err := s.checkGenesis(s.Config.Genesis, block)
+		num, err := s.checkGenesis(s.Config.Genesis, block)
 		if err != nil {
 			return types.Header{}, err
 		}
 
-		return eth.Header(block, s.Config.Api)
+		return eth.Header(num, s.Config.Api)
 	}
 
 }
@@ -114,6 +113,8 @@ func (s *Shadow) GetHeaderWithProof(
 		if err != nil {
 			return GetEthHeaderWithProofCodecResp{}, err
 		}
+
+		fmt.Println(num)
 
 		// Fetch header from cache
 		cache := EthHeaderWithProofCache{Number: num}

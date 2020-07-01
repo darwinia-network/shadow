@@ -4,6 +4,13 @@ type ShadowRPC struct {
 	Shadow Shadow
 }
 
+func NewShadowRPC() (ShadowRPC, error) {
+	shadow, err := NewShadow()
+	return ShadowRPC{
+		Shadow: shadow,
+	}, err
+}
+
 /**
  * Get Eth Header By Hash
  */

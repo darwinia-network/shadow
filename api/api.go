@@ -45,16 +45,17 @@
 package api
 
 import (
-	"github.com/gin-gonic/gin"
-	"github.com/swaggo/files"
-	"github.com/swaggo/gin-swagger"
+	"fmt"
 
 	"github.com/darwinia-network/shadow/api/docs"
 	"github.com/darwinia-network/shadow/internal/core"
 	"github.com/darwinia-network/shadow/internal/util"
+	"github.com/gin-gonic/gin"
+	"github.com/swaggo/files"
+	"github.com/swaggo/gin-swagger"
 )
 
-func Swagger() {
+func Swagger(port string) {
 	// programatically set swagger info
 	docs.SwaggerInfo.Title = "Swagger Example API"
 	docs.SwaggerInfo.Description = "This is a sample server Petstore server."
@@ -75,5 +76,5 @@ func Swagger() {
 	}
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	gin.SetMode(gin.ReleaseMode)
-	util.Assert(r.Run(":3600"))
+	util.Assert(r.Run(fmt.Sprintf(":%s", port)))
 }

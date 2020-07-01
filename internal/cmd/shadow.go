@@ -56,14 +56,16 @@ var cmdRun = &cobra.Command{
 
 		if Http {
 			go func() {
-				api.Swagger()
+				api.Swagger("3600")
 			}()
 		}
 
 		// Start service
 		fmt.Printf("Shadow service start at %s\n", args[0])
 		err = rpc.ServeHTTP(
-			shadow.ToRPC,
+			&core.ShadowRPC{
+				Shadow: shadow,
+			},
 			fmt.Sprintf(":%s", args[0]),
 		)
 		util.Assert(err)

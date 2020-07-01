@@ -45,13 +45,13 @@ func (c *ShadowHTTP) FromShadow(shadow Shadow) ShadowHTTP {
 	}
 }
 
-// Get ETH Header by hash godoc
-// @Summary Show a account
-// @Description get string by ID
-// @ID get-string-by-int
+// Get Header by hash godoc
+// @Summary Get ETH Header by block
+// @Description Get ETH Header by block number or hash
+// @ID get-header-by-block
 // @Accept  json
 // @Produce  json
-// @Param hash path string true "Eth header hash"
+// @Param block path string true "Eth header number or hash"
 // @Success 200 {object} types.Header
 // @Header 200 {string} Token "qwerty"
 // @Failure 400 {object} HTTPError
@@ -73,17 +73,17 @@ func (c *ShadowHTTP) GetHeader(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, header)
 }
 
-// Get ETH header with proof by number godoc
-// @Summary Show a account
-// @Description get string by ID
-// @ID get-string-by-int
+// Get header with proof godoc
+// @Summary Get header with proof
+// @Description Get header with hash proof and mmr roothash
+// @ID get-header-with-proof
 // @Accept  json
 // @Produce  json
-// @Param number path uint64 true "Eth header number"
-// @Success 200 {object} GetEthHeaderByNumberParams
+// @Param block path string true "Eth header number or hash"
+// @Success 200 {object} GetEthHeaderWithProofByNumberJSONResp
 // @Header 200 {string} Token "qwerty"
 // @Failure 400 {object} HTTPError
-// @Router /proof/number/{number} [get]
+// @Router /proof/{block} [get]
 func (c *ShadowHTTP) GetProof(ctx *gin.Context) {
 	var resp interface{}
 	block, err := util.NumberOrString(ctx.Param("block"))
@@ -108,13 +108,13 @@ func (c *ShadowHTTP) GetProof(ctx *gin.Context) {
 }
 
 // Get headers by proposal
-// @Summary Show a account
-// @Description get string by ID
-// @ID get-string-by-int
+// @Summary Get headers by block numbers
+// @Description Get headers by block numbers, used for relay proposal
+// @ID get-headers-by-proposal
 // @Accept  json
 // @Produce  json
 // @Param numbers query []uint64 true "Eth header numbers"
-// @Success 200 {array} GetEthHeaderWithProofByNumberJSONResp
+// @Success 200 {array} []GetEthHeaderWithProofByNumberJSONResp
 // @Header 200 {string} Token "qwerty"
 // @Failure 400 {object} HTTPError
 // @Router /proposal [post]

@@ -34,7 +34,7 @@ type EthHeaderWithProofCache struct {
 // Save header to cache
 func (c *EthHeaderWithProofCache) FromResp(
 	db *gorm.DB,
-	resp GetEthHeaderWithProofByNumberRawResp,
+	resp GetEthHeaderWithProofRawResp,
 ) error {
 	// Convert header to string
 	header, err := json.Marshal(resp.Header)
@@ -116,8 +116,8 @@ func (c *EthHeaderWithProofCache) ApplyProof(
 }
 
 // Convert EthHeader
-func (c *EthHeaderWithProofCache) IntoResp() (GetEthHeaderWithProofByNumberRawResp, error) {
-	var rResp GetEthHeaderWithProofByNumberRawResp
+func (c *EthHeaderWithProofCache) IntoResp() (GetEthHeaderWithProofRawResp, error) {
+	var rResp GetEthHeaderWithProofRawResp
 	header, proof := eth.DarwiniaEthHeader{}, []eth.DoubleNodeWithMerkleProof{}
 
 	// Decode header
@@ -133,7 +133,7 @@ func (c *EthHeaderWithProofCache) IntoResp() (GetEthHeaderWithProofByNumberRawRe
 	}
 
 	// Construct resp
-	return GetEthHeaderWithProofByNumberRawResp{
+	return GetEthHeaderWithProofRawResp{
 		header,
 		proof,
 		c.Root,

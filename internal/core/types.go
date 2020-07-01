@@ -28,19 +28,19 @@ type GetEthHeaderWithProofByNumberOptions struct {
 	Format string `json:"format"`
 }
 
-type GetEthHeaderWithProofByNumberRawResp struct {
+type GetEthHeaderWithProofRawResp struct {
 	Header eth.DarwiniaEthHeader           `json:"eth_header"`
 	Proof  []eth.DoubleNodeWithMerkleProof `json:"proof"`
 	Root   string                          `json:"root"`
 }
 
-type GetEthHeaderWithProofByNumberJSONResp struct {
+type GetEthHeaderWithProofJSONResp struct {
 	Header eth.DarwiniaEthHeaderHexFormat  `json:"eth_header"`
 	Proof  []eth.DoubleNodeWithMerkleProof `json:"proof"`
 	Root   string                          `json:"root"`
 }
 
-type GetEthHeaderWithProofByNumberCodecResp struct {
+type GetEthHeaderWithProofCodecResp struct {
 	Header string `json:"eth_header"`
 	Proof  string `json:"proof"`
 	Root   string `json:"root"`

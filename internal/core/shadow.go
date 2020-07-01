@@ -41,14 +41,14 @@ func NewShadow() (Shadow, error) {
 /**
  * Genesis block checker
  */
-func (s *Shadow) checkGenesis(genesis uint64, block interface{}, api string) error {
+func (s *Shadow) checkGenesis(genesis uint64, block interface{}) error {
 	switch b := block.(type) {
 	case uint64:
 		if b < genesis {
 			return fmt.Errorf(GENESIS_ERROR, genesis)
 		}
 	case string:
-		eH, err := eth.Header(b, api)
+		eH, err := eth.Header(b, s.Config.Api)
 		if err != nil {
 			return err
 		}
@@ -83,7 +83,7 @@ func (s *Shadow) GetEthHeaderByNumber(
 	resp *GetEthHeaderResp,
 ) error {
 	log.Println("Request /GetEthHeaderByNumber")
-	err := s.checkGenesis(s.Config.Genesis, params.Number, s.Config.Api)
+	err := s.checkGenesis(s.Config.Genesis, params.Number)
 	if err != nil {
 		return err
 	}
@@ -101,7 +101,7 @@ func (s *Shadow) GetEthHeaderByHash(
 	resp *GetEthHeaderResp,
 ) error {
 	log.Println("Request /GetEthHeaderByHash")
-	err := s.checkGenesis(s.Config.Genesis, params.Hash, s.Config.Api)
+	err := s.checkGenesis(s.Config.Genesis, params.Hash)
 	if err != nil {
 		return err
 	}
@@ -119,7 +119,7 @@ func (s *Shadow) GetEthHeaderWithProofByNumber(
 	resp *interface{},
 ) error {
 	log.Println("Request /GetEthHeaderWithProofByNumber")
-	err := s.checkGenesis(s.Config.Genesis, params.Number, s.Config.Api)
+	err := s.checkGenesis(s.Config.Genesis, params.Number)
 	if err != nil {
 		return err
 	}
@@ -146,13 +146,13 @@ func (s *Shadow) GetEthHeaderWithProofByNumber(
 
 	// Check if need codec
 	if params.Options.Format == "scale" {
-		*resp = GetEthHeaderWithProofByNumberCodecResp{
+		*resp = GetEthHeaderWithProofCodecResp{
 			encodeDarwiniaEthHeader(rawResp.Header),
 			encodeProofArray(rawResp.Proof),
 			rawResp.Root,
 		}
 	} else if params.Options.Format == "json" {
-		*resp = GetEthHeaderWithProofByNumberJSONResp{
+		*resp = GetEthHeaderWithProofJSONResp{
 			rawResp.Header.HexFormat(),
 			rawResp.Proof,
 			rawResp.Root,

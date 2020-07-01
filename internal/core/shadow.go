@@ -42,14 +42,13 @@ func NewShadow() (Shadow, error) {
  * Genesis block checker
  */
 func (s *Shadow) checkGenesis(genesis uint64, block interface{}) (uint64, error) {
-	num := genesis
 	switch b := block.(type) {
 	case uint64:
 		if b < genesis {
 			return genesis, fmt.Errorf(GENESIS_ERROR, genesis)
 		}
 
-		num = b
+		return b, nil
 	case string:
 		eH, err := eth.Header(b, s.Config.Api)
 		if err != nil {
@@ -72,12 +71,10 @@ func (s *Shadow) checkGenesis(genesis uint64, block interface{}) (uint64, error)
 			return dH.Number, fmt.Errorf(GENESIS_ERROR, genesis)
 		}
 
-		num = dH.Number
+		return dH.Number, nil
 	default:
 		return genesis, fmt.Errorf("Invaild block param: %v", block)
 	}
-
-	return num, nil
 }
 
 func (s *Shadow) ToRPC() ShadowRPC {

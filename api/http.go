@@ -1,9 +1,10 @@
-package core
+package api
 
 import (
 	"net/http"
 	"strconv"
 
+	"github.com/darwinia-network/shadow/internal/core"
 	"github.com/darwinia-network/shadow/internal/util"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/gin-gonic/gin"
@@ -25,11 +26,11 @@ type HTTPError struct {
 }
 
 type ShadowHTTP struct {
-	Shadow Shadow
+	Shadow core.Shadow
 }
 
 func NewShadowHTTP() (ShadowHTTP, error) {
-	shadow, err := NewShadow()
+	shadow, err := core.NewShadow()
 	if err != nil {
 		return ShadowHTTP{}, err
 	}
@@ -37,12 +38,6 @@ func NewShadowHTTP() (ShadowHTTP, error) {
 	return ShadowHTTP{
 		shadow,
 	}, nil
-}
-
-func (c *ShadowHTTP) FromShadow(shadow Shadow) ShadowHTTP {
-	return ShadowHTTP{
-		shadow,
-	}
 }
 
 // Get Header by hash godoc
@@ -64,7 +59,7 @@ func (c *ShadowHTTP) GetHeader(ctx *gin.Context) {
 		return
 	}
 
-	header, err = c.Shadow.GetHeader(Ethereum, block)
+	header, err = c.Shadow.GetHeader(core.Ethereum, block)
 	if err != nil {
 		NewError(ctx, http.StatusBadRequest, err)
 		return
@@ -80,7 +75,7 @@ func (c *ShadowHTTP) GetHeader(ctx *gin.Context) {
 // @Accept  json
 // @Produce  json
 // @Param block path string true "Eth header number or hash"
-// @Success 200 {object} GetEthHeaderWithProofByNumberJSONResp
+// @Success 200 {object} core.GetEthHeaderWithProofJSONResp
 // @Header 200 {string} Token "qwerty"
 // @Failure 400 {object} HTTPError
 // @Router /proof/{block} [get]
@@ -94,9 +89,9 @@ func (c *ShadowHTTP) GetProof(ctx *gin.Context) {
 
 	format := ctx.DefaultQuery("format", "json")
 	resp, err = c.Shadow.GetHeaderWithProof(
-		Ethereum,
+		core.Ethereum,
 		block,
-		new(ProofFormat).From(format),
+		new(core.ProofFormat).From(format),
 	)
 
 	if err != nil {
@@ -114,7 +109,7 @@ func (c *ShadowHTTP) GetProof(ctx *gin.Context) {
 // @Accept  json
 // @Produce  json
 // @Param tx path string true "tx hash"
-// @Success 200 {array} GetReceiptResp
+// @Success 200 {array} core.GetReceiptResp
 // @Header 200 {string} Token "qwerty"
 // @Failure 400 {object} HTTPError
 // @Router /receipt/{tx} [get]
@@ -135,7 +130,7 @@ func (c *ShadowHTTP) GetReceipt(ctx *gin.Context) {
 // @Accept  json
 // @Produce  json
 // @Param numbers query []uint64 true "Eth header numbers"
-// @Success 200 {array} []GetEthHeaderWithProofByNumberJSONResp
+// @Success 200 {array} []core.GetEthHeaderWithProofJSONResp
 // @Header 200 {string} Token "qwerty"
 // @Failure 400 {object} HTTPError
 // @Router /proposal [post]
@@ -154,7 +149,7 @@ func (c *ShadowHTTP) Proposal(ctx *gin.Context) {
 	format := ctx.DefaultQuery("format", "json")
 	resp, err = c.Shadow.GetProposalHeaders(
 		numbers,
-		new(ProofFormat).From(format),
+		new(core.ProofFormat).From(format),
 	)
 	if err != nil {
 		NewError(ctx, http.StatusBadRequest, err)

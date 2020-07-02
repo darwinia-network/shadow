@@ -107,6 +107,27 @@ func (c *ShadowHTTP) GetProof(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, resp)
 }
 
+// Get receipt by hash
+// @Summary Get receipt by tx hash
+// @Description Get receipt by tx hash, used for cross-chain transfer
+// @ID get-receipt-by-tx
+// @Accept  json
+// @Produce  json
+// @Param tx path string true "tx hash"
+// @Success 200 {array} GetReceiptResp
+// @Header 200 {string} Token "qwerty"
+// @Failure 400 {object} HTTPError
+// @Router /receipt/{tx} [get]
+func (c *ShadowHTTP) GetReceipt(ctx *gin.Context) {
+	receipt, err := c.Shadow.GetReceipt(ctx.Param("tx"))
+	if err != nil {
+		NewError(ctx, http.StatusBadRequest, err)
+		return
+	}
+
+	ctx.JSON(http.StatusOK, receipt)
+}
+
 // Get headers by proposal
 // @Summary Get headers by block numbers
 // @Description Get headers by block numbers, used for relay proposal

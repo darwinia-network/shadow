@@ -40,31 +40,28 @@ var cmdRun = &cobra.Command{
 	Short: "Start shadow service",
 	Long:  "This command will use the config at `~/.darwinia/config.json`",
 	Args:  cobra.MinimumNArgs(0),
-	Run: func(cmd *cobra.Command, args []string) {
-		if len(args) == 0 {
-			args = []string{"3000"}
-		}
-
+	Run: func(cmd *cobra.Command, _ []string) {
 		// Generate Shadow
 		shadow, err := core.NewShadow()
 		util.Assert(err)
 
 		// if need fetch
-		if Fetch {
+		if FETCH {
 			go fetch(&shadow, shadow.Config.Genesis)
 		}
 
-		if Http {
-			go func() {
-				api.Swagger()
-			}()
-		}
+		go func() {
+			api.Swagger(HTTP)
+		}()
 
 		// Start service
-		fmt.Printf("Shadow service start at %s\n", args[0])
+		fmt.Printf("Shadow RPC service start at %s\n", RPC)
+		fmt.Printf("Shadow HTTP service start at %s\n", HTTP)
 		err = rpc.ServeHTTP(
-			&shadow,
-			fmt.Sprintf(":%s", args[0]),
+			&core.ShadowRPC{
+				Shadow: shadow,
+			},
+			fmt.Sprintf(":%s", RPC),
 		)
 		util.Assert(err)
 	},

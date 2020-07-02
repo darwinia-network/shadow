@@ -1,65 +1,101 @@
 package core
 
-import (
-	"github.com/darwinia-network/shadow/internal/eth"
-	"github.com/ethereum/go-ethereum/core/types"
-)
-
-// Get Header
-type GetEthHeaderByNumberParams struct {
-	Number uint64 `json:"number"`
+type ShadowRPC struct {
+	Shadow Shadow
 }
 
-type GetEthHeaderByHashParams struct {
-	Hash string `json:"hash"`
+func NewShadowRPC() (ShadowRPC, error) {
+	shadow, err := NewShadow()
+	return ShadowRPC{
+		Shadow: shadow,
+	}, err
 }
 
-type GetEthHeaderResp struct {
-	Header types.Header `json:"header"`
+/**
+ * Get Eth Header By Hash
+ */
+func (s *ShadowRPC) GetEthHeaderByHash(
+	params GetEthHeaderByHashParams,
+	resp *GetEthHeaderResp,
+) error {
+	var err error
+	resp.Header, err = s.Shadow.GetHeader(Ethereum, params.Hash)
+	return err
 }
 
-// Get Header With Proof
-type GetEthHeaderWithProofByNumberParams struct {
-	Number  uint64                               `json:"block_num"`
-	Options GetEthHeaderWithProofByNumberOptions `json:"options"`
+/**
+ * Get Eth Header By Number
+ */
+func (s *ShadowRPC) GetEthHeaderByNumber(
+	params GetEthHeaderByNumberParams,
+	resp *GetEthHeaderResp,
+) error {
+	var err error
+	resp.Header, err = s.Shadow.GetHeader(Ethereum, params.Number)
+	return err
 }
 
-type GetEthHeaderWithProofByNumberOptions struct {
-	Format string `json:"format"`
+/**
+ * GetEthHeaderWithProofByNumber
+ */
+func (s *ShadowRPC) GetEthHeaderWithProofByNumber(
+	params GetEthHeaderWithProofByNumberParams,
+	resp *interface{},
+) error {
+	var err error
+	*resp, err = s.Shadow.GetHeaderWithProof(
+		Ethereum,
+		params.Number,
+		new(ProofFormat).From(params.Options.Format),
+	)
+	return err
 }
 
-type GetEthHeaderWithProofByNumberRawResp struct {
-	Header eth.DarwiniaEthHeader           `json:"eth_header"`
-	Proof  []eth.DoubleNodeWithMerkleProof `json:"proof"`
-	Root   string                          `json:"root"`
+/**
+ * GetEthHeaderWithProofByHash
+ */
+func (s *ShadowRPC) GetEthHeaderWithProofByHash(
+	params GetEthHeaderWithProofByHashParams,
+	resp *interface{},
+) error {
+	var err error
+	*resp, err = s.Shadow.GetHeaderWithProof(
+		Ethereum,
+		params.Hash,
+		new(ProofFormat).From(params.Options.Format),
+	)
+	return err
 }
 
-type GetEthHeaderWithProofByNumberJSONResp struct {
-	Header eth.DarwiniaEthHeaderHexFormat  `json:"eth_header"`
-	Proof  []eth.DoubleNodeWithMerkleProof `json:"proof"`
-	Root   string                          `json:"root"`
+/**
+ * BatchEthHeaderWithProofByNumber
+ */
+func (s *ShadowRPC) BatchEthHeaderWithProofByNumber(
+	params BatchEthHeaderWithProofByNumberParams,
+	resp *interface{},
+) error {
+	var err error
+	*resp, err = s.Shadow.BatchHeaderWithProof(
+		params.Number,
+		params.Batch,
+		new(ProofFormat).From(params.Options.Format),
+	)
+
+	return err
 }
 
-type GetEthHeaderWithProofByNumberCodecResp struct {
-	Header string `json:"eth_header"`
-	Proof  string `json:"proof"`
-	Root   string `json:"root"`
-}
+/**
+ * BatchEthHeaderWithProofByNumber
+ */
+func (s *ShadowRPC) GetProposalEthHeaders(
+	params GetProposalEthHeadersParams,
+	resp *interface{},
+) error {
+	var err error
+	*resp, err = s.Shadow.GetProposalHeaders(
+		params.Numbers,
+		new(ProofFormat).From(params.Options.Format),
+	)
 
-type GetEthHeaderWithProofByHashParams struct {
-	Hash    string                               `json:"hash"`
-	Options GetEthHeaderWithProofByNumberOptions `json:"options"`
-}
-
-// Batch Header
-type BatchEthHeaderWithProofByNumberParams struct {
-	Number  uint64                               `json:"number"`
-	Batch   int                                  `json:"batch"`
-	Options GetEthHeaderWithProofByNumberOptions `json:"options"`
-}
-
-// Proposal Header
-type GetProposalEthHeadersParams struct {
-	Numbers []uint64                             `json:"number"`
-	Options GetEthHeaderWithProofByNumberOptions `json:"options"`
+	return err
 }

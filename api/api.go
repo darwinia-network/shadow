@@ -45,15 +45,17 @@
 package api
 
 import (
+	"fmt"
+
+	"github.com/darwinia-network/shadow/api/docs"
+	"github.com/darwinia-network/shadow/internal/core"
+	"github.com/darwinia-network/shadow/internal/util"
 	"github.com/gin-gonic/gin"
 	"github.com/swaggo/files"
 	"github.com/swaggo/gin-swagger"
-
-	"github.com/darwinia-network/shadow/api/docs"
-	"github.com/darwinia-network/shadow/internal/util"
 )
 
-func Swagger() {
+func Swagger(port string) {
 	// programatically set swagger info
 	docs.SwaggerInfo.Title = "Swagger Example API"
 	docs.SwaggerInfo.Description = "This is a sample server Petstore server."
@@ -63,24 +65,16 @@ func Swagger() {
 	docs.SwaggerInfo.Schemes = []string{"http", "https"}
 
 	r := gin.Default()
-	c, err := NewController()
+	c, err := core.NewShadowHTTP()
 	util.Assert(err)
 
 	v1 := r.Group("/api/v1")
 	{
-		header := v1.Group("/header")
-		{
-			header.GET("/hash/:hash", c.GetEthHeaderByHash)
-			header.GET("/number/:number", c.GetEthHeaderByNumber)
-		}
-		proof := v1.Group("/proof")
-		{
-			proof.GET("/hash/:hash", c.GetEthProofByHash)
-			proof.GET("/number/:number", c.GetEthProofByNumber)
-		}
-		header.POST("/proposal", c.GetEthHeaderByHash)
+		v1.GET("/header/:block", c.GetHeader)
+		v1.GET("/proof/:block", c.GetProof)
+		v1.POST("/proposal", c.Proposal)
 	}
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	gin.SetMode(gin.ReleaseMode)
-	util.Assert(r.Run(":3600"))
+	util.Assert(r.Run(fmt.Sprintf(":%s", port)))
 }

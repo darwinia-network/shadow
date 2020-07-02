@@ -31,10 +31,23 @@ type EthHeaderWithProofCache struct {
 	Root string `json:"root" gorm:"DEFAULT:NULL"`
 }
 
+func (c *EthHeaderWithProofCache) Parse(block interface{}) error {
+	switch b := block.(type) {
+	case uint64:
+		c.Number = b
+	case string:
+		c.Hash = b
+	default:
+		return fmt.Errorf("Invaild block param: %v", block)
+	}
+
+	return nil
+}
+
 // Save header to cache
 func (c *EthHeaderWithProofCache) FromResp(
 	db *gorm.DB,
-	resp GetEthHeaderWithProofByNumberRawResp,
+	resp GetEthHeaderWithProofRawResp,
 ) error {
 	// Convert header to string
 	header, err := json.Marshal(resp.Header)
@@ -116,8 +129,8 @@ func (c *EthHeaderWithProofCache) ApplyProof(
 }
 
 // Convert EthHeader
-func (c *EthHeaderWithProofCache) IntoResp() (GetEthHeaderWithProofByNumberRawResp, error) {
-	var rResp GetEthHeaderWithProofByNumberRawResp
+func (c *EthHeaderWithProofCache) IntoResp() (GetEthHeaderWithProofRawResp, error) {
+	var rResp GetEthHeaderWithProofRawResp
 	header, proof := eth.DarwiniaEthHeader{}, []eth.DoubleNodeWithMerkleProof{}
 
 	// Decode header
@@ -133,7 +146,7 @@ func (c *EthHeaderWithProofCache) IntoResp() (GetEthHeaderWithProofByNumberRawRe
 	}
 
 	// Construct resp
-	return GetEthHeaderWithProofByNumberRawResp{
+	return GetEthHeaderWithProofRawResp{
 		header,
 		proof,
 		c.Root,
@@ -147,6 +160,10 @@ func (c *EthHeaderWithProofCache) Fetch(
 ) error {
 	// Get header from sqlite3
 	err := db.Where("number = ?", c.Number).Take(&c).Error
+	if err != nil {
+		err = db.Where("hash = ?", c.Hash).Take(&c).Error
+	}
+
 	if err != nil || util.IsEmpty(c.Header) || c.Header == "" {
 		ethHeader, err := eth.Header(c.Number, config.Api)
 		if err != nil {

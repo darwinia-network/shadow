@@ -1,12 +1,9 @@
 package cmd
 
 import (
-	"encoding/json"
 	"fmt"
-	"strconv"
 
-	"github.com/darwinia-network/shadow/internal"
-	"github.com/darwinia-network/shadow/internal/eth"
+	"github.com/darwinia-network/shadow/internal/core"
 	"github.com/darwinia-network/shadow/internal/util"
 	"github.com/spf13/cobra"
 )
@@ -17,29 +14,18 @@ var cmdProof = &cobra.Command{
 	Long:  "DANGEROUS! This cmd will fill up your screen!",
 	Args:  cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		conf := new(internal.Config)
-		err := conf.Load()
+		shadow, err := core.NewShadow()
 		util.Assert(err)
 
-		// parse block number
-		block, err := strconv.ParseUint(args[0], 10, 64)
-		util.Assert(err)
-
-		// get header
-		header, err := eth.Header(block, conf.Api)
-		util.Assert(err)
-
-		// get proof
-		proof, err := eth.Proof(&header, *conf)
-		util.Assert(err)
-
-		// output string
-		output, err := json.Marshal(proof)
+		proof, err := shadow.GetHeaderWithProof(
+			core.Ethereum,
+			args[0],
+			core.JsonFormat,
+		)
 		util.Assert(err)
 
 		// have to use this printf because the ethash
 		// has default stdout
-		fmt.Printf("Json output:\n\n")
-		fmt.Printf("%s\n", output)
+		fmt.Printf("%v\n", proof)
 	},
 }

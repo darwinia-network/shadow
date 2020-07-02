@@ -2,11 +2,11 @@ package core
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/darwinia-network/shadow/internal"
 	"github.com/darwinia-network/shadow/internal/eth"
 	"github.com/darwinia-network/shadow/internal/util"
+	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/jinzhu/gorm"
 )
 
@@ -41,205 +41,176 @@ func NewShadow() (Shadow, error) {
 /**
  * Genesis block checker
  */
-func (s *Shadow) checkGenesis(genesis uint64, block interface{}, api string) error {
+func (s *Shadow) checkGenesis(genesis uint64, block interface{}) (uint64, error) {
+	block, err := util.NumberOrString(block)
+	if err != nil {
+		return genesis, err
+	}
+
 	switch b := block.(type) {
 	case uint64:
 		if b < genesis {
-			return fmt.Errorf(GENESIS_ERROR, genesis)
+			return genesis, fmt.Errorf(GENESIS_ERROR, genesis)
 		}
+
+		return b, nil
 	case string:
-		eH, err := eth.Header(b, api)
+		eH, err := eth.Header(b, s.Config.Api)
 		if err != nil {
-			return err
+			return genesis, err
 		}
 
 		// convert ethHeader to darwinia header
 		dH, err := eth.IntoDarwiniaEthHeader(eH)
 		if err != nil {
-			return err
+			return dH.Number, err
 		}
 
 		// Check hash empty response
 		if util.IsEmpty(dH) {
-			return fmt.Errorf("Empty block: %s", b)
+			return dH.Number, fmt.Errorf("Empty block: %s", b)
 		}
 
 		// Check genesis by number
 		if dH.Number <= genesis {
-			return fmt.Errorf(GENESIS_ERROR, genesis)
+			return dH.Number, fmt.Errorf(GENESIS_ERROR, genesis)
 		}
-	default:
-		return fmt.Errorf("Invaild block param: %v", block)
-	}
 
-	return nil
+		return dH.Number, nil
+	default:
+		return genesis, fmt.Errorf("Invaild block param: %v", block)
+	}
 }
 
 /**
  * GetEthHeaderByNumber
  */
-func (s *Shadow) GetEthHeaderByNumber(
-	params GetEthHeaderByNumberParams,
-	resp *GetEthHeaderResp,
-) error {
-	log.Println("Request /GetEthHeaderByNumber")
-	err := s.checkGenesis(s.Config.Genesis, params.Number, s.Config.Api)
-	if err != nil {
-		return err
-	}
-
-	// Return raw eth header
-	resp.Header, err = eth.Header(params.Number, s.Config.Api)
-	return err
-}
-
-/**
- * GetEthHeaderByHash
- */
-func (s *Shadow) GetEthHeaderByHash(
-	params GetEthHeaderByHashParams,
-	resp *GetEthHeaderResp,
-) error {
-	log.Println("Request /GetEthHeaderByHash")
-	err := s.checkGenesis(s.Config.Genesis, params.Hash, s.Config.Api)
-	if err != nil {
-		return err
-	}
-
-	// Return raw eth header
-	resp.Header, err = eth.Header(params.Hash, s.Config.Api)
-	return err
-}
-
-/**
- * GetEthHeaderWithProofByNumber
- */
-func (s *Shadow) GetEthHeaderWithProofByNumber(
-	params GetEthHeaderWithProofByNumberParams,
-	resp *interface{},
-) error {
-	log.Println("Request /GetEthHeaderWithProofByNumber")
-	err := s.checkGenesis(s.Config.Genesis, params.Number, s.Config.Api)
-	if err != nil {
-		return err
-	}
-
-	// Fetch header from cache
-	cache := EthHeaderWithProofCache{Number: params.Number}
-	err = cache.Fetch(s.Config, s.DB)
-	if err != nil {
-		return err
-	}
-
-	err = cache.ApplyProof(s.Config, s.DB)
-	if err != nil {
-		return err
-	}
-
-	rawResp, err := cache.IntoResp()
-	if err != nil {
-		return err
-	}
-
-	// Set response
-	*resp = rawResp
-
-	// Check if need codec
-	if params.Options.Format == "scale" {
-		*resp = GetEthHeaderWithProofByNumberCodecResp{
-			encodeDarwiniaEthHeader(rawResp.Header),
-			encodeProofArray(rawResp.Proof),
-			rawResp.Root,
+func (s *Shadow) GetHeader(
+	chain Chain,
+	block interface{},
+) (types.Header, error) {
+	switch chain {
+	default:
+		num, err := s.checkGenesis(s.Config.Genesis, block)
+		if err != nil {
+			return types.Header{}, err
 		}
-	} else if params.Options.Format == "json" {
-		*resp = GetEthHeaderWithProofByNumberJSONResp{
-			rawResp.Header.HexFormat(),
-			rawResp.Proof,
-			rawResp.Root,
-		}
+
+		return eth.Header(num, s.Config.Api)
 	}
 
-	return nil
 }
 
-/**
- * GetEthHeaderWithProofByNumber
- */
-func (s *Shadow) GetEthHeaderWithProofByHash(
-	params GetEthHeaderWithProofByHashParams,
-	resp *interface{},
-) error {
-	log.Println("Request /GetEthHeaderWithProofByHash")
-	eH, err := eth.Header(params.Hash, s.Config.Api)
-	if err != nil {
-		return err
-	}
+func (s *Shadow) GetHeaderWithProof(
+	chain Chain,
+	block interface{},
+	format ProofFormat,
+) (interface{}, error) {
+	var resp interface{}
+	switch chain {
+	default:
+		num, err := s.checkGenesis(s.Config.Genesis, block)
+		if err != nil {
+			return GetEthHeaderWithProofCodecResp{}, err
+		}
 
-	// convert ethHeader to darwinia header
-	dH, err := eth.IntoDarwiniaEthHeader(eH)
-	if err != nil {
-		return err
-	}
+		fmt.Println(num)
 
-	// construct number req
-	p := GetEthHeaderWithProofByNumberParams{
-		dH.Number,
-		params.Options,
-	}
+		// Fetch header from cache
+		cache := EthHeaderWithProofCache{Number: num}
+		err = cache.Fetch(s.Config, s.DB)
+		if err != nil {
+			return GetEthHeaderWithProofCodecResp{}, err
+		}
 
-	return s.GetEthHeaderWithProofByNumber(p, resp)
+		err = cache.ApplyProof(s.Config, s.DB)
+		if err != nil {
+			return GetEthHeaderWithProofCodecResp{}, err
+		}
+
+		rawResp, err := cache.IntoResp()
+		if err != nil {
+			return GetEthHeaderWithProofCodecResp{}, err
+		}
+
+		// Set response
+		resp = rawResp
+
+		// Check if need codec
+		if format == ScaleFormat {
+			resp = GetEthHeaderWithProofCodecResp{
+				encodeDarwiniaEthHeader(rawResp.Header),
+				encodeProofArray(rawResp.Proof),
+				rawResp.Root,
+			}
+		} else if format == JsonFormat {
+			resp = GetEthHeaderWithProofJSONResp{
+				rawResp.Header.HexFormat(),
+				rawResp.Proof,
+				rawResp.Root,
+			}
+		}
+
+		return resp, nil
+	}
 }
 
 /**
  * BatchEthHeaderWithProofByNumber
  */
-func (s *Shadow) BatchEthHeaderWithProofByNumber(
-	params BatchEthHeaderWithProofByNumberParams,
-	resp *interface{},
-) error {
-	log.Println("Request /BatchEthHeaderWithProofByNumber")
-	var nps []interface{}
-	for i := 0; i < params.Batch; i++ {
+func (s *Shadow) BatchHeaderWithProof(
+	block uint64,
+	batch int,
+	format ProofFormat,
+) (interface{}, error) {
+	var (
+		nps []interface{}
+		err error
+	)
+	for i := 0; i < batch; i++ {
 		var np interface{}
-		err := s.GetEthHeaderWithProofByNumber(GetEthHeaderWithProofByNumberParams{
-			Number:  params.Number + uint64(i),
-			Options: params.Options,
-		}, &np)
+		np, err = s.GetHeaderWithProof(
+			Ethereum,
+			block+uint64(i),
+			format,
+		)
 
 		if err != nil {
-			return err
+			return nps, err
 		}
 
 		nps = append(nps, np)
 	}
 
-	*resp = nps
-	return nil
+	return nps, nil
 }
 
 /**
- * BatchEthHeaderWithProofByNumber
+ * Get proposal headers
  */
-func (s *Shadow) GetProposalEthHeaders(
-	params GetProposalEthHeadersParams,
-	resp *interface{},
-) error {
-	log.Println("Request /GetProposalEthHeaders")
-	var nps []interface{}
-	for _, i := range params.Numbers {
+func (s *Shadow) GetProposalHeaders(
+	numbers []uint64,
+	format ProofFormat,
+) (interface{}, error) {
+	var (
+		nps []interface{}
+		err error
+	)
+
+	for _, i := range numbers {
 		var np interface{}
-		err := s.GetEthHeaderWithProofByNumber(GetEthHeaderWithProofByNumberParams{
-			Number:  i,
-			Options: params.Options,
-		}, &np)
+		np, err = s.GetHeaderWithProof(
+			Ethereum,
+			uint64(i),
+			format,
+		)
 
 		if err != nil {
-			return err
+			return nps, err
 		}
 
 		nps = append(nps, np)
 	}
 
-	*resp = nps
-	return nil
+	return nps, nil
 }

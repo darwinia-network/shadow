@@ -72,6 +72,7 @@ func Swagger(port string) {
 	{
 		v1.GET("/header/:block", c.GetHeader)
 		v1.GET("/proof/:block", c.GetProof)
+		v1.GET("/receipt/:block", c.GetProof)
 		v1.POST("/proposal", c.Proposal)
 	}
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))

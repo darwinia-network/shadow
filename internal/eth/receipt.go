@@ -112,14 +112,23 @@ type RedeemFor struct {
 	Deposit *ProofRecord `json:"deposit,omitempty"`
 }
 
-func BuildProofRecord(r *Receipts) (*ProofRecord, error) {
+func GetReceipt(tx string) (ProofRecord, string, error) {
+	r, err := GetReceiptLog(tx)
+	if err != nil {
+		return ProofRecord{}, "", err
+	}
+
+	return BuildProofRecord(r)
+}
+
+func BuildProofRecord(r *Receipts) (ProofRecord, string, error) {
 	proofRecord := ProofRecord{
 		Index:      r.TransactionIndex,
 		HeaderHash: r.BlockHash,
 	}
 	block, err := GetChainBlockInfo(util.U256(r.BlockNumber).Int64())
 	if err != nil {
-		return nil, err
+		return ProofRecord{}, block.Hash, err
 	}
 	receiptsMap := cmap.New()
 
@@ -142,11 +151,11 @@ func BuildProofRecord(r *Receipts) (*ProofRecord, error) {
 	}
 	wg.Wait()
 	if receiptsMap.Count() != len(block.Transactions) {
-		return nil, errors.New("get receipt Rlp errors")
+		return ProofRecord{}, block.Hash, errors.New("get receipt Rlp errors")
 	}
 	tr, err := trieFromReceipts(receiptsMap.Items())
 	if err != nil {
-		return nil, err
+		return ProofRecord{}, block.Hash, err
 	}
 	proof := memorydb.New()
 	buf := new(bytes.Buffer)
@@ -164,7 +173,7 @@ func BuildProofRecord(r *Receipts) (*ProofRecord, error) {
 	length := rlpLength(len(buf.Bytes()), 0xc0)
 	ProofRlpBytes := append(length[:], buf.Bytes()...)
 	proofRecord.Proof = util.AddHex(util.BytesToHex(ProofRlpBytes))
-	return &proofRecord, nil
+	return proofRecord, block.Hash, nil
 }
 
 func GetReceiptRlpEncode(tx string) (*types.Receipt, error) {

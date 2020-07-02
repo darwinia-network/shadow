@@ -2,6 +2,7 @@ package core
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/darwinia-network/shadow/internal"
 	"github.com/darwinia-network/shadow/internal/eth"
@@ -213,4 +214,26 @@ func (s *Shadow) GetProposalHeaders(
 	}
 
 	return nps, nil
+}
+
+/**
+ * Get proposal headers
+ */
+func (s *Shadow) GetReceipt(
+	tx string,
+) (resp GetReceiptResp, err error) {
+	proof, hash, err := eth.GetReceipt(tx)
+	if err != nil {
+		return
+	}
+
+	resp.ReceiptProof = proof
+	cache := EthHeaderWithProofCache{Hash: hash}
+	err = cache.Fetch(s.Config, s.DB)
+	if err != nil {
+		return
+	}
+
+	resp.MMRProof = strings.Split(cache.MMRProof, ",")
+	return
 }

@@ -66,3 +66,8 @@ type GetProposalEthHeadersParams struct {
 	Numbers []uint64                             `json:"number"`
 	Options GetEthHeaderWithProofByNumberOptions `json:"options"`
 }
+
+type GetReceiptResp struct {
+	ReceiptProof eth.ProofRecord `json:"receipt_proof"`
+	MMRProof     []string        `json:"mmr_proof"`
+}

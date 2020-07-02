@@ -86,10 +86,24 @@ impl Runner {
         let mut mmr = MMR::<_, MergeHash, _>::new(count as u64, store);
         let rpos = mmr.push(H256::from(&cache.hash[2..]))?;
 
+        // gen mmr proof
+        let proof = format!(
+            "{:?}",
+            mmr.gen_proof(vec![rpos])?
+                .proof_items()
+                .iter()
+                .map(|h| h.hex())
+                .collect::<Vec<String>>()
+        );
+
         // eth_header_with_proof_caches
         let proot = mmr.get_root()?;
         diesel::update(eth_header_with_proof_caches.filter(number.eq(pnumber)))
-            .set((root.eq(Some(H256::hex(&proot))), cpos.eq(rpos as i64)))
+            .set((
+                root.eq(Some(H256::hex(&proot))),
+                cpos.eq(rpos as i64),
+                mmr_proof.eq(proof),
+            ))
             .execute(&conn)?;
 
         mmr.commit()?;

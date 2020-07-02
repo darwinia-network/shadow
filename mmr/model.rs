@@ -33,4 +33,6 @@ pub struct Cache {
     pub pos: i64,
     /// MMR Result Root
     pub root: Option<String>,
+    /// MMR proof
+    pub mmr_proof: Option<String>,
 }

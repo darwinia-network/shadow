@@ -9,6 +9,10 @@ edition = "2018"
 path = "mmr/lib.rs"
 crate_type = ["rlib", "dylib"]
 
+[[bin]]
+path = "shadow/mmr.rs"
+name = "mmr"
+
 [dependencies]
 blake2-rfc = "0.2.18"
 cmmr = { version = "0.3.0", package = "ckb-merkle-mountain-range"}

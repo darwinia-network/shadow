@@ -13,5 +13,6 @@ table! {
         number -> BigInt,
         pos -> BigInt,
         root -> Nullable<Text>,
+        mmr_proof -> Nullable<Text>,
     }
 }

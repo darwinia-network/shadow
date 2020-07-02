@@ -151,6 +151,7 @@ func (c *EthHeaderWithProofCache) IntoResp() (GetEthHeaderWithProofRawResp, erro
 		header,
 		proof,
 		c.Root,
+		c.MMRProof,
 	}, nil
 }
 

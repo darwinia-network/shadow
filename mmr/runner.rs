@@ -94,7 +94,8 @@ impl Runner {
                 .iter()
                 .map(|h| h.hex())
                 .collect::<Vec<String>>()
-        );
+        )
+        .replace("\\", "");
 
         // eth_header_with_proof_caches
         let proot = mmr.get_root()?;

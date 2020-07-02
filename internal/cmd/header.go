@@ -24,7 +24,7 @@ var cmdHeader = &cobra.Command{
 		)
 		util.Assert(err)
 
-		// get the header string
+		// Get the header string
 		js, err := json.Marshal(header)
 		util.Assert(err)
 		fmt.Printf("%v\n", string(js))

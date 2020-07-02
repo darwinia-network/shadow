@@ -10,9 +10,10 @@ var (
 		Short: "Darwinia shadow service",
 		Long:  `The way to Go`,
 	}
-	FETCH bool
-	HTTP  string
-	RPC   string
+	FETCH        bool
+	HTTP         string
+	RPC          string
+	PROOF_FORMAT string
 )
 
 // Init commands to dargo
@@ -36,6 +37,14 @@ func init() {
 		&RPC,
 		"rpc",
 		"3000",
+		"set port of http rpc server",
+	)
+
+	cmdProof.PersistentFlags().StringVarP(
+		&PROOF_FORMAT,
+		"format",
+		"f",
+		"json",
 		"set port of http rpc server",
 	)
 

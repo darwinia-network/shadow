@@ -80,7 +80,7 @@ func (c *EthHeaderWithProofCache) ApplyProof(
 		err       error
 	)
 
-	if util.IsEmpty(c.Number) {
+	if util.IsEmpty(c.Number) && c.Number != 0 {
 		return fmt.Errorf("Empty eth number")
 	} else if util.IsEmpty(c.Header) || c.Header == "" {
 		return fmt.Errorf("Empty eth header")

@@ -73,6 +73,11 @@ func bgEpoch(epoch uint64, config internal.Config) {
 
 // Check if need epoch
 func epochGently(epoch uint64, config internal.Config) error {
+	// Check if is epoching
+	if config.CheckLock(EPOCH_LOCK) {
+		return nil
+	}
+
 	// Get home dir
 	home, err := os.UserHomeDir()
 	if err != nil {
@@ -86,7 +91,7 @@ func epochGently(epoch uint64, config internal.Config) error {
 		return err
 	}
 
-	// Check if have epoched
+	// Check if has epoched
 	hasEpoched := false
 	for _, f := range fs {
 		if f.Name() == fmt.Sprintf("%v.json", epoch) {
@@ -94,12 +99,7 @@ func epochGently(epoch uint64, config internal.Config) error {
 		}
 	}
 
-	// Check if is epoching
-	if config.CheckLock(EPOCH_LOCK) {
-		return nil
-	}
-
-	// Create epoching lock
+	// Create epoch lock
 	err = config.CreateLock(EPOCH_LOCK, []byte(""))
 	if err != nil {
 		return err
@@ -118,14 +118,6 @@ func Proof(header *types.Header, config internal.Config) (ProofOutput, error) {
 	blockno := header.Number.Uint64()
 	epoch := blockno / 30000
 	output := &ProofOutput{}
-
-	// Check if need pre-epoch
-	if blockno%30000 > 15000 {
-		err := epochGently(epoch, config)
-		if err != nil {
-			return *output, err
-		}
-	}
 
 	// Get proof from cache
 	cache, err := ethashproof.LoadCache(int(epoch))
@@ -188,6 +180,14 @@ func Proof(header *types.Header, config internal.Config) (ProofOutput, error) {
 
 		for _, pr := range allProofs {
 			output.MerkleProofs = append(output.MerkleProofs, hexutil.EncodeBig(pr))
+		}
+	}
+
+	// Check if need pre-epoch
+	if blockno%30000 > 15000 {
+		err := epochGently(epoch, config)
+		if err != nil {
+			return *output, err
 		}
 	}
 

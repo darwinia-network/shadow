@@ -68,12 +68,12 @@ func (s *Shadow) checkGenesis(genesis uint64, block interface{}) (uint64, error)
 
 		// Check hash empty response
 		if util.IsEmpty(dH) {
-			return dH.Number, fmt.Errorf("Empty block: %s", b)
+			return genesis, fmt.Errorf("Empty block: %s", b)
 		}
 
 		// Check genesis by number
 		if dH.Number <= genesis {
-			return dH.Number, fmt.Errorf(GENESIS_ERROR, genesis)
+			return genesis, fmt.Errorf(GENESIS_ERROR, genesis)
 		}
 
 		return dH.Number, nil
@@ -113,8 +113,6 @@ func (s *Shadow) GetHeaderWithProof(
 		if err != nil {
 			return GetEthHeaderWithProofCodecResp{}, err
 		}
-
-		fmt.Println(num)
 
 		// Fetch header from cache
 		cache := EthHeaderWithProofCache{Number: num}

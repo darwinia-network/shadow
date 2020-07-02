@@ -47,6 +47,7 @@ func processDuringRead(f *os.File, startIn128Res int, fullSizeIn128Res uint32, m
 //    to disk
 // 4. Return merkle root
 func CalculateDatasetMerkleRoot(epoch uint64, saveCache bool) (mtree.Hash, error) {
+	fmt.Println("calculate")
 	blockno := epoch * 30000
 	fmt.Printf("Make the dag\n")
 	ethash.MakeDAG(blockno, ethash.DefaultDir)

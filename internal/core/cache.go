@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/user"
 	"path"
+	"strings"
 
 	"github.com/darwinia-network/shadow/internal"
 	"github.com/darwinia-network/shadow/internal/eth"
@@ -151,7 +152,7 @@ func (c *EthHeaderWithProofCache) IntoResp() (GetEthHeaderWithProofRawResp, erro
 		header,
 		proof,
 		c.Root,
-		c.MMRProof,
+		strings.Split(c.MMRProof, ","),
 	}, nil
 }
 

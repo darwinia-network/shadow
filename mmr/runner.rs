@@ -87,15 +87,13 @@ impl Runner {
         let rpos = mmr.push(H256::from(&cache.hash[2..]))?;
 
         // gen mmr proof
-        let proof = format!(
-            "{:?}",
-            mmr.gen_proof(vec![rpos])?
-                .proof_items()
-                .iter()
-                .map(|h| h.hex())
-                .collect::<Vec<String>>()
-        )
-        .replace("\\", "");
+        let proof = mmr
+            .gen_proof(vec![rpos])?
+            .proof_items()
+            .iter()
+            .map(|h| h.hex())
+            .collect::<Vec<String>>()
+            .join(",");
 
         // eth_header_with_proof_caches
         let proot = mmr.get_root()?;

@@ -233,8 +233,10 @@ var doc = `{
             "type": "object",
             "properties": {
                 "eth_header": {
-                    "type": "object",
-                    "$ref": "#/definitions/eth.DarwiniaEthHeaderHexFormat"
+                    "type": "string"
+                },
+                "ethash_proof": {
+                    "type": "string"
                 },
                 "mmr_proof": {
                     "type": "array",
@@ -242,13 +244,7 @@ var doc = `{
                         "type": "string"
                     }
                 },
-                "proof": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/eth.DoubleNodeWithMerkleProof"
-                    }
-                },
-                "root": {
+                "mmr_root": {
                     "type": "string"
                 }
             }
@@ -263,91 +259,6 @@ var doc = `{
                     }
                 },
                 "receipt_proof": {
-                    "type": "object",
-                    "$ref": "#/definitions/eth.ProofRecord"
-                }
-            }
-        },
-        "eth.DarwiniaEthHeaderHexFormat": {
-            "type": "object",
-            "properties": {
-                "author": {
-                    "type": "string"
-                },
-                "difficulty": {
-                    "type": "string"
-                },
-                "extra_data": {
-                    "type": "string"
-                },
-                "gas_limit": {
-                    "type": "string"
-                },
-                "gas_used": {
-                    "type": "string"
-                },
-                "hash": {
-                    "type": "string"
-                },
-                "log_bloom": {
-                    "type": "string"
-                },
-                "number": {
-                    "type": "string"
-                },
-                "parent_hash": {
-                    "type": "string"
-                },
-                "receipts_root": {
-                    "type": "string"
-                },
-                "seal": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "state_root": {
-                    "type": "string"
-                },
-                "timestamp": {
-                    "type": "string"
-                },
-                "transactions_root": {
-                    "type": "string"
-                },
-                "uncles_hash": {
-                    "type": "string"
-                }
-            }
-        },
-        "eth.DoubleNodeWithMerkleProof": {
-            "type": "object",
-            "properties": {
-                "dag_nodes": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "proof": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                }
-            }
-        },
-        "eth.ProofRecord": {
-            "type": "object",
-            "properties": {
-                "header_hash": {
-                    "type": "string"
-                },
-                "index": {
-                    "type": "string"
-                },
-                "proof": {
                     "type": "string"
                 }
             }

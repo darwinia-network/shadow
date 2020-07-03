@@ -12,17 +12,14 @@ definitions:
   core.GetEthHeaderWithProofJSONResp:
     properties:
       eth_header:
-        $ref: '#/definitions/eth.DarwiniaEthHeaderHexFormat'
-        type: object
+        type: string
+      ethash_proof:
+        type: string
       mmr_proof:
         items:
           type: string
         type: array
-      proof:
-        items:
-          $ref: '#/definitions/eth.DoubleNodeWithMerkleProof'
-        type: array
-      root:
+      mmr_root:
         type: string
     type: object
   core.GetReceiptResp:
@@ -32,62 +29,6 @@ definitions:
           type: string
         type: array
       receipt_proof:
-        $ref: '#/definitions/eth.ProofRecord'
-        type: object
-    type: object
-  eth.DarwiniaEthHeaderHexFormat:
-    properties:
-      author:
-        type: string
-      difficulty:
-        type: string
-      extra_data:
-        type: string
-      gas_limit:
-        type: string
-      gas_used:
-        type: string
-      hash:
-        type: string
-      log_bloom:
-        type: string
-      number:
-        type: string
-      parent_hash:
-        type: string
-      receipts_root:
-        type: string
-      seal:
-        items:
-          type: string
-        type: array
-      state_root:
-        type: string
-      timestamp:
-        type: string
-      transactions_root:
-        type: string
-      uncles_hash:
-        type: string
-    type: object
-  eth.DoubleNodeWithMerkleProof:
-    properties:
-      dag_nodes:
-        items:
-          type: string
-        type: array
-      proof:
-        items:
-          type: string
-        type: array
-    type: object
-  eth.ProofRecord:
-    properties:
-      header_hash:
-        type: string
-      index:
-        type: string
-      proof:
         type: string
     type: object
   types.Header:

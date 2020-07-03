@@ -74,6 +74,4 @@ jobs:
     - name: Test shadow API
       env:
         INFURA_KEY: ${{ secrets.INFURA_KEY }}
-      run: |
-        go test -v ./...
-        ./target/shadow proof 0
+      run: go test -v ./...

@@ -4,9 +4,11 @@
 
 ## Contribute and Build
 
+> ATTENTION: Please compile shadow under $GOPATH
+
 ```
 # Clone shadow
-git clone https://github.com/darwinia-network/shadow.git
+git clone https://github.com/darwinia-network/shadow.git $GOPATH/src/github.com/darwinia-network
 
 # Make the binary
 cd shadow && make

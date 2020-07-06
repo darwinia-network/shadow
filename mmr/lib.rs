@@ -10,7 +10,7 @@ mod model;
 mod schema;
 mod sql;
 
-pub mod bridge;
+pub mod ffi;
 pub mod hash;
 pub mod result;
 pub mod runner;

@@ -5,6 +5,7 @@ use super::{
     store::Store,
 };
 use cmmr::MMR;
+use std::{ffi::CString, slice};
 
 /// Run the mmr service
 #[no_mangle]
@@ -19,22 +20,27 @@ pub extern "C" fn run() -> i32 {
     }
 }
 
-/// Run the mmr service
+/// Proof leaves
 #[no_mangle]
-pub extern "C" fn proof(leaves: Vec<u64>) -> String {
+pub unsafe extern "C" fn proof(leaves: *const u64, len: usize) -> CString {
+    let leaves = Vec::from(slice::from_raw_parts(leaves, len));
     let store = Store::default();
     let db = Runner::default();
     if let Ok(len) = db.mmr_count() {
         let mmr = MMR::<_, MergeHash, _>::new(len as u64, store);
         if let Ok(proof) = mmr.gen_proof(leaves) {
-            return proof
-                .proof_items()
-                .iter()
-                .map(|item| H256::hex(item))
-                .collect::<Vec<String>>()
-                .join(",");
+            return CString::new(
+                proof
+                    .proof_items()
+                    .iter()
+                    .map(|item| H256::hex(item))
+                    .collect::<Vec<String>>()
+                    .join(",")
+                    .as_bytes(),
+            )
+            .unwrap();
         }
-        return String::new();
+        return CString::new("").unwrap();
     }
-    String::new()
+    CString::new("").unwrap()
 }

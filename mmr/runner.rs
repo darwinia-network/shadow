@@ -43,13 +43,10 @@ impl Runner {
         }
     }
 
-    /// Get the cache count
-    fn cache_count(&self) -> Result<i64, Error> {
+    /// Get the count of mmr store
+    pub fn mmr_count(&self) -> Result<i64, Error> {
         let store = Store::new(&self.path);
-        let res = eth_header_with_proof_caches
-            .filter(root.is_not_null())
-            .select(count(root))
-            .first::<i64>(&store.conn);
+        let res = mmr_store.select(count(elem)).first::<i64>(&store.conn);
         if let Err(e) = res {
             Err(Error::Diesel(e))
         } else {
@@ -57,10 +54,13 @@ impl Runner {
         }
     }
 
-    /// Get the count of mmr store
-    fn mmr_count(&self) -> Result<i64, Error> {
+    /// Get the cache count
+    fn cache_count(&self) -> Result<i64, Error> {
         let store = Store::new(&self.path);
-        let res = mmr_store.select(count(elem)).first::<i64>(&store.conn);
+        let res = eth_header_with_proof_caches
+            .filter(root.is_not_null())
+            .select(count(root))
+            .first::<i64>(&store.conn);
         if let Err(e) = res {
             Err(Error::Diesel(e))
         } else {

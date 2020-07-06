@@ -48,7 +48,6 @@ import (
 	"fmt"
 
 	"github.com/darwinia-network/shadow/api/docs"
-	"github.com/darwinia-network/shadow/internal/core"
 	"github.com/darwinia-network/shadow/internal/util"
 	"github.com/gin-gonic/gin"
 	"github.com/swaggo/files"
@@ -65,13 +64,14 @@ func Swagger(port string) {
 	docs.SwaggerInfo.Schemes = []string{"http", "https"}
 
 	r := gin.Default()
-	c, err := core.NewShadowHTTP()
+	c, err := NewShadowHTTP()
 	util.Assert(err)
 
 	v1 := r.Group("/api/v1")
 	{
 		v1.GET("/header/:block", c.GetHeader)
 		v1.GET("/proof/:block", c.GetProof)
+		v1.GET("/receipt/:tx", c.GetReceipt)
 		v1.POST("/proposal", c.Proposal)
 	}
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))

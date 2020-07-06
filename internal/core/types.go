@@ -29,21 +29,24 @@ type GetEthHeaderWithProofByNumberOptions struct {
 }
 
 type GetEthHeaderWithProofRawResp struct {
-	Header eth.DarwiniaEthHeader           `json:"eth_header"`
-	Proof  []eth.DoubleNodeWithMerkleProof `json:"proof"`
-	Root   string                          `json:"root"`
+	Header   eth.DarwiniaEthHeader           `json:"eth_header"`
+	Proof    []eth.DoubleNodeWithMerkleProof `json:"ethash_proof"`
+	Root     string                          `json:"mmr_root"`
+	MMRProof []string                        `json:"mmr_proof"`
 }
 
 type GetEthHeaderWithProofJSONResp struct {
-	Header eth.DarwiniaEthHeaderHexFormat  `json:"eth_header"`
-	Proof  []eth.DoubleNodeWithMerkleProof `json:"proof"`
-	Root   string                          `json:"root"`
+	Header   eth.DarwiniaEthHeaderHexFormat  `json:"eth_header"`
+	Proof    []eth.DoubleNodeWithMerkleProof `json:"ethash_proof"`
+	Root     string                          `json:"mmr_root"`
+	MMRProof []string                        `json:"mmr_proof"`
 }
 
 type GetEthHeaderWithProofCodecResp struct {
-	Header string `json:"eth_header"`
-	Proof  string `json:"proof"`
-	Root   string `json:"root"`
+	Header   string   `json:"eth_header"`
+	Proof    string   `json:"ethash_proof"`
+	Root     string   `json:"mmr_root"`
+	MMRProof []string `json:"mmr_proof"`
 }
 
 type GetEthHeaderWithProofByHashParams struct {
@@ -62,4 +65,9 @@ type BatchEthHeaderWithProofByNumberParams struct {
 type GetProposalEthHeadersParams struct {
 	Numbers []uint64                             `json:"number"`
 	Options GetEthHeaderWithProofByNumberOptions `json:"options"`
+}
+
+type GetReceiptResp struct {
+	ReceiptProof eth.ProofRecord `json:"receipt_proof"`
+	MMRProof     []string        `json:"mmr_proof"`
 }

@@ -2,6 +2,7 @@ package core
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/darwinia-network/shadow/internal"
 	"github.com/darwinia-network/shadow/internal/eth"
@@ -68,12 +69,12 @@ func (s *Shadow) checkGenesis(genesis uint64, block interface{}) (uint64, error)
 
 		// Check hash empty response
 		if util.IsEmpty(dH) {
-			return dH.Number, fmt.Errorf("Empty block: %s", b)
+			return genesis, fmt.Errorf("Empty block: %s", b)
 		}
 
 		// Check genesis by number
 		if dH.Number <= genesis {
-			return dH.Number, fmt.Errorf(GENESIS_ERROR, genesis)
+			return genesis, fmt.Errorf(GENESIS_ERROR, genesis)
 		}
 
 		return dH.Number, nil
@@ -114,8 +115,6 @@ func (s *Shadow) GetHeaderWithProof(
 			return GetEthHeaderWithProofCodecResp{}, err
 		}
 
-		fmt.Println(num)
-
 		// Fetch header from cache
 		cache := EthHeaderWithProofCache{Number: num}
 		err = cache.Fetch(s.Config, s.DB)
@@ -142,12 +141,14 @@ func (s *Shadow) GetHeaderWithProof(
 				encodeDarwiniaEthHeader(rawResp.Header),
 				encodeProofArray(rawResp.Proof),
 				rawResp.Root,
+				rawResp.MMRProof,
 			}
 		} else if format == JsonFormat {
 			resp = GetEthHeaderWithProofJSONResp{
 				rawResp.Header.HexFormat(),
 				rawResp.Proof,
 				rawResp.Root,
+				rawResp.MMRProof,
 			}
 		}
 
@@ -213,4 +214,26 @@ func (s *Shadow) GetProposalHeaders(
 	}
 
 	return nps, nil
+}
+
+/**
+ * Get proposal headers
+ */
+func (s *Shadow) GetReceipt(
+	tx string,
+) (resp GetReceiptResp, err error) {
+	proof, hash, err := eth.GetReceipt(tx)
+	if err != nil {
+		return
+	}
+
+	resp.ReceiptProof = proof
+	cache := EthHeaderWithProofCache{Hash: hash}
+	err = cache.Fetch(s.Config, s.DB)
+	if err != nil {
+		return
+	}
+
+	resp.MMRProof = strings.Split(cache.MMRProof, ",")
+	return
 }

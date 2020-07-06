@@ -1,9 +1,10 @@
 package cmd
 
 import (
+	"encoding/json"
 	"fmt"
 
-	"github.com/darwinia-network/shadow/internal/eth"
+	"github.com/darwinia-network/shadow/internal/core"
 	"github.com/darwinia-network/shadow/internal/util"
 	"github.com/spf13/cobra"
 )
@@ -13,13 +14,16 @@ var cmdReceipt = &cobra.Command{
 	Short: "Get receipt by tx hash",
 	Args:  cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		r, err := eth.GetReceiptLog(args[0])
+		shadow, err := core.NewShadow()
 		util.Assert(err)
 
-		proof, err := eth.BuildProofRecord(r)
+		receipt, err := shadow.GetReceipt(args[0])
 		util.Assert(err)
 
 		// output receipt
-		fmt.Printf("%s\n", proof)
+		js, err := json.Marshal(receipt)
+		util.Assert(err)
+
+		fmt.Printf("%s\n", js)
 	},
 }

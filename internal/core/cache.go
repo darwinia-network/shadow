@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/user"
 	"path"
+	"strings"
 
 	"github.com/darwinia-network/shadow/internal"
 	"github.com/darwinia-network/shadow/internal/eth"
@@ -27,8 +28,9 @@ type EthHeaderWithProofCache struct {
 	Header string `json:"eth_header"`
 	Proof  string `json:"proof"`
 	// MMR
-	Pos  string `json:"pos"`
-	Root string `json:"root" gorm:"DEFAULT:NULL"`
+	Pos      string `json:"pos"`
+	Root     string `json:"root" gorm:"DEFAULT:NULL"`
+	MMRProof string `json:"mmr_proof" gorm:"DEFAULT:NULL"`
 }
 
 func (c *EthHeaderWithProofCache) Parse(block interface{}) error {
@@ -80,7 +82,7 @@ func (c *EthHeaderWithProofCache) ApplyProof(
 		err       error
 	)
 
-	if util.IsEmpty(c.Number) {
+	if util.IsEmpty(c.Number) && c.Number != 0 {
 		return fmt.Errorf("Empty eth number")
 	} else if util.IsEmpty(c.Header) || c.Header == "" {
 		return fmt.Errorf("Empty eth header")
@@ -150,6 +152,7 @@ func (c *EthHeaderWithProofCache) IntoResp() (GetEthHeaderWithProofRawResp, erro
 		header,
 		proof,
 		c.Root,
+		strings.Split(c.MMRProof, ","),
 	}, nil
 }
 

@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"encoding/json"
 	"fmt"
 
 	"github.com/darwinia-network/shadow/internal/core"
@@ -20,12 +21,13 @@ var cmdProof = &cobra.Command{
 		proof, err := shadow.GetHeaderWithProof(
 			core.Ethereum,
 			args[0],
-			core.JsonFormat,
+			new(core.ProofFormat).From(PROOF_FORMAT),
 		)
 		util.Assert(err)
 
-		// have to use this printf because the ethash
-		// has default stdout
-		fmt.Printf("%v\n", proof)
+		// toJSON
+		js, err := json.Marshal(proof)
+		util.Assert(err)
+		fmt.Printf("%s\n", js)
 	},
 }

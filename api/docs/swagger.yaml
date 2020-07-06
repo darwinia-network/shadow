@@ -1,4 +1,71 @@
 basePath: /api/v1
+definitions:
+  api.HTTPError:
+    properties:
+      code:
+        example: 400
+        type: integer
+      message:
+        example: status bad request
+        type: string
+    type: object
+  core.GetEthHeaderWithProofJSONResp:
+    properties:
+      eth_header:
+        type: string
+      ethash_proof:
+        type: string
+      mmr_proof:
+        items:
+          type: string
+        type: array
+      mmr_root:
+        type: string
+    type: object
+  core.GetReceiptResp:
+    properties:
+      mmr_proof:
+        items:
+          type: string
+        type: array
+      receipt_proof:
+        type: string
+    type: object
+  types.Header:
+    properties:
+      difficulty:
+        type: string
+      extraData:
+        items:
+          type: integer
+        type: array
+      gasLimit:
+        type: integer
+      gasUsed:
+        type: integer
+      logsBloom:
+        type: Bloom
+      miner:
+        type: string
+      mixHash:
+        type: string
+      nonce:
+        type: BlockNonce
+      number:
+        type: string
+      parentHash:
+        type: string
+      receiptsRoot:
+        type: string
+      sha3Uncles:
+        type: string
+      stateRoot:
+        type: string
+      timestamp:
+        type: integer
+      transactionsRoot:
+        type: string
+    type: object
 host: localhost:8080
 info:
   contact:
@@ -12,7 +79,128 @@ info:
   termsOfService: http://swagger.io/terms/
   title: Swagger Example API
   version: "1.0"
-paths: {}
+paths:
+  /header/{block}:
+    get:
+      consumes:
+      - application/json
+      description: Get ETH Header by block number or hash
+      operationId: get-header-by-block
+      parameters:
+      - description: Eth header number or hash
+        in: path
+        name: block
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          headers:
+            Token:
+              description: qwerty
+              type: string
+          schema:
+            $ref: '#/definitions/types.Header'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api.HTTPError'
+      summary: Get ETH Header by block
+  /proof/{block}:
+    get:
+      consumes:
+      - application/json
+      description: Get header with hash proof and mmr roothash
+      operationId: get-header-with-proof
+      parameters:
+      - description: Eth header number or hash
+        in: path
+        name: block
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          headers:
+            Token:
+              description: qwerty
+              type: string
+          schema:
+            $ref: '#/definitions/core.GetEthHeaderWithProofJSONResp'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api.HTTPError'
+      summary: Get header with proof
+  /proposal:
+    post:
+      consumes:
+      - application/json
+      description: Get headers by block numbers, used for relay proposal
+      operationId: get-headers-by-proposal
+      parameters:
+      - collectionFormat: multi
+        description: Eth header numbers
+        in: query
+        items:
+          type: integer
+        name: numbers
+        required: true
+        type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          headers:
+            Token:
+              description: qwerty
+              type: string
+          schema:
+            items:
+              items:
+                $ref: '#/definitions/core.GetEthHeaderWithProofJSONResp'
+              type: array
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api.HTTPError'
+      summary: Get headers by block numbers
+  /receipt/{tx}:
+    get:
+      consumes:
+      - application/json
+      description: Get receipt by tx hash, used for cross-chain transfer
+      operationId: get-receipt-by-tx
+      parameters:
+      - description: tx hash
+        in: path
+        name: tx
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          headers:
+            Token:
+              description: qwerty
+              type: string
+          schema:
+            items:
+              $ref: '#/definitions/core.GetReceiptResp'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api.HTTPError'
+      summary: Get receipt by tx hash
 securityDefinitions:
   ApiKeyAuth:
     in: header

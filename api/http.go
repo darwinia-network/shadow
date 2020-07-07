@@ -3,8 +3,10 @@ package api
 import (
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/darwinia-network/shadow/internal/core"
+	"github.com/darwinia-network/shadow/internal/ffi"
 	"github.com/darwinia-network/shadow/internal/util"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/gin-gonic/gin"
@@ -151,10 +153,14 @@ func (c *ShadowHTTP) Proposal(ctx *gin.Context) {
 		numbers,
 		new(core.ProofFormat).From(format),
 	)
+	proof := ffi.ProofLeaves(numbers, len(ns))
 	if err != nil {
 		NewError(ctx, http.StatusBadRequest, err)
 		return
 	}
 
-	ctx.JSON(http.StatusOK, resp)
+	ctx.JSON(http.StatusOK, core.ProposalResp{
+		Headers:  resp,
+		MMRProof: strings.Split(",", proof),
+	})
 }

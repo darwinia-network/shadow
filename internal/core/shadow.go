@@ -141,14 +141,12 @@ func (s *Shadow) GetHeaderWithProof(
 				encodeDarwiniaEthHeader(rawResp.Header),
 				encodeProofArray(rawResp.Proof),
 				rawResp.Root,
-				rawResp.MMRProof,
 			}
 		} else if format == JsonFormat {
 			resp = GetEthHeaderWithProofJSONResp{
 				rawResp.Header.HexFormat(),
 				rawResp.Proof,
 				rawResp.Root,
-				rawResp.MMRProof,
 			}
 		}
 

@@ -242,12 +242,6 @@ var doc = `{
                         "$ref": "#/definitions/eth.DoubleNodeWithMerkleProof"
                     }
                 },
-                "mmr_proof": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
                 "mmr_root": {
                     "type": "string"
                 }

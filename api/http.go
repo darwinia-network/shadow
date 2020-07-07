@@ -1,8 +1,8 @@
 package api
 
 import (
+	"fmt"
 	"net/http"
-	"strconv"
 	"strings"
 
 	"github.com/darwinia-network/shadow/internal/core"
@@ -138,22 +138,23 @@ func (c *ShadowHTTP) GetReceipt(ctx *gin.Context) {
 // @Router /proposal [post]
 func (c *ShadowHTTP) Proposal(ctx *gin.Context) {
 	var (
-		resp    interface{}
-		numbers []uint64
-		err     error
+		resp   interface{}
+		err    error
+		params ProposalParams
 	)
-	ns := ctx.Request.URL.Query()["numbers"]
-	for _, n := range ns {
-		num, _ := strconv.ParseUint(n, 10, 64)
-		numbers = append(numbers, num)
+	err = ctx.BindJSON(&params)
+	if err != nil {
+		NewError(ctx, http.StatusBadRequest, err)
+		return
 	}
 
 	format := ctx.DefaultQuery("format", "json")
 	resp, err = c.Shadow.GetProposalHeaders(
-		numbers,
+		params.Headers,
 		new(core.ProofFormat).From(format),
 	)
-	proof := ffi.ProofLeaves(numbers, len(ns))
+	fmt.Printf("%v", params.Headers)
+	proof := ffi.ProofLeaves(params.Headers, len(params.Headers))
 	if err != nil {
 		NewError(ctx, http.StatusBadRequest, err)
 		return
@@ -161,6 +162,6 @@ func (c *ShadowHTTP) Proposal(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, core.ProposalResp{
 		Headers:  resp,
-		MMRProof: strings.Split(",", proof),
+		MMRProof: strings.Split(proof, ","),
 	})
 }

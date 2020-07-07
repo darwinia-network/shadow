@@ -18,10 +18,6 @@ definitions:
         items:
           $ref: '#/definitions/eth.DoubleNodeWithMerkleProof'
         type: array
-      mmr_proof:
-        items:
-          type: string
-        type: array
       mmr_root:
         type: string
     type: object

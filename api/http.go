@@ -1,7 +1,6 @@
 package api
 
 import (
-	"fmt"
 	"net/http"
 	"strings"
 
@@ -158,11 +157,10 @@ func (c *ShadowHTTP) Proposal(ctx *gin.Context) {
 	}
 
 	// Construct headers
-	for _, h := range headers {
-		fmt.Println(ffi.ProofLeaves(params.LastLeaf, h.Header.Number))
-
+	for i, h := range headers {
 		mmrProof := strings.Split(ffi.ProofLeaves(params.LastLeaf, h.Header.Number), ",")
 		h.MMRProof = mmrProof
+		headers[i] = h
 	}
 
 	ctx.JSON(http.StatusOK, core.ProposalResp{

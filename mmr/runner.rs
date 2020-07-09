@@ -7,7 +7,7 @@ use super::{
     store::{Store, DEFAULT_RELATIVE_MMR_DB},
 };
 use cmmr::MMR;
-use diesel::{dsl::count, prelude::*};
+use diesel::{dsl::count, prelude::*, result::Error as DieselError};
 use std::{path::PathBuf, thread, time};
 
 /// MMR Runner
@@ -31,7 +31,13 @@ impl Runner {
         match self.mmr_count() {
             Ok(mut base) => loop {
                 if let Err(e) = self.push(base) {
-                    error!("Push block to mmr_store failed: {:?}", e);
+                    match e {
+                        Error::Diesel(DieselError::NotFound) => {
+                            warn!("Could not find block: {:?} in cache", base)
+                        }
+                        _ => error!("Push block to mmr_store failed: {:?}", e),
+                    }
+
                     trace!("MMR service restarting after 10s...");
                     thread::sleep(time::Duration::from_secs(10));
                     return self.start();

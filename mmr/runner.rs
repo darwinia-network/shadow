@@ -1,6 +1,7 @@
 //! MMR Runner
 use super::{
     hash::{MergeHash, H256},
+    model::Cache,
     result::Error,
     schema::{eth_header_with_proof_caches::dsl::*, mmr_store::dsl::*},
     store::{Store, DEFAULT_RELATIVE_MMR_DB},
@@ -27,17 +28,20 @@ impl Default for Runner {
 impl Runner {
     /// Start the runner
     pub fn start(&mut self) -> Result<(), Error> {
-        if let Ok(mut base) = self.cache_count() {
+        if let Ok(mut base) = self.mmr_count() {
             loop {
-                if self.push(base).is_ok() {
-                    base += 1;
-                } else {
+                if let Err(e) = self.push(base) {
+                    println!("{:?}", e);
+                    trace!("mmr service restart after 10s...");
                     thread::sleep(time::Duration::from_secs(10));
                     return self.start();
+                } else {
+                    println!("push eth block number {} into db succeed.", base);
+                    base += 1;
                 }
             }
         } else {
-            info!("init mmr database");
+            println!("mmr service sleep 3s...");
             thread::sleep(time::Duration::from_secs(3));
             self.start()
         }
@@ -55,27 +59,34 @@ impl Runner {
     }
 
     /// Get the cache count
-    fn cache_count(&self) -> Result<i64, Error> {
-        let store = Store::new(&self.path);
-        let res = eth_header_with_proof_caches
-            .filter(root.is_not_null())
-            .select(count(root))
-            .first::<i64>(&store.conn);
-        if let Err(e) = res {
-            Err(Error::Diesel(e))
-        } else {
-            Ok(res?)
-        }
-    }
+    // fn cache_count(&self) -> Result<i64, Error> {
+    //     let store = Store::new(&self.path);
+    //     let res = eth_header_with_proof_caches
+    //         .filter(root.is_not_null())
+    //         .select(count(root))
+    //         .first::<i64>(&store.conn);
+    //     if let Err(e) = res {
+    //         Err(Error::Diesel(e))
+    //     } else {
+    //         Ok(res?)
+    //     }
+    // }
 
     /// Push new header hash into storage
     fn push(&mut self, pnumber: i64) -> Result<(), Error> {
         let store = Store::new(&self.path);
-        let count = self.mmr_count().unwrap_or(0);
-
         // Get Hash
         let conn = store.conn();
-        let mmr = MMR::<_, MergeHash, _>::new(cmmr::leaf_index_to_mmr_size(count as u64), store);
+        let cache = eth_header_with_proof_caches
+            .filter(number.eq(pnumber))
+            .first::<Cache>(&store.conn)?;
+        println!("{:?}", cache);
+
+        let mut mmr =
+            MMR::<_, MergeHash, _>::new(cmmr::leaf_index_to_mmr_size(pnumber as u64) - 1, store);
+        if let Err(e) = mmr.push(H256::from(&cache.hash[2..])) {
+            return Err(Error::MMR(e));
+        }
 
         // eth_header_with_proof_caches
         let proot = mmr.get_root()?;

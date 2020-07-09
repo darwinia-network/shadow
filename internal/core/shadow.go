@@ -190,28 +190,37 @@ func (s *Shadow) BatchHeaderWithProof(
 func (s *Shadow) GetProposalHeaders(
 	numbers []uint64,
 	format ProofFormat,
-) (interface{}, error) {
+) ([]ProposalHeader, error) {
 	var (
-		nps []interface{}
-		err error
+		phs []ProposalHeader
 	)
 
 	for _, i := range numbers {
-		var np interface{}
-		np, err = s.GetHeaderWithProof(
+		var hp GetEthHeaderWithProofRawResp
+		rawp, err := s.GetHeaderWithProof(
 			Ethereum,
 			uint64(i),
 			format,
 		)
-
 		if err != nil {
-			return nps, err
+			return phs, err
 		}
 
-		nps = append(nps, np)
+		switch rawp := rawp.(type) {
+		case GetEthHeaderWithProofRawResp:
+			hp = rawp
+		default:
+			return phs, fmt.Errorf("only supports json format for now")
+		}
+
+		phs = append(phs, ProposalHeader{
+			Header: hp.Header,
+			Proof:  hp.Proof,
+			Root:   hp.Root,
+		})
 	}
 
-	return nps, nil
+	return phs, nil
 }
 
 /**

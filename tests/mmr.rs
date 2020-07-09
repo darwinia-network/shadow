@@ -3,7 +3,7 @@ use mmr::{
     hash::{MergeHash, H256},
     store::Store,
 };
-use std::{env, fs};
+use std::{env, fs, path::PathBuf};
 
 const HEADERS_N_ROOTS: [(&str, &str); 10] = [
     (
@@ -48,6 +48,20 @@ const HEADERS_N_ROOTS: [(&str, &str); 10] = [
     ),
 ];
 
+fn gen_mmr(db: &PathBuf) -> (MMR<[u8; 32], MergeHash, Store>, Vec<u64>) {
+    let db = env::temp_dir().join(db);
+    let store = Store::new(&db);
+    let mut mmr = MMR::<_, MergeHash, _>::new(0, store);
+    let pos: Vec<u64> = (0..10)
+        .map(|h| {
+            mmr.push(<[u8; 32] as H256>::from(HEADERS_N_ROOTS[h].0))
+                .unwrap()
+        })
+        .collect();
+
+    (mmr, pos)
+}
+
 #[test]
 fn test_hex() {
     &HEADERS_N_ROOTS.iter().for_each(|h| {
@@ -58,23 +72,13 @@ fn test_hex() {
 #[test]
 fn test_mmr_proof() {
     let db = env::temp_dir().join("test_mmr_proof.db");
-    let store = Store::new(&db);
-    store.re_create().unwrap_or_default();
-
-    let mut mmr = MMR::<_, MergeHash, _>::new(0, store);
-    let pos: Vec<u64> = (0..10)
-        .map(|h| {
-            mmr.push(<[u8; 32] as H256>::from(HEADERS_N_ROOTS[h].0))
-                .unwrap()
-        })
-        .collect();
+    let (mmr, pos) = gen_mmr(&db);
 
     let root = mmr.get_root().expect("get root failed");
     let proof = mmr
         .gen_proof((0..10).map(|e| pos[e]).collect())
         .expect("gen proof");
 
-    mmr.commit().expect("commit changes");
     let result = proof
         .verify(
             root,

@@ -1,7 +1,6 @@
 package api
 
 import (
-	"fmt"
 	"net/http"
 	"strings"
 
@@ -138,7 +137,6 @@ func (c *ShadowHTTP) GetReceipt(ctx *gin.Context) {
 // @Router /proposal [post]
 func (c *ShadowHTTP) Proposal(ctx *gin.Context) {
 	var (
-		resp   interface{}
 		err    error
 		params ProposalParams
 	)
@@ -149,19 +147,25 @@ func (c *ShadowHTTP) Proposal(ctx *gin.Context) {
 	}
 
 	format := ctx.DefaultQuery("format", "json")
-	resp, err = c.Shadow.GetProposalHeaders(
+	headers, err := c.Shadow.GetProposalHeaders(
 		params.Headers,
 		new(core.ProofFormat).From(format),
 	)
-	fmt.Printf("%v", params.Headers)
-	proof := ffi.ProofLeaves(params.Headers, len(params.Headers))
 	if err != nil {
 		NewError(ctx, http.StatusBadRequest, err)
 		return
 	}
 
+	// Construct headers
+	for _, h := range headers {
+		mmrProof := strings.Split(
+			ffi.ProofLeaves(params.LastLeaf, []uint64{h.Header.Number}, 1),
+			",",
+		)
+		h.MMRProof = mmrProof
+	}
+
 	ctx.JSON(http.StatusOK, core.ProposalResp{
-		Headers:  resp,
-		MMRProof: strings.Split(proof, ","),
+		Headers: headers,
 	})
 }

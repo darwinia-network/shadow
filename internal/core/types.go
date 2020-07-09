@@ -64,12 +64,19 @@ type GetProposalEthHeadersParams struct {
 	Options GetEthHeaderWithProofByNumberOptions `json:"options"`
 }
 
-type GetReceiptResp struct {
-	ReceiptProof eth.ProofRecord `json:"receipt_proof"`
-	MMRProof     []string        `json:"mmr_proof"`
+type ProposalHeader struct {
+	Header   eth.DarwiniaEthHeader           `json:"eth_header"`
+	Proof    []eth.DoubleNodeWithMerkleProof `json:"ethash_proof"`
+	Root     string                          `json:"mmr_root"`
+	MMRProof []string                        `json:"mmr_proof"`
 }
 
 type ProposalResp struct {
-	Headers  interface{} `json:"headers"`
-	MMRProof []string    `json:"mmr_proof"`
+	Headers []ProposalHeader `json:"headers"`
+}
+
+// Receipt
+type GetReceiptResp struct {
+	ReceiptProof eth.ProofRecord `json:"receipt_proof"`
+	MMRProof     []string        `json:"mmr_proof"`
 }

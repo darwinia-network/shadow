@@ -6,6 +6,7 @@ import (
 
 	"github.com/darwinia-network/shadow/api"
 	"github.com/darwinia-network/shadow/internal/core"
+	"github.com/darwinia-network/shadow/internal/ffi"
 	"github.com/darwinia-network/shadow/internal/rpc"
 	"github.com/darwinia-network/shadow/internal/util"
 	"github.com/spf13/cobra"
@@ -13,7 +14,7 @@ import (
 
 func fetch(shadow *core.Shadow, genesis uint64) {
 	// run mmr service
-	// ffi.RunMMR()
+	go ffi.RunMMR()
 
 	// fetcher
 	ptr := core.EthHeaderWithProofCache{Number: genesis}

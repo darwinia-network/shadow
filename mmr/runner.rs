@@ -31,7 +31,8 @@ impl Runner {
         if let Ok(mut base) = self.mmr_count() {
             loop {
                 if let Err(e) = self.push(base) {
-                    println!("{:?}", e);
+                    println!("Push block to mmr_store failed: {:?}", e);
+                    trace!("Push block to mmr_store failed: {:?}", e);
                     trace!("mmr service restart after 10s...");
                     thread::sleep(time::Duration::from_secs(10));
                     return self.start();
@@ -80,10 +81,8 @@ impl Runner {
         let cache = eth_header_with_proof_caches
             .filter(number.eq(pnumber))
             .first::<Cache>(&store.conn)?;
-        println!("{:?}", cache);
 
-        let mut mmr =
-            MMR::<_, MergeHash, _>::new(cmmr::leaf_index_to_mmr_size(pnumber as u64) - 1, store);
+        let mut mmr = MMR::<_, MergeHash, _>::new(self.mmr_count().unwrap_or(0) as u64, store);
         if let Err(e) = mmr.push(H256::from(&cache.hash[2..])) {
             return Err(Error::MMR(e));
         }

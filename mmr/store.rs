@@ -95,7 +95,7 @@ where
             the_count = count as u64;
         }
 
-        if rpos < the_count {
+        if rpos != the_count {
             return Err(Error::InconsistentStore);
         }
 

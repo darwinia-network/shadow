@@ -1,6 +1,7 @@
 package api
 
 import (
+	"fmt"
 	"net/http"
 	"strings"
 
@@ -146,9 +147,9 @@ func (c *ShadowHTTP) Proposal(ctx *gin.Context) {
 		return
 	}
 
-	format := ctx.DefaultQuery("format", "json")
+	format := ctx.DefaultQuery("format", "raw")
 	headers, err := c.Shadow.GetProposalHeaders(
-		params.Headers,
+		params.Members,
 		new(core.ProofFormat).From(format),
 	)
 	if err != nil {
@@ -158,10 +159,9 @@ func (c *ShadowHTTP) Proposal(ctx *gin.Context) {
 
 	// Construct headers
 	for _, h := range headers {
-		mmrProof := strings.Split(
-			ffi.ProofLeaves(params.LastLeaf, []uint64{h.Header.Number}, 1),
-			",",
-		)
+		fmt.Println(ffi.ProofLeaves(params.LastLeaf, h.Header.Number))
+
+		mmrProof := strings.Split(ffi.ProofLeaves(params.LastLeaf, h.Header.Number), ",")
 		h.MMRProof = mmrProof
 	}
 

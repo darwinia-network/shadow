@@ -1,6 +1,6 @@
 package api
 
 type ProposalParams struct {
-	Headers  []uint64 `json:"headers"`
+	Members  []uint64 `json:"members"`
 	LastLeaf uint64   `json:"last_leaf"`
 }

@@ -5,7 +5,7 @@ use super::{
     store::Store,
 };
 use cmmr::MMR;
-use std::{ffi::CString, slice};
+use std::ffi::CString;
 
 /// Run the mmr service
 #[no_mangle]
@@ -22,12 +22,18 @@ pub extern "C" fn run() -> i32 {
 
 /// Proof leaves
 #[no_mangle]
-pub unsafe extern "C" fn proof(last_leaf: u64, members: *const u64, len: usize) -> CString {
-    let leaves = Vec::from(slice::from_raw_parts(members, len));
+pub unsafe extern "C" fn proof(last_leaf: u64, member: u64) -> CString {
     let store = Store::default();
     let mmr = MMR::<_, MergeHash, _>::new(cmmr::leaf_index_to_mmr_size(last_leaf), store);
-    if let Ok(proof) = mmr.gen_proof(leaves) {
-        return CString::new(
+    match mmr.gen_proof(vec![cmmr::leaf_index_to_pos(member)]) {
+        Err(e) => {
+            error!(
+                "Generate proof failed {:?}, last_leaf: {:?}, member: {:?}",
+                e, last_leaf, member
+            );
+            CString::new("").unwrap()
+        }
+        Ok(proof) => CString::new(
             proof
                 .proof_items()
                 .iter()
@@ -36,8 +42,6 @@ pub unsafe extern "C" fn proof(last_leaf: u64, members: *const u64, len: usize) 
                 .join(",")
                 .as_bytes(),
         )
-        .unwrap();
+        .unwrap(),
     }
-
-    CString::new("").unwrap()
 }

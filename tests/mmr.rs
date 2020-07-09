@@ -101,3 +101,44 @@ fn test_mmr_merge() {
         H256::hex(&MergeHash::merge(&lhs, &rhs))
     );
 }
+
+// TODO: Unit test for this, need a specific module to test this.
+//
+// ------------
+//
+// #[test]
+// fn test_default_runner() {
+//     const LAST_LEAF_INDEX: u64 = 35;
+//     println!(
+//         "last leaf pos: {:?}",
+//         cmmr::leaf_index_to_pos(LAST_LEAF_INDEX)
+//     );
+//
+//     let store = Store::default();
+//     let mmr = MMR::<_, MergeHash, _>::new(cmmr::leaf_index_to_mmr_size(LAST_LEAF_INDEX), store);
+//
+//     let mut index: u64 = 0;
+//     while index < 35 {
+//         let proof = mmr.gen_proof(vec![cmmr::leaf_index_to_pos(index)]);
+//         if proof.is_err() {
+//             index += 1;
+//         } else {
+//             println!(
+//                 "index is: {:?}, pos is: {:?}",
+//                 index,
+//                 cmmr::leaf_index_to_pos(index)
+//             );
+//             println!(
+//                 "{:?}",
+//                 proof
+//                     .unwrap()
+//                     .proof_items()
+//                     .iter()
+//                     .map(|item| H256::hex(item))
+//                     .collect::<Vec<String>>()
+//                     .join(",")
+//             );
+//             index += 1;
+//         }
+//     }
+// }

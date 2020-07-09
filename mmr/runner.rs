@@ -25,29 +25,6 @@ impl Default for Runner {
 }
 
 impl Runner {
-    /// Count height the last leaf
-    pub fn pos(block_count: u64) -> u64 {
-        Self::mmr_size(block_count) - (((block_count + 1) >> 1).trailing_zeros() as u64) + 1
-    }
-
-    /// Count peaks by the order of leaves on the level-0
-    pub fn mmr_size(block_count: u64) -> u64 {
-        2 * block_count - Self::peak_count(block_count)
-    }
-
-    /// Count peaks by the last leaf
-    pub fn peak_count(block_count: u64) -> u64 {
-        let mut count: u64 = 0;
-        let mut num = block_count;
-
-        while 0 != num {
-            count = count + 1;
-            num = num & (num - 1);
-        }
-
-        count
-    }
-
     /// Start the runner
     pub fn start(&mut self) -> Result<(), Error> {
         if let Ok(mut base) = self.cache_count() {
@@ -98,7 +75,7 @@ impl Runner {
 
         // Get Hash
         let conn = store.conn();
-        let mmr = MMR::<_, MergeHash, _>::new(Runner::mmr_size(count as u64), store);
+        let mmr = MMR::<_, MergeHash, _>::new(cmmr::leaf_index_to_mmr_size(count as u64), store);
 
         // eth_header_with_proof_caches
         let proot = mmr.get_root()?;

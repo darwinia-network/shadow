@@ -25,7 +25,10 @@ pub extern "C" fn run() -> i32 {
 pub unsafe extern "C" fn proof(leaves: *const u64, len: usize) -> CString {
     let leaves = Vec::from(slice::from_raw_parts(leaves, len));
     let store = Store::default();
-    let mmr = MMR::<_, MergeHash, _>::new(Runner::mmr_size(*leaves.iter().max().unwrap()), store);
+    let mmr = MMR::<_, MergeHash, _>::new(
+        cmmr::leaf_index_to_mmr_size(*leaves.iter().max().unwrap()),
+        store,
+    );
     if let Ok(proof) = mmr.gen_proof(leaves) {
         return CString::new(
             proof

@@ -1,6 +1,7 @@
 use cmmr::{Merge, MMR};
 use mmr::{
     hash::{MergeHash, H256},
+    runner::Runner,
     store::Store,
 };
 use std::{env, fs};
@@ -72,6 +73,23 @@ fn test_mmr_root() {
 }
 
 #[test]
+fn test_mmr_size() {
+    let db = env::temp_dir().join("test_mmr_size.db");
+    let store = Store::new(&db);
+    store.re_create().unwrap_or_default();
+
+    let mut mmr = MMR::<_, MergeHash, _>::new(0, store);
+    (0..10).for_each(|i| {
+        let cur = HEADERS_N_ROOTS[i];
+        mmr.push(<[u8; 32] as H256>::from(cur.0).into()).unwrap();
+        assert_eq!(mmr.mmr_size(), Runner::mmr_size(1 + (i as u64)));
+        assert_eq!(H256::hex(&mmr.get_root().unwrap()), cur.1);
+    });
+
+    assert!(fs::remove_file(db).is_ok());
+}
+
+#[test]
 fn test_mmr_proof() {
     let db = env::temp_dir().join("test_mmr_proof.db");
     let store = Store::new(&db);
@@ -114,3 +132,11 @@ fn test_mmr_merge() {
     );
 }
 
+// #[test]
+// fn test_peak() {
+//     println!("mmr_size: {:?}", Runner::mmr_size(9));
+//     // println!(
+//     //     "pos: {:?}",
+//     //     (1..10).map(|n| Runner::pos(n)).collect::<Vec<u64>>()
+//     // );
+// }

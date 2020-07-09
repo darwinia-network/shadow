@@ -25,22 +25,18 @@ pub extern "C" fn run() -> i32 {
 pub unsafe extern "C" fn proof(leaves: *const u64, len: usize) -> CString {
     let leaves = Vec::from(slice::from_raw_parts(leaves, len));
     let store = Store::default();
-    let db = Runner::default();
-    if let Ok(len) = db.mmr_count() {
-        let mmr = MMR::<_, MergeHash, _>::new(len as u64, store);
-        if let Ok(proof) = mmr.gen_proof(leaves) {
-            return CString::new(
-                proof
-                    .proof_items()
-                    .iter()
-                    .map(|item| H256::hex(item))
-                    .collect::<Vec<String>>()
-                    .join(",")
-                    .as_bytes(),
-            )
-            .unwrap();
-        }
-        return CString::new("").unwrap();
+    let mmr = MMR::<_, MergeHash, _>::new(Runner::mmr_size(*leaves.iter().max().unwrap()), store);
+    if let Ok(proof) = mmr.gen_proof(leaves) {
+        return CString::new(
+            proof
+                .proof_items()
+                .iter()
+                .map(|item| H256::hex(item))
+                .collect::<Vec<String>>()
+                .join(",")
+                .as_bytes(),
+        )
+        .unwrap();
     }
-    CString::new("").unwrap()
+    return CString::new("").unwrap();
 }

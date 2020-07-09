@@ -28,23 +28,24 @@ impl Default for Runner {
 impl Runner {
     /// Start the runner
     pub fn start(&mut self) -> Result<(), Error> {
-        if let Ok(mut base) = self.mmr_count() {
-            loop {
+        match self.mmr_count() {
+            Ok(mut base) => loop {
                 if let Err(e) = self.push(base) {
-                    println!("Push block to mmr_store failed: {:?}", e);
-                    trace!("Push block to mmr_store failed: {:?}", e);
-                    trace!("mmr service restart after 10s...");
+                    error!("Push block to mmr_store failed: {:?}", e);
+                    trace!("MMR service restarting after 10s...");
                     thread::sleep(time::Duration::from_secs(10));
                     return self.start();
                 } else {
-                    println!("push eth block number {} into db succeed.", base);
+                    trace!("push eth block number {} into db succeed.", base);
                     base += 1;
                 }
+            },
+            Err(e) => {
+                error!("Get mmr count failed, {:?}", e);
+                trace!("MMR service sleep for 3s...");
+                thread::sleep(time::Duration::from_secs(3));
+                self.start()
             }
-        } else {
-            println!("mmr service sleep 3s...");
-            thread::sleep(time::Duration::from_secs(3));
-            self.start()
         }
     }
 

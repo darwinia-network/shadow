@@ -2,6 +2,12 @@
 #![macro_use]
 use scale::{Decode, Encode};
 use std::fmt::{Debug, Display, Formatter, Result as FmtResult};
+use uint::construct_uint;
+
+construct_uint! {
+    #[derive(Encode, Decode)]
+    pub struct U256(4);
+}
 
 #[macro_export]
 /// Convert bytes to hex
@@ -40,25 +46,6 @@ macro_rules! bytes {
     }};
 }
 
-macro_rules! u256 {
-    // Convert hex to [u64; 4]
-    ($hex:expr) => {{
-        let mut h = $hex;
-        if h.starts_with("0x") {
-            h = &h[2..];
-        }
-
-        let mut u256 = [0_u64; 4];
-        let bytes = (0..h.len())
-            .step_by(2)
-            .map(|i| u64::from_str_radix(&h[i..i + 2], 16))
-            .collect::<Result<Vec<u64>, _>>()
-            .unwrap_or_default();
-        u256.copy_from_slice(&bytes);
-        u256
-    }};
-}
-
 #[derive(Decode, Encode)]
 struct Bloom(pub [u8; 256]);
 
@@ -80,8 +67,21 @@ impl Default for Bloom {
     }
 }
 
+impl PartialEq for Bloom {
+    fn eq(&self, other: &Self) -> bool {
+        for i in 0..self.0.len() {
+            if self.0[i] != other.0[i] {
+                return false;
+            }
+        }
+        true
+    }
+}
+
+impl Eq for Bloom {}
+
 /// Eth header
-#[derive(Decode, Encode, Debug)]
+#[derive(Decode, Encode, Debug, PartialEq, Eq)]
 pub struct EthHeader {
     parent_hash: [u8; 32],
     timestamp: u64,
@@ -93,9 +93,9 @@ pub struct EthHeader {
     state_root: [u8; 32],
     receipts_root: [u8; 32],
     log_bloom: Bloom,
-    gas_used: [u64; 4],
-    gas_limit: [u64; 4],
-    difficulty: [u64; 4],
+    gas_used: U256,
+    gas_limit: U256,
+    difficulty: U256,
     seal: Vec<Vec<u8>>,
     hash: Option<[u8; 32]>,
 }
@@ -131,9 +131,9 @@ impl EthHeader {
             state_root: bytes!(state_root, 32),
             receipts_root: bytes!(receipts_root, 32),
             log_bloom: Bloom(bytes!(log_bloom, 256)),
-            gas_used: u256!(gas_used),
-            gas_limit: u256!(gas_limit),
-            difficulty: u256!(difficulty),
+            gas_used: U256::from_dec_str(gas_used).unwrap_or_default(),
+            gas_limit: U256::from_dec_str(gas_limit).unwrap_or_default(),
+            difficulty: U256::from_dec_str(difficulty).unwrap_or_default(),
             seal: match mixh.is_empty() && nonce.is_empty() {
                 true => vec![],
                 false => vec![bytes!(mixh), bytes!(nonce)],
@@ -159,9 +159,9 @@ impl Default for EthHeader {
             "0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421",
             "0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421",
             "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
-            "0x00000000",
-            "0x00000000",
-            "0x00000000",
+            "0",
+            "0",
+            "0",
             "",
             "",
             ""

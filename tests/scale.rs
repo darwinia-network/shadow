@@ -1,4 +1,5 @@
-use mmr::{bytes, hash::H256, hex};
+use eth::header::EthHeader as DEthHeader;
+use mmr::{bridge::EthHeader, hash::H256, hex};
 use scale::{Decode, Encode};
 
 const HASHES: [&str; 10] = [
@@ -39,12 +40,18 @@ fn hash_array() {
 }
 
 #[test]
-fn decode_proof() {
-    println!(
-         "{:?}",
-         <Vec<[u8;32]>>::decode(&mut bytes!("0888e96d4537bea4d9c05d12549907b32561d3bf31f45aae734cdc119f13406cb625c0795608c645708681e19579e2f99666725f7c70bd3863efcfe7dfef25d6fd").as_ref()),
+fn mmr_proof() {
+    let hashes = ha();
+    assert_eq!(
+        format!("08{}", &hex!(&hashes[0..2].concat())),
+        hex!(hashes[0..2].to_vec().encode())
     );
-    // let hashes = ha();
-    // println!("{:?}", hex!(&hashes[0..2].concat()));
-    // println!("{:?}", hex!(hashes[0..2].to_vec().encode()));
+}
+
+#[test]
+fn eth_header() {
+    assert_eq!(
+        EthHeader::default().encode(),
+        DEthHeader::default().encode()
+    );
 }

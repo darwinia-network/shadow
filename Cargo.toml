@@ -28,13 +28,15 @@ package = "parity-scale-codec"
 version = "1.0.112"
 features = ["derive"]
 
-[dependencies.eth]
-git = "https://github.com/darwinia-network/darwinia-common.git"
-package = "ethereum-primitives"
-
 [dependencies.diesel]
 version = "1.4.4"
 features = ["sqlite"]
 
-[profile.release]
-debug = true
+[dependencies.eth]
+git = "https://github.com/darwinia-network/darwinia-common.git"
+package = "ethereum-primitives"
+optional = true
+
+[features]
+darwinia = [ "eth" ]
+default = []

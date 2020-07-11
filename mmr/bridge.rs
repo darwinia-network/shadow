@@ -80,7 +80,7 @@ impl PartialEq for Bloom {
 
 impl Eq for Bloom {}
 
-/// Eth header
+/// Darwinia Eth header
 #[derive(Decode, Encode, Debug, PartialEq, Eq)]
 pub struct EthHeader {
     parent_hash: [u8; 32],
@@ -168,8 +168,3 @@ impl Default for EthHeader {
         )
     }
 }
-
-// pub struct DoubleNodeWithMerkleProof {
-//     pub dag_nodes: [[u8; 64]; 2],
-//     pub proof: Vec<[u8; 16]>,
-// }

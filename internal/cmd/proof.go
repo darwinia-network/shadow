@@ -21,7 +21,6 @@ var cmdProof = &cobra.Command{
 		proof, err := shadow.GetHeaderWithProof(
 			core.Ethereum,
 			args[0],
-			new(core.ProofFormat).From(PROOF_FORMAT),
 		)
 		util.Assert(err)
 

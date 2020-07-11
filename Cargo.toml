@@ -16,12 +16,20 @@ name = "mmr"
 [dependencies]
 blake2-rfc = "0.2.18"
 cmmr = { version = "0.3.0", package = "ckb-merkle-mountain-range"}
-codec = { package = "parity-scale-codec", version = "1.3.0", features = ["derive"]}
 dirs = "2.0.2"
 env_logger = "0.7.1"
 etc = "0.1.7"
 libc = "0.2.71"
 log = "0.4.0"
+
+[dependencies.scale]
+package = "parity-scale-codec"
+version = "1.0.112"
+features = ["derive"]
+
+[dependencies.eth]
+git = "https://github.com/darwinia-network/darwinia-common.git"
+package = "ethereum-primitives"
 
 [dependencies.diesel]
 version = "1.4.4"

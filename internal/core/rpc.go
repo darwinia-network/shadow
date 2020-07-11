@@ -46,7 +46,6 @@ func (s *ShadowRPC) GetEthHeaderWithProofByNumber(
 	*resp, err = s.Shadow.GetHeaderWithProof(
 		Ethereum,
 		params.Number,
-		new(ProofFormat).From(params.Options.Format),
 	)
 	return err
 }
@@ -62,7 +61,6 @@ func (s *ShadowRPC) GetEthHeaderWithProofByHash(
 	*resp, err = s.Shadow.GetHeaderWithProof(
 		Ethereum,
 		params.Hash,
-		new(ProofFormat).From(params.Options.Format),
 	)
 	return err
 }
@@ -78,7 +76,6 @@ func (s *ShadowRPC) BatchEthHeaderWithProofByNumber(
 	*resp, err = s.Shadow.BatchHeaderWithProof(
 		params.Number,
 		params.Batch,
-		new(ProofFormat).From(params.Options.Format),
 	)
 
 	return err

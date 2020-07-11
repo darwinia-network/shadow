@@ -28,10 +28,9 @@ type GetEthHeaderWithProofByNumberOptions struct {
 	Format string `json:"format"`
 }
 
-type GetEthHeaderWithProofRawResp struct {
-	Header eth.DarwiniaEthHeader           `json:"eth_header"`
-	Proof  []eth.DoubleNodeWithMerkleProof `json:"ethash_proof"`
-	Root   string                          `json:"mmr_root"`
+type GetEthHeaderWithProofByHashParams struct {
+	Hash    string                               `json:"hash"`
+	Options GetEthHeaderWithProofByNumberOptions `json:"options"`
 }
 
 type GetEthHeaderWithProofJSONResp struct {
@@ -46,9 +45,26 @@ type GetEthHeaderWithProofCodecResp struct {
 	Root   string `json:"mmr_root"`
 }
 
-type GetEthHeaderWithProofByHashParams struct {
-	Hash    string                               `json:"hash"`
-	Options GetEthHeaderWithProofByNumberOptions `json:"options"`
+type GetEthHeaderWithProofRawResp struct {
+	Header eth.DarwiniaEthHeader           `json:"eth_header"`
+	Proof  []eth.DoubleNodeWithMerkleProof `json:"ethash_proof"`
+	Root   string                          `json:"mmr_root"`
+}
+
+func (r *GetEthHeaderWithProofRawResp) IntoCoedc() GetEthHeaderWithProofCodecResp {
+	return GetEthHeaderWithProofCodecResp{
+		encodeDarwiniaEthHeader(r.Header),
+		encodeProofArray(r.Proof),
+		r.Root,
+	}
+}
+
+func (r *GetEthHeaderWithProofRawResp) IntoJSON() GetEthHeaderWithProofJSONResp {
+	return GetEthHeaderWithProofJSONResp{
+		r.Header.HexFormat(),
+		r.Proof,
+		r.Root,
+	}
 }
 
 // Batch Header

@@ -88,11 +88,10 @@ func (c *ShadowHTTP) GetProof(ctx *gin.Context) {
 		return
 	}
 
-	format := ctx.DefaultQuery("format", "json")
+	// format := ctx.DefaultQuery("format", "json")
 	resp, err = c.Shadow.GetHeaderWithProof(
 		core.Ethereum,
 		block,
-		new(core.ProofFormat).From(format),
 	)
 
 	if err != nil {

@@ -16,11 +16,7 @@ impl H256 for [u8; 32] {
     }
 
     fn hex(&self) -> String {
-        let mut s = String::new();
-        for i in self {
-            s.push_str(&format!("{:02x}", i));
-        }
-        s
+        hex!(self)
     }
 }
 

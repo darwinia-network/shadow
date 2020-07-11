@@ -161,12 +161,9 @@ func (s *Shadow) BatchHeaderWithProof(
 /**
  * Get proposal headers
  */
-func (s *Shadow) GetProposalHeaders(
-	numbers []uint64,
-	format ProofFormat,
-) ([]ProposalHeader, error) {
+func (s *Shadow) GetProposalHeaders(numbers []uint64) ([]GetEthHeaderWithProofRawResp, error) {
 	var (
-		phs []ProposalHeader
+		phs []GetEthHeaderWithProofRawResp
 	)
 
 	for _, i := range numbers {
@@ -178,11 +175,7 @@ func (s *Shadow) GetProposalHeaders(
 			return phs, err
 		}
 
-		phs = append(phs, ProposalHeader{
-			Header: rawp.Header,
-			Proof:  rawp.Proof,
-			Root:   rawp.Root,
-		})
+		phs = append(phs, rawp)
 	}
 
 	return phs, nil

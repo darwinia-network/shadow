@@ -1,5 +1,5 @@
-use mmr::hash::H256;
-use scale::Encode;
+use mmr::{bytes, hash::H256, hex};
+use scale::{Decode, Encode};
 
 const HASHES: [&str; 10] = [
     "34f61bfda344b3fad3c3e38832a91448b3c613b199eb23e5110a635d71c13c65",
@@ -36,4 +36,15 @@ fn hash_array() {
     let hashes = ha();
     let encoded = hashes.encode();
     assert_eq!(encoded, hashes.concat());
+}
+
+#[test]
+fn decode_proof() {
+    println!(
+         "{:?}",
+         <Vec<[u8;32]>>::decode(&mut bytes!("0888e96d4537bea4d9c05d12549907b32561d3bf31f45aae734cdc119f13406cb625c0795608c645708681e19579e2f99666725f7c70bd3863efcfe7dfef25d6fd").as_ref()),
+    );
+    // let hashes = ha();
+    // println!("{:?}", hex!(&hashes[0..2].concat()));
+    // println!("{:?}", hex!(hashes[0..2].to_vec().encode()));
 }

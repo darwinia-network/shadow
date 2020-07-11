@@ -89,10 +89,6 @@ func (s *ShadowRPC) GetProposalEthHeaders(
 	resp *interface{},
 ) error {
 	var err error
-	*resp, err = s.Shadow.GetProposalHeaders(
-		params.Numbers,
-		new(ProofFormat).From(params.Options.Format),
-	)
-
+	*resp, err = s.Shadow.GetProposalHeaders(params.Numbers)
 	return err
 }

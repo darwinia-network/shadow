@@ -2,6 +2,20 @@
 #![macro_use]
 use scale::{Decode, Encode};
 
+#[macro_export]
+/// Convert bytes to hex
+macro_rules! hex {
+    ($bytes:expr) => {{
+        let mut s = String::new();
+        for i in $bytes {
+            s.push_str(&format!("{:02x}", i));
+        }
+        s
+    }};
+}
+
+#[macro_export]
+/// Convert hext to `Vec<u8>` or `[u8; n]`
 macro_rules! bytes {
     // Convert hex to Vec<u8>
     ($hex:expr) => {{

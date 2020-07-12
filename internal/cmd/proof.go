@@ -24,8 +24,13 @@ var cmdProof = &cobra.Command{
 		)
 		util.Assert(err)
 
+		var ret interface{} = proof
+		if PROOF_FORMAT == "codec" {
+			ret = proof.IntoCoedc()
+		}
+
 		// toJSON
-		js, err := json.Marshal(proof)
+		js, err := json.Marshal(ret)
 		util.Assert(err)
 		fmt.Printf("%s\n", js)
 	},

@@ -1,11 +1,16 @@
 mod ethash_proof;
+mod ethash_proof_codec;
 mod hash;
 mod header;
 
-pub use ethash_proof::ETHASH_PROOF_CODEC;
+pub use ethash_proof::{DAG_NODES, PROOF};
+pub use ethash_proof_codec::ETHASH_PROOF_CODEC;
 pub use hash::HASHES;
 pub use header::HEADER;
-use mmr::{bridge::EthHeader, hash::H256};
+use mmr::{
+    bridge::{DoubleNodeWithMerkleProof, EthHeader},
+    hash::H256,
+};
 
 /// Hash array for tests
 pub fn ha() -> [[u8; 32]; 10] {
@@ -34,4 +39,9 @@ pub fn header() -> EthHeader {
             "0x880000000000000042",
             "0xd4e56740f876aef8c010b86a40d5f56745a118d0906a34e69aec8c0db1cb8fa3",
         )
+}
+
+/// Generate DoubleNodeWithMerkleProof
+pub fn proof() -> DoubleNodeWithMerkleProof {
+    DoubleNodeWithMerkleProof::from_tuple(DAG_NODES, PROOF)
 }

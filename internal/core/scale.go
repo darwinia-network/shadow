@@ -8,6 +8,23 @@ import (
 	"github.com/darwinia-network/shadow/internal/eth"
 )
 
+func lenToBytes(b []uint8, len int) ([]uint8, int) {
+	if len < 255 {
+		b = append(b, uint8(len))
+		len = 0
+		return b, len
+	}
+
+	b = append(b, uint8(len/0xff))
+	len = len % 0xff
+	return lenToBytes(b, len)
+}
+
+func lenToHex(len int) string {
+	b, _ := lenToBytes([]uint8{}, len*4)
+	return hex.EncodeToString(b)
+}
+
 // Pack encode proof
 func encodeProofArray(arr []eth.DoubleNodeWithMerkleProof) string {
 	hex := "0x0101"
@@ -26,29 +43,12 @@ func encodeProof(dnmp eth.DoubleNodeWithMerkleProof) string {
 	}
 
 	// pad the length
-	hex += "64"
+	hex += lenToHex(len(dnmp.Proof))
 	for _, v := range dnmp.Proof {
 		hex += v[2:]
 	}
 
 	return hex
-}
-
-func lenToBytes(b []uint8, len int) ([]uint8, int) {
-	if len < 255 {
-		b = append(b, uint8(len))
-		len = 0
-		return b, len
-	}
-
-	b = append(b, uint8(len/0xff))
-	len = len % 0xff
-	return lenToBytes(b, len)
-}
-
-func lenToHex(len int) string {
-	b, _ := lenToBytes([]uint8{}, len*4)
-	return hex.EncodeToString(b)
 }
 
 // Encode Darwinia Eth Header

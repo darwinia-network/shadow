@@ -12,22 +12,11 @@ pub trait H256 {
 
 impl H256 for [u8; 32] {
     fn from(s: &str) -> Self {
-        let mut hash = [0_u8; 32];
-        let bytes = (0..s.len())
-            .step_by(2)
-            .map(|i| u8::from_str_radix(&s[i..i + 2], 16))
-            .collect::<Result<Vec<u8>, _>>()
-            .unwrap_or_default();
-        hash.copy_from_slice(&bytes);
-        hash
+        bytes!(s, 32)
     }
 
     fn hex(&self) -> String {
-        let mut s = String::new();
-        for i in self {
-            s.push_str(&format!("{:02x}", i));
-        }
-        s
+        hex!(self)
     }
 }
 

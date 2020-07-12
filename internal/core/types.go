@@ -1,7 +1,11 @@
 package core
 
 import (
+	"fmt"
+	"strings"
+
 	"github.com/darwinia-network/shadow/internal/eth"
+	"github.com/darwinia-network/shadow/internal/ffi"
 	"github.com/ethereum/go-ethereum/core/types"
 )
 
@@ -28,10 +32,9 @@ type GetEthHeaderWithProofByNumberOptions struct {
 	Format string `json:"format"`
 }
 
-type GetEthHeaderWithProofRawResp struct {
-	Header eth.DarwiniaEthHeader           `json:"eth_header"`
-	Proof  []eth.DoubleNodeWithMerkleProof `json:"ethash_proof"`
-	Root   string                          `json:"mmr_root"`
+type GetEthHeaderWithProofByHashParams struct {
+	Hash    string                               `json:"hash"`
+	Options GetEthHeaderWithProofByNumberOptions `json:"options"`
 }
 
 type GetEthHeaderWithProofJSONResp struct {
@@ -46,9 +49,46 @@ type GetEthHeaderWithProofCodecResp struct {
 	Root   string `json:"mmr_root"`
 }
 
-type GetEthHeaderWithProofByHashParams struct {
-	Hash    string                               `json:"hash"`
-	Options GetEthHeaderWithProofByNumberOptions `json:"options"`
+type GetEthHeaderWithProofRawResp struct {
+	Header eth.DarwiniaEthHeader           `json:"eth_header"`
+	Proof  []eth.DoubleNodeWithMerkleProof `json:"ethash_proof"`
+	Root   string                          `json:"mmr_root"`
+}
+
+func (r *GetEthHeaderWithProofRawResp) IntoCoedc() GetEthHeaderWithProofCodecResp {
+	return GetEthHeaderWithProofCodecResp{
+		encodeDarwiniaEthHeader(r.Header),
+		encodeProofArray(r.Proof),
+		r.Root,
+	}
+}
+
+func (r *GetEthHeaderWithProofRawResp) IntoJSON() GetEthHeaderWithProofJSONResp {
+	return GetEthHeaderWithProofJSONResp{
+		r.Header.HexFormat(),
+		r.Proof,
+		r.Root,
+	}
+}
+
+func (r *GetEthHeaderWithProofRawResp) IntoProposal(leaf uint64) ProposalHeader {
+	return ProposalHeader{
+		r.Header,
+		r.Proof,
+		r.Root,
+		strings.Split(ffi.ProofLeaves(leaf, r.Header.Number), ","),
+	}
+}
+
+func (r *GetEthHeaderWithProofRawResp) IntoProposalCodec(leaf uint64) ProposalHeaderCodecFormat {
+	codec := r.IntoCoedc()
+	mmrProof := strings.Split(ffi.ProofLeaves(leaf, r.Header.Number), ",")
+	return ProposalHeaderCodecFormat{
+		codec.Header,
+		codec.Proof,
+		codec.Root,
+		"0x" + fmt.Sprintf("%02x", 4*len(mmrProof)) + strings.Join(mmrProof[:], ","),
+	}
 }
 
 // Batch Header
@@ -71,8 +111,15 @@ type ProposalHeader struct {
 	MMRProof []string                        `json:"mmr_proof"`
 }
 
+type ProposalHeaderCodecFormat struct {
+	Header   string `json:"eth_header"`
+	Proof    string `json:"ethash_proof"`
+	Root     string `json:"mmr_root"`
+	MMRProof string `json:"mmr_proof"`
+}
+
 type ProposalResp struct {
-	Headers []ProposalHeader `json:"headers"`
+	Headers []interface{} `json:"headers"`
 }
 
 // Receipt

@@ -85,11 +85,6 @@ func (c *EthHeaderWithProofCache) ApplyProof(
 		return fmt.Errorf("Empty eth number")
 	} else if util.IsEmpty(c.Header) || c.Header == "" {
 		return fmt.Errorf("Empty eth header")
-	} else {
-		ethHeader, err = eth.Header(c.Number, config.Api)
-		if err != nil {
-			return err
-		}
 	}
 
 	// Check proof lock
@@ -101,6 +96,12 @@ func (c *EthHeaderWithProofCache) ApplyProof(
 			if err != nil {
 				return err
 			}
+		}
+
+		// Fetch EthHeader
+		ethHeader, err = eth.Header(c.Number, config.Api)
+		if err != nil {
+			return err
 		}
 
 		// Proof header

@@ -105,52 +105,32 @@ func (s *Shadow) GetHeader(
 func (s *Shadow) GetHeaderWithProof(
 	chain Chain,
 	block interface{},
-	format ProofFormat,
-) (interface{}, error) {
-	var resp interface{}
+) (GetEthHeaderWithProofRawResp, error) {
 	switch chain {
 	default:
 		num, err := s.checkGenesis(s.Config.Genesis, block)
 		if err != nil {
-			return GetEthHeaderWithProofCodecResp{}, err
+			return GetEthHeaderWithProofRawResp{}, err
 		}
 
 		// Fetch header from cache
 		cache := EthHeaderWithProofCache{Number: num}
 		err = cache.Fetch(s.Config, s.DB)
 		if err != nil {
-			return GetEthHeaderWithProofCodecResp{}, err
+			return GetEthHeaderWithProofRawResp{}, err
 		}
 
 		err = cache.ApplyProof(s.Config, s.DB)
 		if err != nil {
-			return GetEthHeaderWithProofCodecResp{}, err
+			return GetEthHeaderWithProofRawResp{}, err
 		}
 
 		rawResp, err := cache.IntoResp()
 		if err != nil {
-			return GetEthHeaderWithProofCodecResp{}, err
+			return GetEthHeaderWithProofRawResp{}, err
 		}
 
-		// Set response
-		resp = rawResp
-
-		// Check if need codec
-		if format == ScaleFormat {
-			resp = GetEthHeaderWithProofCodecResp{
-				encodeDarwiniaEthHeader(rawResp.Header),
-				encodeProofArray(rawResp.Proof),
-				rawResp.Root,
-			}
-		} else if format == JsonFormat {
-			resp = GetEthHeaderWithProofJSONResp{
-				rawResp.Header.HexFormat(),
-				rawResp.Proof,
-				rawResp.Root,
-			}
-		}
-
-		return resp, nil
+		return rawResp, nil
 	}
 }
 
@@ -160,18 +140,12 @@ func (s *Shadow) GetHeaderWithProof(
 func (s *Shadow) BatchHeaderWithProof(
 	block uint64,
 	batch int,
-	format ProofFormat,
-) (interface{}, error) {
-	var (
-		nps []interface{}
-		err error
-	)
+) ([]GetEthHeaderWithProofRawResp, error) {
+	var nps []GetEthHeaderWithProofRawResp
 	for i := 0; i < batch; i++ {
-		var np interface{}
-		np, err = s.GetHeaderWithProof(
+		np, err := s.GetHeaderWithProof(
 			Ethereum,
 			block+uint64(i),
-			format,
 		)
 
 		if err != nil {
@@ -187,37 +161,21 @@ func (s *Shadow) BatchHeaderWithProof(
 /**
  * Get proposal headers
  */
-func (s *Shadow) GetProposalHeaders(
-	numbers []uint64,
-	format ProofFormat,
-) ([]ProposalHeader, error) {
+func (s *Shadow) GetProposalHeaders(numbers []uint64) ([]GetEthHeaderWithProofRawResp, error) {
 	var (
-		phs []ProposalHeader
+		phs []GetEthHeaderWithProofRawResp
 	)
 
 	for _, i := range numbers {
-		var hp GetEthHeaderWithProofRawResp
 		rawp, err := s.GetHeaderWithProof(
 			Ethereum,
 			uint64(i),
-			format,
 		)
 		if err != nil {
 			return phs, err
 		}
 
-		switch rawp := rawp.(type) {
-		case GetEthHeaderWithProofRawResp:
-			hp = rawp
-		default:
-			return phs, fmt.Errorf("only supports json format for now")
-		}
-
-		phs = append(phs, ProposalHeader{
-			Header: hp.Header,
-			Proof:  hp.Proof,
-			Root:   hp.Root,
-		})
+		phs = append(phs, rawp)
 	}
 
 	return phs, nil

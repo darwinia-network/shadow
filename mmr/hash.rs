@@ -1,4 +1,5 @@
 //! MMR Hashes
+use crate::{bytes, hex};
 use blake2_rfc::blake2b::blake2b;
 use cmmr::Merge;
 

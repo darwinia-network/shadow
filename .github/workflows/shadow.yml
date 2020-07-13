@@ -33,7 +33,7 @@ jobs:
       run: |
           export GOPATH=~/go
           mkdir -p ${GOPATH}/src/github.com/darwinia-network
-          mv /home/runner/work/shadow/shadow ${GOPATH}/src/github.com/darwinia-network
+          mv $(cd ../ &&pwd) ${GOPATH}/src/github.com/darwinia-network
           if [[ "$(uname)" == 'Darwin' ]]; then
               brew update
               brew install sqlite3

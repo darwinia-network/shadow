@@ -15,7 +15,6 @@ jobs:
     strategy:
       matrix:
         os: [macOS-latest, ubuntu-latest]
-    working-directory: ${GOPATH}/src/github.com/darwinia-network/shadow
     steps:
 
     # Set up golang env
@@ -72,13 +71,16 @@ jobs:
     # Get deps
     - name: Get dependencies
       run:  go mod download
+      working-directory: ~/go/src/github.com/darwinia-network/shadow
 
     # Build packages
     - name: Build
       run: make
+      working-directory: ~/go/src/github.com/darwinia-network/shadow
     
     # Trigger api tests when merge
     - name: Test shadow API
       env:
         INFURA_KEY: ${{ secrets.INFURA_KEY }}
+      working-directory: ~/go/src/github.com/darwinia-network/shadow
       run: go test -v ./...

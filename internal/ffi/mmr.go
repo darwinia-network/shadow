@@ -1,7 +1,7 @@
 package ffi
 
 /*
-#cgo LDFLAGS: -L ../../target/release -lmmr -ldl
+#cgo LDFLAGS: -L${SRCDIR}/../../target/release -lmmr -ldl
 #include <inttypes.h>
 
 extern int32_t run();

@@ -15,6 +15,7 @@ jobs:
     strategy:
       matrix:
         os: [macOS-latest, ubuntu-latest]
+    working-directory: ${GOPATH}/src/github.com/darwinia-network/shadow
     steps:
 
     # Set up golang env
@@ -31,10 +32,8 @@ jobs:
     # Sqlite3 deps
     - name: Environment
       run: |
-          pwd
-          ls
-          mkdir -p ~/go/src/github.com/darwinia-network/shadow
-          mv **/* ~/go/src/github.com/darwinia-network/shadow
+          mkdir -p ~/go/src/github.com/darwinia-network
+          mv /home/runner/work/shadow/shaodw ${GOPATH}/src/github.com/darwinia-network
           if [[ "$(uname)" == 'Darwin' ]]; then
               brew update
               brew install sqlite3
@@ -73,16 +72,13 @@ jobs:
     # Get deps
     - name: Get dependencies
       run:  go mod download
-      working-directory: ~/go/src/github.com/darwinia-network/shadow
 
     # Build packages
     - name: Build
       run: make
-      working-directory: ~/go/src/github.com/darwinia-network/shadow
     
     # Trigger api tests when merge
     - name: Test shadow API
       env:
         INFURA_KEY: ${{ secrets.INFURA_KEY }}
-      working-directory: ~/go/src/github.com/darwinia-network/shadow
       run: go test -v ./...

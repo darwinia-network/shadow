@@ -5,7 +5,7 @@ name: Golang Shadow
 
 on:
   push:
-    branches: [ master, next ]
+    branches: [ master, next, fix-cgo-in-ci ]
   pull_request:
     branches: [ master, next, fix-mmr-proof ]
 

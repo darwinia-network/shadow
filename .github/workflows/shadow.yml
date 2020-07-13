@@ -16,6 +16,7 @@ jobs:
       matrix:
         os: [macOS-latest, ubuntu-latest]
     steps:
+
     # Set up golang env
     - name: Set up GO 1.13
       uses: actions/setup-go@v1

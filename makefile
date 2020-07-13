@@ -9,4 +9,4 @@ build: target/release/libmmr.$(EXT)
 	@go build -o ./target/shadow -v github.com/darwinia-network/shadow/shadow
 target/release/libmmr.$(EXT): mmr/lib.rs Cargo.toml
 	@cargo build --verbose --release
-	cp target/release/libmmr.$(EXT) /usr/local/lib
+	sudo cp target/release/libmmr.$(EXT) /usr/local/lib

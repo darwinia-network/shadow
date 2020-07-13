@@ -50,7 +50,7 @@ jobs:
         lock-file: ${GOPATH}/src/github.com/darwinia-network/shadow/go.sum
       with:
         path: ~/go/pkg/mod
-        key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles(${{ env.lock-file }}) }}
+        key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('~/go/src/github.com/darwinia-network/shadow/go.sum') }}
           
     # Cache ethash
     - name: Cache Eth Hash
@@ -66,10 +66,9 @@ jobs:
       uses: actions/cache@v1
       env:
         cache-name: mmr-cache
-        lock-file: ${GOPATH}/src/github.com/darwinia-network/shadow/Cargo.lock
       with:
         path: ${GOPATH}/src/github.com/darwinia-network/shadow/target
-        key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles(${{ env.lock-file }}) }}
+        key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('~/go/src/github.com/darwinia-network/shadow/Cargo.lock') }}
 
     # Get deps
     - name: Get dependencies

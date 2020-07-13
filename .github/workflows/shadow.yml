@@ -27,8 +27,6 @@ jobs:
     # Checkout Go module directory
     - name: Check out code into the Go module directory
       uses: actions/checkout@v2
-      with:
-        working-directory: $GOPATH/src/github.com/darwinia-network/shadow
 
     # Sqlite3 deps
     - name: Environment
@@ -74,7 +72,7 @@ jobs:
 
     # Build packages
     - name: Build
-      run: make
+      run: sudo make
     
     # Trigger api tests when merge
     - name: Test shadow API

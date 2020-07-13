@@ -28,8 +28,6 @@ jobs:
     # Sqlite3 deps
     - name: Environment
       run: |
-          pwd
-          ls
           if [[ "$(uname)" == 'Darwin' ]]; then
               brew update
               brew install sqlite3
@@ -37,10 +35,6 @@ jobs:
               sudo apt-get update -y
               sudo apt-get install -y libsqlite3-dev libdbus-1-dev
           fi
-          
-          echo "##[set-env name=GOPATH;]$(dirname $GITHUB_WORKSPACE)"
-          echo "##[add-path]$(dirname $GITHUB_WORKSPACE)/bin"
-      shell: bash
     # Cache go modules
     - name: Cache Go Modules
       uses: actions/cache@v1
@@ -74,7 +68,10 @@ jobs:
 
     # Build packages
     - name: Build
-      run: make
+      run: |
+        make
+        mkdir -p ~/go/src/github.com/darwinia-network/shadow/target/release
+        cp target/release/libmmr.so 
     
     # Trigger api tests when merge
     - name: Test shadow API

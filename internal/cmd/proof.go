@@ -26,7 +26,7 @@ var cmdProof = &cobra.Command{
 
 		var ret interface{} = proof
 		if PROOF_FORMAT == "codec" {
-			ret = proof.IntoCoedc()
+			ret = proof.IntoCodec()
 		}
 
 		// toJSON

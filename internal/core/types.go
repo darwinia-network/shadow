@@ -4,7 +4,6 @@ import (
 	"strings"
 
 	"github.com/darwinia-network/shadow/internal/eth"
-	"github.com/darwinia-network/shadow/internal/ffi"
 	"github.com/ethereum/go-ethereum/core/types"
 )
 
@@ -54,7 +53,7 @@ type GetEthHeaderWithProofRawResp struct {
 	Root   string                          `json:"mmr_root"`
 }
 
-func (r *GetEthHeaderWithProofRawResp) IntoCoedc() GetEthHeaderWithProofCodecResp {
+func (r *GetEthHeaderWithProofRawResp) IntoCodec() GetEthHeaderWithProofCodecResp {
 	return GetEthHeaderWithProofCodecResp{
 		encodeDarwiniaEthHeader(r.Header),
 		encodeProofArray(r.Proof),
@@ -70,18 +69,24 @@ func (r *GetEthHeaderWithProofRawResp) IntoJSON() GetEthHeaderWithProofJSONResp 
 	}
 }
 
-func (r *GetEthHeaderWithProofRawResp) IntoProposal(leaf uint64) ProposalHeader {
+func (r *GetEthHeaderWithProofRawResp) IntoProposal(
+	leaf uint64,
+	mmrProofArr string,
+) ProposalHeader {
 	return ProposalHeader{
 		r.Header,
 		r.Proof,
 		r.Root,
-		strings.Split(ffi.ProofLeaves(leaf, r.Header.Number), ","),
+		strings.Split(mmrProofArr, ","),
 	}
 }
 
-func (r *GetEthHeaderWithProofRawResp) IntoProposalCodec(leaf uint64) ProposalHeaderCodecFormat {
-	codec := r.IntoCoedc()
-	mmrProof := strings.Split(ffi.ProofLeaves(leaf, r.Header.Number), ",")
+func (r *GetEthHeaderWithProofRawResp) IntoProposalCodec(
+	leaf uint64,
+	mmrProofArr string,
+) ProposalHeaderCodecFormat {
+	codec := r.IntoCodec()
+	mmrProof := strings.Split(mmrProofArr, ",")
 	len := "0x" + lenToHex(len(mmrProof))
 	return ProposalHeaderCodecFormat{
 		codec.Header,

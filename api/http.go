@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/darwinia-network/shadow/internal/core"
+	"github.com/darwinia-network/shadow/internal/ffi"
 	"github.com/darwinia-network/shadow/internal/util"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/gin-gonic/gin"
@@ -152,15 +153,16 @@ func (c *ShadowHTTP) Proposal(ctx *gin.Context) {
 
 	// Construct headers
 	for _, h := range headers {
+		mmrProof := ffi.ProofLeaves(params.LastLeaf, h.Header.Number)
 		if params.Format == "codec" {
 			proposalHeaders = append(
 				proposalHeaders,
-				h.IntoProposalCodec(params.LastLeaf),
+				h.IntoProposalCodec(params.LastLeaf, mmrProof),
 			)
 		} else {
 			proposalHeaders = append(
 				proposalHeaders,
-				h.IntoProposal(params.LastLeaf),
+				h.IntoProposal(params.LastLeaf, mmrProof),
 			)
 		}
 	}

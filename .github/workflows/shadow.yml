@@ -7,7 +7,7 @@ on:
   push:
     branches: [ master, next ]
   pull_request:
-    branches: [ master, next ]
+    branches: [ master, next, fix-mmr-proof ]
 
 jobs:
   shadow:
@@ -27,12 +27,14 @@ jobs:
     # Checkout Go module directory
     - name: Check out code into the Go module directory
       uses: actions/checkout@v2
-      with:
-        working-directory: $GOPATH/src/github.com/darwinia-network/shadow
 
     # Sqlite3 deps
     - name: Environment
       run: |
+          pwd
+          ls
+          mkdir -p ~/go/src/github.com/darwinia-network/shadow
+          mv **/* ~/go/src/github.com/darwinia-network/shadow
           if [[ "$(uname)" == 'Darwin' ]]; then
               brew update
               brew install sqlite3
@@ -65,7 +67,7 @@ jobs:
       env:
         cache-name: mmr-cache
       with:
-        path: ./target
+        path: ~/go/src/github.com/darwinia-network/shadow/target
         key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('./Cargo.lock') }}
 
     # Get deps
@@ -75,9 +77,11 @@ jobs:
     # Build packages
     - name: Build
       run: make
+      working-directory: ~/go/src/github.com/darwinia-network/shadow
     
     # Trigger api tests when merge
     - name: Test shadow API
       env:
         INFURA_KEY: ${{ secrets.INFURA_KEY }}
+      workding-directory: ~/go/src/github.com/darwinia-network/shadow
       run: go test -v ./...

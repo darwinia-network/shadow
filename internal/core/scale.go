@@ -8,9 +8,26 @@ import (
 	"github.com/darwinia-network/shadow/internal/eth"
 )
 
+func lenToBytes(b []uint8, len int) ([]uint8, int) {
+	if len < 255 {
+		b = append(b, uint8(len))
+		len = 0
+		return b, len
+	}
+
+	b = append(b, uint8(len/0xff))
+	len = len % 0xff
+	return lenToBytes(b, len)
+}
+
+func lenToHex(len int) string {
+	b, _ := lenToBytes([]uint8{}, len*4)
+	return hex.EncodeToString(b)
+}
+
 // Pack encode proof
 func encodeProofArray(arr []eth.DoubleNodeWithMerkleProof) string {
-	hex := "0x0101"
+	hex := "0x" + lenToHex(len(arr))
 	for _, v := range arr {
 		hex += encodeProof(v)
 	}
@@ -26,7 +43,7 @@ func encodeProof(dnmp eth.DoubleNodeWithMerkleProof) string {
 	}
 
 	// pad the length
-	hex += "64"
+	hex += lenToHex(len(dnmp.Proof))
 	for _, v := range dnmp.Proof {
 		hex += v[2:]
 	}
@@ -36,6 +53,9 @@ func encodeProof(dnmp eth.DoubleNodeWithMerkleProof) string {
 
 // Encode Darwinia Eth Header
 func encodeDarwiniaEthHeader(header eth.DarwiniaEthHeader) string {
+	hb, _ := hex.DecodeString(header.ExtraData[2:])
+	len := lenToHex(len(hb))
+
 	hex := "0x"
 	hex += header.ParentHash[2:]
 	hex += encodeUint(header.TimeStamp, 64)
@@ -43,7 +63,7 @@ func encodeDarwiniaEthHeader(header eth.DarwiniaEthHeader) string {
 	hex += strings.ToLower(header.Author[2:])
 	hex += header.TransactionsRoot[2:]
 	hex += header.UnclesHash[2:]
-	hex += "7c"
+	hex += len
 	hex += header.ExtraData[2:]
 	hex += header.StateRoot[2:]
 	hex += header.ReceiptsRoot[2:]

@@ -1,10 +1,18 @@
 package ffi
 
-//#cgo LDFLAGS: -L${SRCDIR}/../../target/release -lmmr -ldl
-//#include <stdint.h>
-//extern int32_t run();
+/*
+#cgo LDFLAGS: -L${SRCDIR}/../../target/release -lmmr -ldl
+#include <inttypes.h>
+
+extern int32_t run();
+extern char* proof(uint64_t last_leaf, uint64_t member);
+*/
 import "C"
 
 func RunMMR() {
-	go C.run()
+	C.run()
+}
+
+func ProofLeaves(last_leaf uint64, member uint64) string {
+	return C.GoString(C.proof((C.uint64_t)(last_leaf), (C.uint64_t)(member)))
 }

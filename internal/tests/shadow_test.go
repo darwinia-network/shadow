@@ -96,7 +96,7 @@ func TestBatchEthHeaderWithProofByNumber(t *testing.T) {
 		util.AssertEmpty(resp)
 
 		switch r := resp.(type) {
-		case []interface{}:
+		case []core.GetEthHeaderWithProofRawResp:
 			if len(r) != 3 {
 				t.Errorf("Wrong length %v in batch header resp", r)
 			}

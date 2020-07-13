@@ -1,4 +1,4 @@
 fn main() {
-    let mut runner = mmr::runner::Runner::default();
+    let mut runner = mmr::Runner::default();
     runner.start().unwrap();
 }

@@ -21,12 +21,16 @@ var cmdProof = &cobra.Command{
 		proof, err := shadow.GetHeaderWithProof(
 			core.Ethereum,
 			args[0],
-			new(core.ProofFormat).From(PROOF_FORMAT),
 		)
 		util.Assert(err)
 
+		var ret interface{} = proof
+		if PROOF_FORMAT == "codec" {
+			ret = proof.IntoCodec()
+		}
+
 		// toJSON
-		js, err := json.Marshal(proof)
+		js, err := json.Marshal(ret)
 		util.Assert(err)
 		fmt.Printf("%s\n", js)
 	},

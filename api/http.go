@@ -2,9 +2,9 @@ package api
 
 import (
 	"net/http"
-	"strconv"
 
 	"github.com/darwinia-network/shadow/internal/core"
+	"github.com/darwinia-network/shadow/internal/ffi"
 	"github.com/darwinia-network/shadow/internal/util"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/gin-gonic/gin"
@@ -87,11 +87,10 @@ func (c *ShadowHTTP) GetProof(ctx *gin.Context) {
 		return
 	}
 
-	format := ctx.DefaultQuery("format", "json")
+	// format := ctx.DefaultQuery("format", "json")
 	resp, err = c.Shadow.GetHeaderWithProof(
 		core.Ethereum,
 		block,
-		new(core.ProofFormat).From(format),
 	)
 
 	if err != nil {
@@ -136,25 +135,39 @@ func (c *ShadowHTTP) GetReceipt(ctx *gin.Context) {
 // @Router /proposal [post]
 func (c *ShadowHTTP) Proposal(ctx *gin.Context) {
 	var (
-		resp    interface{}
-		numbers []uint64
-		err     error
+		err             error
+		params          ProposalParams
+		proposalHeaders []interface{}
 	)
-	ns := ctx.Request.URL.Query()["numbers"]
-	for _, n := range ns {
-		num, _ := strconv.ParseUint(n, 10, 64)
-		numbers = append(numbers, num)
-	}
-
-	format := ctx.DefaultQuery("format", "json")
-	resp, err = c.Shadow.GetProposalHeaders(
-		numbers,
-		new(core.ProofFormat).From(format),
-	)
+	err = ctx.BindJSON(&params)
 	if err != nil {
 		NewError(ctx, http.StatusBadRequest, err)
 		return
 	}
 
-	ctx.JSON(http.StatusOK, resp)
+	headers, err := c.Shadow.GetProposalHeaders(params.Members)
+	if err != nil {
+		NewError(ctx, http.StatusBadRequest, err)
+		return
+	}
+
+	// Construct headers
+	for _, h := range headers {
+		mmrProof := ffi.ProofLeaves(params.LastLeaf, h.Header.Number)
+		if params.Format == "codec" {
+			proposalHeaders = append(
+				proposalHeaders,
+				h.IntoProposalCodec(params.LastLeaf, mmrProof),
+			)
+		} else {
+			proposalHeaders = append(
+				proposalHeaders,
+				h.IntoProposal(params.LastLeaf, mmrProof),
+			)
+		}
+	}
+
+	ctx.JSON(http.StatusOK, core.ProposalResp{
+		Headers: proposalHeaders,
+	})
 }

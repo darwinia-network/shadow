@@ -3,7 +3,7 @@ use mmr::{
     hash::{MergeHash, H256},
     store::Store,
 };
-use std::{env, fs};
+use std::{env, fs, path::PathBuf};
 
 const HEADERS_N_ROOTS: [(&str, &str); 10] = [
     (
@@ -48,35 +48,9 @@ const HEADERS_N_ROOTS: [(&str, &str); 10] = [
     ),
 ];
 
-#[test]
-fn test_hex() {
-    &HEADERS_N_ROOTS.iter().for_each(|h| {
-        assert_eq!(<[u8; 32] as H256>::from(h.0).hex(), String::from(h.0));
-    });
-}
-
-#[test]
-fn test_mmr_root() {
-    let db = env::temp_dir().join("test_mmr_root.db");
+fn gen_mmr(db: &PathBuf) -> (MMR<[u8; 32], MergeHash, Store>, Vec<u64>) {
+    let db = env::temp_dir().join(db);
     let store = Store::new(&db);
-    store.re_create().unwrap_or_default();
-
-    let mut mmr = MMR::<_, MergeHash, _>::new(0, store);
-    (0..10).for_each(|i| {
-        let cur = HEADERS_N_ROOTS[i];
-        mmr.push(<[u8; 32] as H256>::from(cur.0).into()).unwrap();
-        assert_eq!(H256::hex(&mmr.get_root().unwrap()), cur.1);
-    });
-
-    assert!(fs::remove_file(db).is_ok());
-}
-
-#[test]
-fn test_mmr_proof() {
-    let db = env::temp_dir().join("test_mmr_proof.db");
-    let store = Store::new(&db);
-    store.re_create().unwrap_or_default();
-
     let mut mmr = MMR::<_, MergeHash, _>::new(0, store);
     let pos: Vec<u64> = (0..10)
         .map(|h| {
@@ -85,12 +59,26 @@ fn test_mmr_proof() {
         })
         .collect();
 
+    (mmr, pos)
+}
+
+#[test]
+fn test_hex() {
+    &HEADERS_N_ROOTS.iter().for_each(|h| {
+        assert_eq!(<[u8; 32] as H256>::from(h.0).hex(), String::from(h.0));
+    });
+}
+
+#[test]
+fn test_mmr_proof() {
+    let db = env::temp_dir().join("test_mmr_proof.db");
+    let (mmr, pos) = gen_mmr(&db);
+
     let root = mmr.get_root().expect("get root failed");
     let proof = mmr
         .gen_proof((0..10).map(|e| pos[e]).collect())
         .expect("gen proof");
 
-    mmr.commit().expect("commit changes");
     let result = proof
         .verify(
             root,
@@ -114,3 +102,43 @@ fn test_mmr_merge() {
     );
 }
 
+// TODO: Unit test for this, need a specific module to test this.
+//
+// ------------
+//
+// #[test]
+// fn test_default_runner() {
+//     const LAST_LEAF_INDEX: u64 = 35;
+//     println!(
+//         "last leaf pos: {:?}",
+//         cmmr::leaf_index_to_pos(LAST_LEAF_INDEX)
+//     );
+//
+//     let store = Store::default();
+//     let mmr = MMR::<_, MergeHash, _>::new(cmmr::leaf_index_to_mmr_size(LAST_LEAF_INDEX), store);
+//
+//     let mut index: u64 = 0;
+//     while index < 35 {
+//         let proof = mmr.gen_proof(vec![cmmr::leaf_index_to_pos(index)]);
+//         if proof.is_err() {
+//             index += 1;
+//         } else {
+//             println!(
+//                 "index is: {:?}, pos is: {:?}",
+//                 index,
+//                 cmmr::leaf_index_to_pos(index)
+//             );
+//             println!(
+//                 "{:?}",
+//                 proof
+//                     .unwrap()
+//                     .proof_items()
+//                     .iter()
+//                     .map(|item| H256::hex(item))
+//                     .collect::<Vec<String>>()
+//                     .join(",")
+//             );
+//             index += 1;
+//         }
+//     }
+// }

@@ -11,7 +11,10 @@ mod schema;
 mod sql;
 
 pub mod bridge;
+mod ffi;
 pub mod hash;
-pub mod result;
-pub mod runner;
+mod result;
+mod runner;
 pub mod store;
+
+pub use runner::Runner;

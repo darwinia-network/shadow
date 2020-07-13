@@ -101,7 +101,7 @@ where
 
         for (i, relem) in elems.into_iter().enumerate() {
             let header = Header::new(relem.hex(), rpos as i64 + i as i64);
-            let res = diesel::replace_into(mmr_store)
+            let res = diesel::insert_into(mmr_store)
                 .values(&vec![header])
                 .execute(&self.conn);
 

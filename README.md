@@ -2,16 +2,18 @@
 
 [![Golang CI][workflow-badge]][github]
 
+The shadow service for relayers and verify workers to retrieve header data and generate proof. Shadow will index the data it needs from blockchain nodes, such as Ethereum and Darwinia.
+
 ## Contribute and Build
 
-> ATTENTION: Please compile shadow under $GOPATH
+> ATTENTION: Please compile shadow under $GOPATH. Here is a guide about [How to setting GOATH](https://github.com/golang/go/wiki/SettingGOPATH).
 
 ```
 # Clone shadow
-git clone https://github.com/darwinia-network/shadow.git $GOPATH/src/github.com/darwinia-network
+git clone https://github.com/darwinia-network/shadow.git $GOPATH/src/github.com/darwinia-network/shadow
 
 # Make the binary
-cd shadow && make
+cd $GOPATH/src/github.com/darwinia-network/shadow && make
 
 # Check the version
 ./target/shadow version

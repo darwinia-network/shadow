@@ -5,9 +5,9 @@ name: Golang CI Lint
 
 on:
   push:
-    branches: [ master ]
+    branches: [ master, next ]
   pull_request:
-    branches: [ master ]
+    branches: [ master, next ]
 
 jobs:
   golangci-lint:
@@ -37,7 +37,7 @@ jobs:
         
     # Build packages
     - name: Build
-      run: cargo build --release
+      run: make
     # Lint code
     - name: Lint
       uses: golangci/golangci-lint-action@v1

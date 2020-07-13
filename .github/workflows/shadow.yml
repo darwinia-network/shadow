@@ -5,7 +5,7 @@ name: Golang Shadow
 
 on:
   push:
-    branches: [ master, next ]
+    branches: [ master, next, cgo ]
   pull_request:
     branches: [ master, next, fix-mmr-proof ]
 
@@ -73,6 +73,7 @@ jobs:
     # Get deps
     - name: Get dependencies
       run:  go mod download
+      working-directory: ~/go/src/github.com/darwinia-network/shadow
 
     # Build packages
     - name: Build
@@ -83,5 +84,5 @@ jobs:
     - name: Test shadow API
       env:
         INFURA_KEY: ${{ secrets.INFURA_KEY }}
-      workding-directory: ~/go/src/github.com/darwinia-network/shadow
+      working-directory: ~/go/src/github.com/darwinia-network/shadow
       run: go test -v ./...

@@ -27,7 +27,7 @@ func lenToHex(len int) string {
 
 // Pack encode proof
 func encodeProofArray(arr []eth.DoubleNodeWithMerkleProof) string {
-	hex := "0x0101"
+	hex := "0x" + lenToHex(len(arr))
 	for _, v := range arr {
 		hex += encodeProof(v)
 	}

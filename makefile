@@ -4,8 +4,8 @@ else
     EXT := so
 endif
 
-build: target/debug/libmmr.$(EXT)
+build: target/release/libmmr.$(EXT)
 	@go mod tidy
 	@go build -o ./target/shadow -v github.com/darwinia-network/shadow/shadow
-target/debug/libmmr.$(EXT): mmr/lib.rs Cargo.toml
+target/release/libmmr.$(EXT): mmr/lib.rs Cargo.toml
 	@cargo build --verbose --release

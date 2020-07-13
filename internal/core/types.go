@@ -1,7 +1,6 @@
 package core
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/darwinia-network/shadow/internal/eth"
@@ -83,11 +82,12 @@ func (r *GetEthHeaderWithProofRawResp) IntoProposal(leaf uint64) ProposalHeader 
 func (r *GetEthHeaderWithProofRawResp) IntoProposalCodec(leaf uint64) ProposalHeaderCodecFormat {
 	codec := r.IntoCoedc()
 	mmrProof := strings.Split(ffi.ProofLeaves(leaf, r.Header.Number), ",")
+	len := "0x" + lenToHex(len(mmrProof))
 	return ProposalHeaderCodecFormat{
 		codec.Header,
 		codec.Proof,
-		codec.Root,
-		"0x" + fmt.Sprintf("%02x", 4*len(mmrProof)) + strings.Join(mmrProof[:], ","),
+		"0x" + codec.Root,
+		len + strings.Join(mmrProof[:], ""),
 	}
 }
 

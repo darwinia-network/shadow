@@ -7,7 +7,7 @@ on:
   push:
     branches: [ master, next ]
   pull_request:
-    branches: [ master, next ]
+    branches: [ master, next, fix-mmr-proof ]
 
 jobs:
   shadow:

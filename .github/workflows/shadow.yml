@@ -28,6 +28,7 @@ jobs:
       uses: actions/checkout@v2
       with:
         working-directory: $GOPATH/src/github.com/darwinia-network/shadow
+
     # Sqlite3 deps
     - name: Environment
       run: |

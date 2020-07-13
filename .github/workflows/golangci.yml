@@ -19,6 +19,8 @@ jobs:
     # Sqlite3 deps
     - name: Environment
       run: |
+          pwd
+          ls
           if [[ "$(uname)" == 'Darwin' ]]; then
               brew update
               brew install sqlite3

@@ -2,6 +2,12 @@ package log
 
 import (
 	l "log"
+	"os"
+	"strings"
+)
+
+const (
+	LOG_GO = "LOG_GO"
 )
 
 func emit(label string, ctx string) {
@@ -10,14 +16,34 @@ func emit(label string, ctx string) {
 	l.Println(ctx)
 }
 
+func checkMode(modes []string) bool {
+	for _, m := range modes {
+		if strings.Contains(strings.ToLower(os.Getenv(LOG_GO)), strings.ToLower(m)) {
+			return true
+		}
+	}
+
+	return false
+}
+
+// Info logs
 func Info(ctx string) {
-	emit("[ INFO ] ", ctx)
+	if checkMode([]string{"INFO", "ALL"}) {
+		emit("[ INFO ] ", ctx)
+	}
+
 }
 
+// Trace Logs
 func Trace(ctx string) {
-	emit("[ TRACE ] ", ctx)
+	if checkMode([]string{"TRACE", "ALL"}) {
+		emit("[ TRACE ] ", ctx)
+	}
 }
 
+// Warn Logs
 func Warn(ctx string) {
-	emit("[ WARN ] ", ctx)
+	if checkMode([]string{"WARN", "ALL"}) {
+		emit("[ WARN ] ", ctx)
+	}
 }

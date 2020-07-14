@@ -37,7 +37,7 @@ impl Runner {
                 if let Err(e) = self.push(base) {
                     match e {
                         Error::Diesel(DieselError::NotFound) => {
-                            warn!("Could not find block: {:?} in cache", base)
+                            warn!("Could not find block {:?} in cache", base)
                         }
                         _ => error!("Push block to mmr_store failed: {:?}", e),
                     }

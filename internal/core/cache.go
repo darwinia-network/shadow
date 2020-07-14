@@ -167,15 +167,10 @@ func (c *EthHeaderWithProofCache) Fetch(
 	err := db.Where("number = ?", c.Number).Take(&c).Error
 	if err != nil {
 		err = db.Where("hash = ?", c.Hash).Take(&c).Error
-		if err == nil {
-			log.Trace("Fetching block %v from cache", c.Hash)
-		}
-	} else {
-		log.Trace("Fetching block %v from cache", c.Number)
 	}
 
 	if err != nil || util.IsEmpty(c.Header) || c.Header == "" {
-		log.Trace("Fetching block %v from cache failed, request a new one", c.Number)
+		log.Trace("Fetching block %v ...", c.Number)
 		ethHeader, err := eth.Header(c.Number, config.Api)
 		if err != nil {
 			return err
@@ -225,7 +220,7 @@ func ConnectDb() (*gorm.DB, error) {
 		}
 	}
 
-	log.Info("Connecting database #%v...", cachePath)
+	log.Info("Connecting database ~/%v...", DB_PATH)
 	db, err := gorm.Open("sqlite3", path.Join(usr.HomeDir, DB_PATH))
 	if err != nil {
 		return db, err

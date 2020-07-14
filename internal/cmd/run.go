@@ -2,11 +2,11 @@ package cmd
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/darwinia-network/shadow/api"
 	"github.com/darwinia-network/shadow/internal/core"
 	"github.com/darwinia-network/shadow/internal/ffi"
+	"github.com/darwinia-network/shadow/internal/log"
 	"github.com/darwinia-network/shadow/internal/rpc"
 	"github.com/darwinia-network/shadow/internal/util"
 	"github.com/spf13/cobra"
@@ -44,6 +44,10 @@ func init() {
 	)
 }
 
+const (
+	GIN_MODE = "GIN_MODE"
+)
+
 func fetch(shadow *core.Shadow, genesis uint64) {
 	// run mmr service
 	go ffi.RunMMR()
@@ -53,10 +57,7 @@ func fetch(shadow *core.Shadow, genesis uint64) {
 	for ptr.Number >= genesis {
 		err := ptr.Fetch(shadow.Config, shadow.DB)
 		if err != nil {
-			log.Printf(
-				"fetch header %v failed\n",
-				ptr.Number,
-			)
+			log.Error("fetch header %v failed\n", ptr.Number)
 			continue
 		}
 
@@ -85,12 +86,12 @@ var cmdRun = &cobra.Command{
 		}
 
 		go func() {
-			api.Swagger(HTTP)
+			api.Swagger(&shadow, HTTP)
 		}()
 
 		// Start service
-		fmt.Printf("Shadow RPC service start at %s\n", RPC)
-		fmt.Printf("Shadow HTTP service start at %s\n", HTTP)
+		log.Info("Shadow RPC service start at %s", RPC)
+		log.Info("Shadow HTTP service start at %s", HTTP)
 		err = rpc.ServeHTTP(
 			&core.ShadowRPC{
 				Shadow: shadow,

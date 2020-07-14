@@ -26,15 +26,10 @@ type HTTPError struct {
 }
 
 type ShadowHTTP struct {
-	Shadow core.Shadow
+	Shadow *core.Shadow
 }
 
-func NewShadowHTTP() (ShadowHTTP, error) {
-	shadow, err := core.NewShadow()
-	if err != nil {
-		return ShadowHTTP{}, err
-	}
-
+func NewShadowHTTP(shadow *core.Shadow) (ShadowHTTP, error) {
 	return ShadowHTTP{
 		shadow,
 	}, nil

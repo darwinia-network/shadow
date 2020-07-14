@@ -7,6 +7,7 @@ require (
 	github.com/deckarep/golang-set v1.7.1
 	github.com/edsrzf/mmap-go v1.0.0
 	github.com/ethereum/go-ethereum v1.9.15
+	github.com/fatih/color v1.3.0
 	github.com/gin-gonic/gin v1.6.3
 	github.com/hashicorp/golang-lru v0.5.4
 	github.com/huandu/xstrings v1.3.2

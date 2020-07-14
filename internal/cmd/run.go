@@ -12,6 +12,38 @@ import (
 	"github.com/spf13/cobra"
 )
 
+func init() {
+	cmdRun.PersistentFlags().BoolVarP(
+		&FETCH,
+		"fetch",
+		"f",
+		false,
+		"keep fetching blocks in background",
+	)
+
+	cmdRun.PersistentFlags().BoolVarP(
+		&VERBOSE,
+		"verbose",
+		"v",
+		false,
+		"Enable all shadow logs",
+	)
+
+	cmdRun.PersistentFlags().StringVar(
+		&HTTP,
+		"http",
+		"3001",
+		"set port of http api server",
+	)
+
+	cmdRun.PersistentFlags().StringVar(
+		&RPC,
+		"rpc",
+		"3000",
+		"set port of rpc api server",
+	)
+}
+
 func fetch(shadow *core.Shadow, genesis uint64) {
 	// run mmr service
 	go ffi.RunMMR()
@@ -41,6 +73,8 @@ var cmdRun = &cobra.Command{
 	Long:  "This command will use the config at `~/.darwinia/config.json`",
 	Args:  cobra.MinimumNArgs(0),
 	Run: func(cmd *cobra.Command, _ []string) {
+		verboseCheck()
+
 		// Generate Shadow
 		shadow, err := core.NewShadow()
 		util.Assert(err)

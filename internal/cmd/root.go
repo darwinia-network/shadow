@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"github.com/spf13/cobra"
+	"os"
 )
 
 var (
@@ -11,43 +12,21 @@ var (
 		Long:  `The way to Go`,
 	}
 	FETCH        bool
+	VERBOSE      bool
 	HTTP         string
 	RPC          string
 	PROOF_FORMAT string
 )
 
+const (
+	// Rust log env
+	GO_LOG = "GO_LOG"
+	// Rust log env
+	RUST_LOG = "RUST_LOG"
+)
+
 // Init commands to dargo
 func init() {
-	cmdRun.PersistentFlags().BoolVarP(
-		&FETCH,
-		"fetch",
-		"f",
-		false,
-		"keep fetching blocks in background",
-	)
-
-	cmdRun.PersistentFlags().StringVar(
-		&HTTP,
-		"http",
-		"3001",
-		"set port of http api server",
-	)
-
-	cmdRun.PersistentFlags().StringVar(
-		&RPC,
-		"rpc",
-		"3000",
-		"set port of http rpc server",
-	)
-
-	cmdProof.PersistentFlags().StringVarP(
-		&PROOF_FORMAT,
-		"format",
-		"f",
-		"json",
-		"set port of http rpc server",
-	)
-
 	rootCmd.AddCommand(
 		cmdEpoch,
 		cmdHeader,
@@ -57,6 +36,14 @@ func init() {
 		cmdVersion,
 		cmdTest,
 	)
+}
+
+/// Enable all logs
+func verboseCheck() {
+	if VERBOSE {
+		os.Setenv(GO_LOG, "ALL")
+		os.Setenv(RUST_LOG, "mmr")
+	}
 }
 
 // Execute the command

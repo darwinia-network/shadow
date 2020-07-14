@@ -55,6 +55,7 @@ func init() {
 		cmdReceipt,
 		cmdRun,
 		cmdVersion,
+		cmdTest,
 	)
 }
 

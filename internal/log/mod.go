@@ -1,6 +1,7 @@
 package log
 
 import (
+	"fmt"
 	l "log"
 	"os"
 	"strings"
@@ -27,23 +28,28 @@ func checkMode(modes []string) bool {
 }
 
 // Info logs
-func Info(ctx string) {
+func Info(ctx string, a ...interface{}) {
 	if checkMode([]string{"INFO", "ALL"}) {
-		emit("[ INFO ] ", ctx)
+		emit("[ INFO ] ", fmt.Sprintf(ctx, a...))
 	}
 
 }
 
 // Trace Logs
-func Trace(ctx string) {
+func Trace(ctx string, a ...interface{}) {
 	if checkMode([]string{"TRACE", "ALL"}) {
-		emit("[ TRACE ] ", ctx)
+		emit("[ TRACE ] ", fmt.Sprintf(ctx, a...))
 	}
 }
 
 // Warn Logs
-func Warn(ctx string) {
+func Warn(ctx string, a ...interface{}) {
 	if checkMode([]string{"WARN", "ALL"}) {
-		emit("[ WARN ] ", ctx)
+		emit("[ WARN ] ", fmt.Sprintf(ctx, a...))
 	}
+}
+
+// Warn Logs
+func Error(ctx string, a ...interface{}) {
+	emit("[ Error ] ", fmt.Sprintf(ctx, a...))
 }

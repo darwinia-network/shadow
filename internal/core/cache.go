@@ -3,13 +3,13 @@ package core
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"os"
 	"os/user"
 	"path"
 
 	"github.com/darwinia-network/shadow/internal"
 	"github.com/darwinia-network/shadow/internal/eth"
+	"github.com/darwinia-network/shadow/internal/log"
 	"github.com/darwinia-network/shadow/internal/util"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/jinzhu/gorm"
@@ -82,11 +82,14 @@ func (c *EthHeaderWithProofCache) ApplyProof(
 	)
 
 	if util.IsEmpty(c.Number) && c.Number != 0 {
-		return fmt.Errorf("Empty eth number")
+		log.Warn("Apply ethashproof to block %v failed", c.Number)
+		return fmt.Errorf("Apply ethashproof to block %v failed", c.Number)
 	} else if util.IsEmpty(c.Header) || c.Header == "" {
-		return fmt.Errorf("Empty eth header")
+		log.Warn("Can not analyse the block %v", c)
+		return fmt.Errorf("Can not analyse the block %v", c)
 	}
 
+	log.Trace("Apply ethashproof to block %v...", c.Number)
 	// Check proof lock
 	if util.IsEmpty(c.Proof) || c.Proof == "" {
 		if config.CheckLock(PROOF_LOCK) {
@@ -164,9 +167,15 @@ func (c *EthHeaderWithProofCache) Fetch(
 	err := db.Where("number = ?", c.Number).Take(&c).Error
 	if err != nil {
 		err = db.Where("hash = ?", c.Hash).Take(&c).Error
+		if err == nil {
+			log.Trace("Fetching block %v from cache", c.Hash)
+		}
+	} else {
+		log.Trace("Fetching block %v from cache", c.Number)
 	}
 
 	if err != nil || util.IsEmpty(c.Header) || c.Header == "" {
+		log.Trace("Fetching block %v from cache failed, request a new one", c.Number)
 		ethHeader, err := eth.Header(c.Number, config.Api)
 		if err != nil {
 			return err
@@ -188,7 +197,7 @@ func (c *EthHeaderWithProofCache) Fetch(
 
 		// Prints logs every 100 headers
 		if c.Number > 0 && c.Number%100 == 0 {
-			log.Printf(
+			log.Info(
 				"imported headers from #%v to #%v\n",
 				c.Number-100,
 				c.Number,
@@ -204,7 +213,7 @@ func (c *EthHeaderWithProofCache) Fetch(
 func ConnectDb() (*gorm.DB, error) {
 	usr, err := user.Current()
 	if err != nil {
-		log.Fatal("Can not find current os user")
+		log.Error("Can not find current os user")
 	}
 
 	// Check path exists
@@ -212,10 +221,11 @@ func ConnectDb() (*gorm.DB, error) {
 	if _, err = os.Stat(cachePath); os.IsNotExist(err) {
 		err = os.MkdirAll(cachePath, 0700)
 		if err != nil {
-			log.Fatalf("Can not create cache folder at %s", cachePath)
+			log.Error("Can not create cache folder at %s", cachePath)
 		}
 	}
 
+	log.Info("Connecting database #%v...", cachePath)
 	db, err := gorm.Open("sqlite3", path.Join(usr.HomeDir, DB_PATH))
 	if err != nil {
 		return db, err

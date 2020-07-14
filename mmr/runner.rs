@@ -21,7 +21,7 @@ impl Default for Runner {
         let mut path = dirs::home_dir().unwrap_or_default();
         path.push(DEFAULT_RELATIVE_MMR_DB);
         trace!(
-            "The database path of shadow service is: {}",
+            "The database path of shadow service is {}",
             DEFAULT_RELATIVE_MMR_DB
         );
 

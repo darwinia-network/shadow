@@ -19,9 +19,7 @@ func emit(label string, ctx string) {
 	l.SetFlags(0)
 
 	// get time
-	t := time.Now().Format(time.RFC3339)
-	t = t[:len(t)-6]
-	t += "Z"
+	t := time.Now().UTC().Format(time.RFC3339)
 
 	// get file
 	_, file, _, _ := runtime.Caller(2)

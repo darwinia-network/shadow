@@ -2,14 +2,50 @@ package cmd
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/darwinia-network/shadow/api"
 	"github.com/darwinia-network/shadow/internal/core"
 	"github.com/darwinia-network/shadow/internal/ffi"
+	"github.com/darwinia-network/shadow/internal/log"
 	"github.com/darwinia-network/shadow/internal/rpc"
 	"github.com/darwinia-network/shadow/internal/util"
 	"github.com/spf13/cobra"
+)
+
+func init() {
+	cmdRun.PersistentFlags().BoolVarP(
+		&FETCH,
+		"fetch",
+		"f",
+		false,
+		"keep fetching blocks in background",
+	)
+
+	cmdRun.PersistentFlags().BoolVarP(
+		&VERBOSE,
+		"verbose",
+		"v",
+		false,
+		"Enable all shadow logs",
+	)
+
+	cmdRun.PersistentFlags().StringVar(
+		&HTTP,
+		"http",
+		"3001",
+		"set port of http api server",
+	)
+
+	cmdRun.PersistentFlags().StringVar(
+		&RPC,
+		"rpc",
+		"3000",
+		"set port of rpc api server",
+	)
+}
+
+const (
+	GIN_MODE = "GIN_MODE"
 )
 
 func fetch(shadow *core.Shadow, genesis uint64) {
@@ -21,10 +57,7 @@ func fetch(shadow *core.Shadow, genesis uint64) {
 	for ptr.Number >= genesis {
 		err := ptr.Fetch(shadow.Config, shadow.DB)
 		if err != nil {
-			log.Printf(
-				"fetch header %v failed\n",
-				ptr.Number,
-			)
+			log.Error("fetch header %v failed\n", ptr.Number)
 			continue
 		}
 
@@ -41,6 +74,8 @@ var cmdRun = &cobra.Command{
 	Long:  "This command will use the config at `~/.darwinia/config.json`",
 	Args:  cobra.MinimumNArgs(0),
 	Run: func(cmd *cobra.Command, _ []string) {
+		verboseCheck()
+
 		// Generate Shadow
 		shadow, err := core.NewShadow()
 		util.Assert(err)
@@ -51,12 +86,12 @@ var cmdRun = &cobra.Command{
 		}
 
 		go func() {
-			api.Swagger(HTTP)
+			api.Swagger(&shadow, HTTP)
 		}()
 
 		// Start service
-		fmt.Printf("Shadow RPC service start at %s\n", RPC)
-		fmt.Printf("Shadow HTTP service start at %s\n", HTTP)
+		log.Info("Shadow RPC service start at %s", RPC)
+		log.Info("Shadow HTTP service start at %s", HTTP)
 		err = rpc.ServeHTTP(
 			&core.ShadowRPC{
 				Shadow: shadow,

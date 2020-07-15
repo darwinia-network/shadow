@@ -6,6 +6,7 @@ import (
 
 	"github.com/darwinia-network/shadow/internal"
 	"github.com/darwinia-network/shadow/internal/eth"
+	"github.com/darwinia-network/shadow/internal/log"
 	"github.com/darwinia-network/shadow/internal/util"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/jinzhu/gorm"
@@ -97,6 +98,7 @@ func (s *Shadow) GetHeader(
 			return types.Header{}, err
 		}
 
+		log.Trace("request block %v from infura api...", num)
 		return eth.Header(num, s.Config.Api)
 	}
 
@@ -112,6 +114,9 @@ func (s *Shadow) GetHeaderWithProof(
 		if err != nil {
 			return GetEthHeaderWithProofRawResp{}, err
 		}
+
+		// Log the event
+		log.Trace("Request block %v with proof...", num)
 
 		// Fetch header from cache
 		cache := EthHeaderWithProofCache{Number: num}
@@ -141,6 +146,9 @@ func (s *Shadow) BatchHeaderWithProof(
 	block uint64,
 	batch int,
 ) ([]GetEthHeaderWithProofRawResp, error) {
+	log.Trace("Batching blocks %v - %v...", block, block+uint64(batch))
+
+	// Batch headers
 	var nps []GetEthHeaderWithProofRawResp
 	for i := 0; i < batch; i++ {
 		np, err := s.GetHeaderWithProof(
@@ -166,6 +174,7 @@ func (s *Shadow) GetProposalHeaders(numbers []uint64) ([]GetEthHeaderWithProofRa
 		phs []GetEthHeaderWithProofRawResp
 	)
 
+	log.Trace("Geting proposal block %v...", numbers)
 	for _, i := range numbers {
 		rawp, err := s.GetHeaderWithProof(
 			Ethereum,
@@ -187,6 +196,7 @@ func (s *Shadow) GetProposalHeaders(numbers []uint64) ([]GetEthHeaderWithProofRa
 func (s *Shadow) GetReceipt(
 	tx string,
 ) (resp GetReceiptResp, err error) {
+	log.Trace("Geting ethereum receipt of tx %v...", tx)
 	proof, hash, err := eth.GetReceipt(tx)
 	if err != nil {
 		return

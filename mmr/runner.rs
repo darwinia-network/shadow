@@ -20,6 +20,10 @@ impl Default for Runner {
     fn default() -> Runner {
         let mut path = dirs::home_dir().unwrap_or_default();
         path.push(DEFAULT_RELATIVE_MMR_DB);
+        trace!(
+            "The database path of shadow service is {}",
+            DEFAULT_RELATIVE_MMR_DB
+        );
 
         Runner { path }
     }
@@ -33,7 +37,7 @@ impl Runner {
                 if let Err(e) = self.push(base) {
                     match e {
                         Error::Diesel(DieselError::NotFound) => {
-                            warn!("Could not find block: {:?} in cache", base)
+                            warn!("Could not find block {:?} in cache", base)
                         }
                         _ => error!("Push block to mmr_store failed: {:?}", e),
                     }
@@ -65,20 +69,6 @@ impl Runner {
             Ok(res?)
         }
     }
-
-    /// Get the cache count
-    // fn cache_count(&self) -> Result<i64, Error> {
-    //     let store = Store::new(&self.path);
-    //     let res = eth_header_with_proof_caches
-    //         .filter(root.is_not_null())
-    //         .select(count(root))
-    //         .first::<i64>(&store.conn);
-    //     if let Err(e) = res {
-    //         Err(Error::Diesel(e))
-    //     } else {
-    //         Ok(res?)
-    //     }
-    // }
 
     /// Push new header hash into storage
     fn push(&mut self, pnumber: i64) -> Result<(), Error> {

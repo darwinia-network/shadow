@@ -12,6 +12,11 @@ import (
 	"github.com/darwinia-network/shadow/internal/util"
 )
 
+const (
+	INFURA_KEY     = "INFURA_KEY"
+	SHADOW_GENESIS = "SHADOW_GENESIS"
+)
+
 type RawConfig struct {
 	Eth Config `json:"eth"`
 }
@@ -20,7 +25,6 @@ type Config struct {
 	Api     string `json:"api"`
 	Genesis uint64 `json:"genesis"`
 	Root    string `json:"root"`
-	DataDir string `json:"datadir"`
 }
 
 // Common load config
@@ -33,13 +37,10 @@ func (c *Config) Load() error {
 	}
 
 	// Load infura key
-	gen := os.Getenv("SHADOW_GENESIS")
+	gen := os.Getenv(SHADOW_GENESIS)
 	if gen == "" {
 		gen = "0"
 	}
-
-	// Load data dir
-	c.DataDir = os.Getenv("GETH_DATADIR")
 
 	// Construct shadow genesis
 	c.Genesis, err = strconv.ParseUint(gen, 10, 64)
@@ -59,7 +60,7 @@ func (c *Config) Load() error {
 // Load config from env
 func (c *Config) LoadEnv() error {
 	// load infura key
-	api := os.Getenv("INFURA_KEY")
+	api := os.Getenv(INFURA_KEY)
 	if api == "" {
 		return errors.New("Empty INFURA_KEY in env")
 	}
@@ -89,6 +90,9 @@ func (c *Config) readKeyWithPrompt() {
 	text, _ := reader.ReadString('\n')
 	text = strings.Trim(text, "\n")
 	c.Api = parseKey(text)
+
+	// Set INFURA_KEY to env
+	os.Setenv("INFURA_KEY", c.Api)
 }
 
 // Get darwinia config root directory

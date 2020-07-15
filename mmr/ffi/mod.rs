@@ -1,5 +1,5 @@
 //! C Bridge
-use super::{
+use crate::{
     hash::{MergeHash, H256},
     runner::Runner,
     store::Store,

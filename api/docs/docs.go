@@ -268,8 +268,7 @@ var doc = `{
                     }
                 },
                 "receipt_proof": {
-                    "type": "object",
-                    "$ref": "#/definitions/eth.ProofRecord"
+                    "type": "string"
                 }
             }
         },
@@ -393,20 +392,6 @@ var doc = `{
                     "items": {
                         "type": "string"
                     }
-                }
-            }
-        },
-        "eth.ProofRecord": {
-            "type": "object",
-            "properties": {
-                "header_hash": {
-                    "type": "string"
-                },
-                "index": {
-                    "type": "string"
-                },
-                "proof": {
-                    "type": "string"
                 }
             }
         },

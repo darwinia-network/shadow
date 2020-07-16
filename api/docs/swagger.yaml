@@ -31,8 +31,7 @@ definitions:
           type: string
         type: array
       receipt_proof:
-        $ref: '#/definitions/eth.ProofRecord'
-        type: object
+        type: string
     type: object
   eth.DarwiniaEthHeader:
     properties:
@@ -114,15 +113,6 @@ definitions:
         items:
           type: string
         type: array
-    type: object
-  eth.ProofRecord:
-    properties:
-      header_hash:
-        type: string
-      index:
-        type: string
-      proof:
-        type: string
     type: object
   types.Header:
     properties:

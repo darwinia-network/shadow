@@ -27,9 +27,8 @@ type EthHeaderWithProofCache struct {
 	Header string `json:"eth_header"`
 	Proof  string `json:"proof"`
 	// MMR
-	Pos      string `json:"pos"`
-	Root     string `json:"root" gorm:"DEFAULT:NULL"`
-	MMRProof string `json:"mmr_proof" gorm:"DEFAULT:NULL"`
+	Pos  string `json:"pos"`
+	Root string `json:"root" gorm:"DEFAULT:NULL"`
 }
 
 func (c *EthHeaderWithProofCache) Parse(block interface{}) error {

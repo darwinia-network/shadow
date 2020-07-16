@@ -2,7 +2,6 @@ package core
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/darwinia-network/shadow/internal"
 	"github.com/darwinia-network/shadow/internal/eth"
@@ -209,6 +208,7 @@ func (s *Shadow) GetReceipt(
 		return
 	}
 
-	resp.MMRProof = strings.Split(cache.MMRProof, ",")
+	cr, err := cache.IntoResp()
+	resp.Header = cr.Header
 	return
 }

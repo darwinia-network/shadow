@@ -2,6 +2,8 @@ package api
 
 import (
 	"net/http"
+	"strconv"
+	"strings"
 
 	"github.com/darwinia-network/shadow/internal/core"
 	"github.com/darwinia-network/shadow/internal/ffi"
@@ -103,6 +105,7 @@ func (c *ShadowHTTP) GetProof(ctx *gin.Context) {
 // @Accept  json
 // @Produce  json
 // @Param tx path string true "tx hash"
+// @Param last query number true "last confirm block"
 // @Success 200 {array} core.GetReceiptResp
 // @Header 200 {string} Token "qwerty"
 // @Failure 400 {object} HTTPError
@@ -114,6 +117,14 @@ func (c *ShadowHTTP) GetReceipt(ctx *gin.Context) {
 		return
 	}
 
+	last := ctx.DefaultQuery("last", "0")
+	lastLeaf, err := strconv.ParseUint(last, 10, 64)
+	if err != nil {
+		NewError(ctx, http.StatusBadRequest, err)
+		return
+	}
+
+	receipt.MMRProof = strings.Split(ffi.ProofLeaves(lastLeaf, receipt.Header.Number), ",")
 	ctx.JSON(http.StatusOK, receipt)
 }
 

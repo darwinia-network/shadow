@@ -201,7 +201,7 @@ func (s *Shadow) GetReceipt(
 		return
 	}
 
-	resp.ReceiptProof = proof
+	resp.ReceiptProof = proof.Proof
 	cache := EthHeaderWithProofCache{Hash: hash}
 	err = cache.Fetch(s.Config, s.DB)
 	if err != nil {

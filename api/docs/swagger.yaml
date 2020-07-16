@@ -23,6 +23,9 @@ definitions:
     type: object
   core.GetReceiptResp:
     properties:
+      header:
+        $ref: '#/definitions/eth.DarwiniaEthHeader'
+        type: object
       mmr_proof:
         items:
           type: string
@@ -30,6 +33,41 @@ definitions:
       receipt_proof:
         $ref: '#/definitions/eth.ProofRecord'
         type: object
+    type: object
+  eth.DarwiniaEthHeader:
+    properties:
+      author:
+        type: string
+      difficulty:
+        type: integer
+      extra_data:
+        type: string
+      gas_limit:
+        type: integer
+      gas_used:
+        type: integer
+      hash:
+        type: string
+      log_bloom:
+        type: string
+      number:
+        type: integer
+      parent_hash:
+        type: string
+      receipts_root:
+        type: string
+      seal:
+        items:
+          type: string
+        type: array
+      state_root:
+        type: string
+      timestamp:
+        type: integer
+      transactions_root:
+        type: string
+      uncles_hash:
+        type: string
     type: object
   eth.DarwiniaEthHeaderHexFormat:
     properties:
@@ -238,6 +276,11 @@ paths:
         name: tx
         required: true
         type: string
+      - description: last confirm block
+        in: query
+        name: last
+        required: true
+        type: number
       produces:
       - application/json
       responses:

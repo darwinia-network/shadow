@@ -129,7 +129,7 @@ type ProposalResp struct {
 
 // Receipt
 type GetReceiptResp struct {
-	ReceiptProof eth.ProofRecord       `json:"receipt_proof"`
+	ReceiptProof string                `json:"receipt_proof"`
 	Header       eth.DarwiniaEthHeader `json:"header"`
 	MMRProof     []string              `json:"mmr_proof"`
 }

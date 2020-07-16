@@ -118,13 +118,13 @@ func (c *ShadowHTTP) GetReceipt(ctx *gin.Context) {
 	}
 
 	last := ctx.DefaultQuery("last", "0")
-	lastLeaf, err := strconv.ParseUint(last, 10, 64)
+	member, err := strconv.ParseUint(last, 10, 64)
 	if err != nil {
 		NewError(ctx, http.StatusBadRequest, err)
 		return
 	}
 
-	receipt.MMRProof = strings.Split(ffi.ProofLeaves(lastLeaf, receipt.Header.Number), ",")
+	receipt.MMRProof = strings.Split(ffi.ProofLeaves(receipt.Header.Number, member), ",")
 	ctx.JSON(http.StatusOK, receipt)
 }
 

@@ -57,6 +57,8 @@ func (s *Shadow) checkGenesis(genesis uint64, block interface{}) (uint64, error)
 		return b, nil
 	case string:
 		eH, err := eth.Header(b, s.Config.Api)
+		log.Trace("%v", b)
+		log.Trace("%v", eH)
 		if err != nil {
 			return genesis, err
 		}
@@ -73,7 +75,8 @@ func (s *Shadow) checkGenesis(genesis uint64, block interface{}) (uint64, error)
 		}
 
 		// Check genesis by number
-		if dH.Number <= genesis {
+		if dH.Number < genesis {
+			log.Error("Requesting block %v", dH.Number)
 			return genesis, fmt.Errorf(GENESIS_ERROR, genesis)
 		}
 

@@ -172,7 +172,7 @@ func (c *EthHeaderWithProofCache) Fetch(
 		block interface{}
 	)
 
-	if !util.IsEmpty(c.Number) && c.Number != 0 {
+	if !util.IsEmpty(c.Number) || c.Number == 0 {
 		block = c.Number
 		err = db.Where("number = ?", c.Number).Take(&c).Error
 	} else if !util.IsEmpty(c.Hash) {

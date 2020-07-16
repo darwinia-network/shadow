@@ -111,7 +111,7 @@ func TestGetReceipt(t *testing.T) {
 		shadow, err := core.NewShadow()
 		util.Assert(err)
 
-		resp, err := shadow.GetReceipt("0x33d48b9108b72d4bfa238124717e0b36cbaf404b01b158013901e86f7368912d")
+		resp, err := shadow.GetReceipt("/0x663cffc56aece411d9dc8096a162b65089d720d69e06f953bd58804cedebb06f")
 		util.Assert(err)
 
 		util.AssertEmpty(resp.Header)

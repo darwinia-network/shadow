@@ -140,20 +140,24 @@ func (c *EthHeaderWithProofCache) IntoResp() (GetEthHeaderWithProofRawResp, erro
 	// Decode header
 	err := json.Unmarshal([]byte(c.Header), &header)
 	if err != nil {
+		log.Error("Unmarshal eth header failed %v", c.Header)
 		return rResp, err
 	}
 
 	// Decode proof
-	err = json.Unmarshal([]byte(c.Proof), &proof)
-	if err != nil {
-		return rResp, err
+	if !util.IsEmpty(c.Proof) {
+		err = json.Unmarshal([]byte(c.Proof), &proof)
+		if err != nil {
+			log.Error("Unmarshal eth header proof failed %v", c.Proof)
+			return rResp, err
+		}
 	}
 
 	// Construct resp
 	return GetEthHeaderWithProofRawResp{
-		header,
-		proof,
-		c.Root,
+		Header: header,
+		Proof:  proof,
+		Root:   c.Root,
 	}, nil
 }
 
@@ -163,14 +167,22 @@ func (c *EthHeaderWithProofCache) Fetch(
 	db *gorm.DB,
 ) error {
 	// Get header from sqlite3
-	err := db.Where("number = ?", c.Number).Take(&c).Error
-	if err != nil {
+	var (
+		err   error
+		block interface{}
+	)
+
+	if !util.IsEmpty(c.Number) && c.Number != 0 {
+		block = c.Number
+		err = db.Where("number = ?", c.Number).Take(&c).Error
+	} else if !util.IsEmpty(c.Hash) {
+		block = c.Hash
 		err = db.Where("hash = ?", c.Hash).Take(&c).Error
 	}
 
 	if err != nil || util.IsEmpty(c.Header) || c.Header == "" {
-		log.Trace("Fetching block %v ...", c.Number)
-		ethHeader, err := eth.Header(c.Number, config.Api)
+		log.Trace("Fetching block %v ...", block)
+		ethHeader, err := eth.Header(block, config.Api)
 		if err != nil {
 			return err
 		}
@@ -187,6 +199,7 @@ func (c *EthHeaderWithProofCache) Fetch(
 
 		c.Header = string(bytes)
 		c.Hash = ethHeader.Hash().Hex()
+		c.Number = header.Number
 		db.Create(&c)
 
 		// Prints logs every 100 headers

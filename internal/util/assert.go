@@ -16,9 +16,8 @@ func IsEmpty(x interface{}) bool {
 func Assert(err error) {
 	if err != nil {
 		log.Error("%v", err)
+		os.Exit(1)
 	}
-
-	os.Exit(1)
 }
 
 // Assert error and exit process

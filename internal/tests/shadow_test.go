@@ -105,3 +105,16 @@ func TestBatchEthHeaderWithProofByNumber(t *testing.T) {
 		}
 	})
 }
+
+func TestGetReceipt(t *testing.T) {
+	t.Run("Test GetReceipt", func(t *testing.T) {
+		shadow, err := core.NewShadow()
+		util.Assert(err)
+
+		resp, err := shadow.GetReceipt("/0x663cffc56aece411d9dc8096a162b65089d720d69e06f953bd58804cedebb06f")
+		util.Assert(err)
+
+		util.AssertEmpty(resp.Header)
+		util.AssertEmpty(resp.ReceiptProof)
+	})
+}

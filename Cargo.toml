@@ -9,10 +9,6 @@ edition = "2018"
 path = "mmr/lib.rs"
 crate_type = ["rlib", "cdylib"]
 
-[[bin]]
-path = "shadow/mmr.rs"
-name = "mmr"
-
 [dependencies]
 uint = "0.8.3"
 blake2-rfc = "0.2.18"

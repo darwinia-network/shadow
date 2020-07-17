@@ -187,6 +187,13 @@ var doc = `{
                         "name": "tx",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "type": "number",
+                        "description": "last confirm block",
+                        "name": "last",
+                        "in": "query",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -250,6 +257,10 @@ var doc = `{
         "core.GetReceiptResp": {
             "type": "object",
             "properties": {
+                "header": {
+                    "type": "object",
+                    "$ref": "#/definitions/eth.DarwiniaEthHeader"
+                },
                 "mmr_proof": {
                     "type": "array",
                     "items": {
@@ -257,8 +268,60 @@ var doc = `{
                     }
                 },
                 "receipt_proof": {
-                    "type": "object",
-                    "$ref": "#/definitions/eth.ProofRecord"
+                    "type": "string"
+                }
+            }
+        },
+        "eth.DarwiniaEthHeader": {
+            "type": "object",
+            "properties": {
+                "author": {
+                    "type": "string"
+                },
+                "difficulty": {
+                    "type": "integer"
+                },
+                "extra_data": {
+                    "type": "string"
+                },
+                "gas_limit": {
+                    "type": "integer"
+                },
+                "gas_used": {
+                    "type": "integer"
+                },
+                "hash": {
+                    "type": "string"
+                },
+                "log_bloom": {
+                    "type": "string"
+                },
+                "number": {
+                    "type": "integer"
+                },
+                "parent_hash": {
+                    "type": "string"
+                },
+                "receipts_root": {
+                    "type": "string"
+                },
+                "seal": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "state_root": {
+                    "type": "string"
+                },
+                "timestamp": {
+                    "type": "integer"
+                },
+                "transactions_root": {
+                    "type": "string"
+                },
+                "uncles_hash": {
+                    "type": "string"
                 }
             }
         },
@@ -329,20 +392,6 @@ var doc = `{
                     "items": {
                         "type": "string"
                     }
-                }
-            }
-        },
-        "eth.ProofRecord": {
-            "type": "object",
-            "properties": {
-                "header_hash": {
-                    "type": "string"
-                },
-                "index": {
-                    "type": "string"
-                },
-                "proof": {
-                    "type": "string"
                 }
             }
         },

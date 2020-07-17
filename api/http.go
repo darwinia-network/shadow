@@ -2,6 +2,8 @@ package api
 
 import (
 	"net/http"
+	"strconv"
+	"strings"
 
 	"github.com/darwinia-network/shadow/internal/core"
 	"github.com/darwinia-network/shadow/internal/ffi"
@@ -63,6 +65,60 @@ func (c *ShadowHTTP) GetHeader(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, header)
 }
 
+// Get Header by hash godoc
+// @Summary Get ETH Header by block
+// @Description Get ETH Header by block number or hash
+// @ID get-header-by-block
+// @Accept  json
+// @Produce  json
+// @Param block path number true "Eth header number"
+// @Param batch query number true "Batch how many blocks"
+// @Param format query string true "supports `["raw", "json", "codec"]`"
+// @Success 200 {object} types.Header
+// @Header 200 {string} Token "qwerty"
+// @Failure 400 {object} HTTPError
+// @Router /header/{block} [get]
+func (c *ShadowHTTP) BatchHeaders(ctx *gin.Context) {
+	blockStr := ctx.Param("block")
+	block, err := strconv.ParseUint(blockStr, 10, 64)
+	if err != nil {
+		NewError(ctx, http.StatusBadRequest, err)
+		return
+	}
+
+	batchStr := ctx.DefaultQuery("batch", "1")
+	batch, err := strconv.ParseInt(batchStr, 10, 64)
+	if err != nil {
+		NewError(ctx, http.StatusBadRequest, err)
+		return
+	}
+
+	rawHeaders, err := c.Shadow.BatchHeaderWithProof(block, int(batch))
+	if err != nil {
+		NewError(ctx, http.StatusBadRequest, err)
+		return
+	}
+
+	/// Formats response
+	var resp []interface{}
+	format := ctx.DefaultQuery("format", "raw")
+	if format == "json" {
+		for _, h := range rawHeaders {
+			resp = append(resp, h.IntoJSON())
+		}
+	} else if format == "codec" {
+		for _, h := range rawHeaders {
+			resp = append(resp, h.IntoCodec())
+		}
+	} else {
+		for _, h := range rawHeaders {
+			resp = append(resp, h)
+		}
+	}
+
+	ctx.JSON(http.StatusOK, resp)
+}
+
 // Get header with proof godoc
 // @Summary Get header with proof
 // @Description Get header with hash proof and mmr roothash
@@ -70,6 +126,7 @@ func (c *ShadowHTTP) GetHeader(ctx *gin.Context) {
 // @Accept  json
 // @Produce  json
 // @Param block path string true "Eth header number or hash"
+// @Param format query string true "supports `["raw", "json", "codec"]`"
 // @Success 200 {object} core.GetEthHeaderWithProofJSONResp
 // @Header 200 {string} Token "qwerty"
 // @Failure 400 {object} HTTPError
@@ -82,11 +139,19 @@ func (c *ShadowHTTP) GetProof(ctx *gin.Context) {
 		return
 	}
 
-	// format := ctx.DefaultQuery("format", "json")
-	resp, err = c.Shadow.GetHeaderWithProof(
+	rawResp, err := c.Shadow.GetHeaderWithProof(
 		core.Ethereum,
 		block,
 	)
+
+	format := ctx.DefaultQuery("format", "json")
+	if format == "json" {
+		resp = rawResp.IntoJSON()
+	} else if format == "codec" {
+		resp = rawResp.IntoCodec()
+	} else {
+		resp = rawResp
+	}
 
 	if err != nil {
 		NewError(ctx, http.StatusBadRequest, err)
@@ -103,6 +168,7 @@ func (c *ShadowHTTP) GetProof(ctx *gin.Context) {
 // @Accept  json
 // @Produce  json
 // @Param tx path string true "tx hash"
+// @Param last query number true "last confirm block"
 // @Success 200 {array} core.GetReceiptResp
 // @Header 200 {string} Token "qwerty"
 // @Failure 400 {object} HTTPError
@@ -114,6 +180,14 @@ func (c *ShadowHTTP) GetReceipt(ctx *gin.Context) {
 		return
 	}
 
+	last := ctx.DefaultQuery("last", "0")
+	member, err := strconv.ParseUint(last, 10, 64)
+	if err != nil {
+		NewError(ctx, http.StatusBadRequest, err)
+		return
+	}
+
+	receipt.MMRProof = strings.Split(ffi.ProofLeaves(receipt.Header.Number, member), ",")
 	ctx.JSON(http.StatusOK, receipt)
 }
 
@@ -124,6 +198,7 @@ func (c *ShadowHTTP) GetReceipt(ctx *gin.Context) {
 // @Accept  json
 // @Produce  json
 // @Param numbers query []uint64 true "Eth header numbers"
+// @Param format query string true "supports `["raw", "json", "codec"]`"
 // @Success 200 {array} []core.GetEthHeaderWithProofJSONResp
 // @Header 200 {string} Token "qwerty"
 // @Failure 400 {object} HTTPError

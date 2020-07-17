@@ -1,6 +1,7 @@
 package util
 
 import (
+	"os"
 	"reflect"
 
 	"github.com/darwinia-network/shadow/internal/log"
@@ -15,6 +16,7 @@ func IsEmpty(x interface{}) bool {
 func Assert(err error) {
 	if err != nil {
 		log.Error("%v", err)
+		os.Exit(1)
 	}
 }
 

@@ -71,6 +71,7 @@ func Swagger(shadow *core.Shadow, port string) {
 
 	v1 := r.Group("/api/v1")
 	{
+		v1.GET("/batch/:block", c.BatchHeaders)
 		v1.GET("/header/:block", c.GetHeader)
 		v1.GET("/proof/:block", c.GetProof)
 		v1.GET("/receipt/:tx", c.GetReceipt)

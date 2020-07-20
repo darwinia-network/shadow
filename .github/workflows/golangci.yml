@@ -37,7 +37,7 @@ jobs:
         
     # Build packages
     - name: Build
-      run: make
+      run: sudo env "PATH=$PATH" make
     # Lint code
     - name: Lint
       uses: golangci/golangci-lint-action@v1

@@ -81,7 +81,6 @@ jobs:
       env:
         INFURA_KEY: ${{ secrets.INFURA_KEY }}
       run: |
-        export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:./target/release
         if [[ "$(uname)" == 'Darwin' ]]; then
             sudo update_dyld_shared_cache
         else

@@ -223,7 +223,6 @@ func (c *ShadowHTTP) Proposal(ctx *gin.Context) {
 
 	// Construct headers
 	for _, h := range headers {
-		// mmrProof := ffi.ProofLeaves(params.LastLeaf, h.Header.Number)
 		if params.Format == "codec" {
 			proposalHeaders = append(
 				proposalHeaders,

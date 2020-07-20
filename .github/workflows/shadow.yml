@@ -74,7 +74,7 @@ jobs:
 
     # Build packages
     - name: Build
-      run: make
+      run: sudo make
     
     # Trigger api tests when merge
     - name: Test shadow API

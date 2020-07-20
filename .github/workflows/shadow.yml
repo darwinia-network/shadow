@@ -82,7 +82,7 @@ jobs:
     - name: Test shadow API
       env:
         INFURA_KEY: ${{ secrets.INFURA_KEY }}
-      run:
+      run: |
         LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
         ls $LD_LIBRARY_PATH
         go test -v ./...

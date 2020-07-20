@@ -74,15 +74,18 @@ jobs:
 
     # Build packages
     - name: Build
-      run: |
-        make
-        LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
+      run: make
     
     # Trigger api tests when merge
     - name: Test shadow API
       env:
         INFURA_KEY: ${{ secrets.INFURA_KEY }}
       run: |
-        LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
-        ls $LD_LIBRARY_PATH
+        export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:./target/release
+        if [[ "$(uname)" == 'Darwin' ]]; then
+            sudo update_dyld_shared_cache
+        else
+            sudo ldconfig
+        fi
+        
         go test -v ./...

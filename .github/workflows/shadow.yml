@@ -74,7 +74,7 @@ jobs:
 
     # Build packages
     - name: Build
-      run: sudo env "PATH=$PATH" make
+      run: make
     
     # Trigger api tests when merge
     - name: Test shadow API

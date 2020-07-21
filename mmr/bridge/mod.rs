@@ -8,6 +8,7 @@ mod util;
 // types
 mod ethash_proof;
 mod header;
+mod relay;
 
 // shared
 use uint::construct_uint;
@@ -28,4 +29,4 @@ construct_hash_bytes! {
     pub struct Bloom(256);
 }
 
-pub use self::{ethash_proof::DoubleNodeWithMerkleProof, header::EthHeader};
+pub use self::{ethash_proof::DoubleNodeWithMerkleProof, header::EthHeader, relay::HeaderThing};

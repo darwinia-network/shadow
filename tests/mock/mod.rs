@@ -2,11 +2,13 @@ mod ethash_proof;
 mod ethash_proof_codec;
 mod hash;
 mod header;
+mod header_thing;
 
 pub use ethash_proof::{DAG_NODES, PROOF};
 pub use ethash_proof_codec::ETHASH_PROOF_CODEC;
 pub use hash::HASHES;
 pub use header::HEADER;
+pub use header_thing::ETH_HEADER_THING;
 use mmr::{
     bridge::{DoubleNodeWithMerkleProof, EthHeader},
     hash::H256,

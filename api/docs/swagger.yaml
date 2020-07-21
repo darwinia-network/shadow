@@ -170,9 +170,19 @@ paths:
       description: Get ETH Header by block number or hash
       operationId: get-header-by-block
       parameters:
-      - description: Eth header number or hash
+      - description: Eth header number
         in: path
         name: block
+        required: true
+        type: number
+      - description: Batch how many blocks
+        in: query
+        name: batch
+        required: true
+        type: number
+      - description: supports `[
+        in: query
+        name: format
         required: true
         type: string
       produces:
@@ -201,6 +211,11 @@ paths:
       - description: Eth header number or hash
         in: path
         name: block
+        required: true
+        type: string
+      - description: supports `[
+        in: query
+        name: format
         required: true
         type: string
       produces:
@@ -234,6 +249,11 @@ paths:
         name: numbers
         required: true
         type: array
+      - description: supports `[
+        in: query
+        name: format
+        required: true
+        type: string
       produces:
       - application/json
       responses:

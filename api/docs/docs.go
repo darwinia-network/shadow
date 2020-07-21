@@ -46,10 +46,24 @@ var doc = `{
                 "operationId": "get-header-by-block",
                 "parameters": [
                     {
-                        "type": "string",
-                        "description": "Eth header number or hash",
+                        "type": "number",
+                        "description": "Eth header number",
                         "name": "block",
                         "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "number",
+                        "description": "Batch how many blocks",
+                        "name": "batch",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "supports ` + "`" + `[",
+                        "name": "format",
+                        "in": "query",
                         "required": true
                     }
                 ],
@@ -92,6 +106,13 @@ var doc = `{
                         "description": "Eth header number or hash",
                         "name": "block",
                         "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "supports ` + "`" + `[",
+                        "name": "format",
+                        "in": "query",
                         "required": true
                     }
                 ],
@@ -137,6 +158,13 @@ var doc = `{
                         "collectionFormat": "multi",
                         "description": "Eth header numbers",
                         "name": "numbers",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "supports ` + "`" + `[",
+                        "name": "format",
                         "in": "query",
                         "required": true
                     }

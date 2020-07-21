@@ -80,16 +80,10 @@ func (r *GetEthHeaderWithProofRawResp) IntoProposal(leaf uint64) ProposalHeader 
 	}
 }
 
-func (r *GetEthHeaderWithProofRawResp) IntoProposalCodec(leaf uint64) ProposalHeaderCodecFormat {
+func (r *GetEthHeaderWithProofRawResp) IntoProposalCodec(leaf uint64) string {
 	codec := r.IntoCodec()
 	mmrProof := strings.Split(ffi.ProofLeaves(leaf, r.Header.Number), ",")
-	len := "0x" + lenToHex(len(mmrProof))
-	return ProposalHeaderCodecFormat{
-		codec.Header,
-		codec.Proof,
-		"0x" + codec.Root,
-		len + strings.Join(mmrProof[:], ""),
-	}
+	return codec.Header + codec.Proof[2:] + codec.Root + lenToHex(len(mmrProof)) + strings.Join(mmrProof[:], "")
 }
 
 // Batch Header

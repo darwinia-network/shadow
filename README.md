@@ -4,16 +4,21 @@
 
 The shadow service for relayers and verify workers to retrieve header data and generate proof. Shadow will index the data it needs from blockchain nodes, such as Ethereum and Darwinia.
 
+BTW, API docs is [here][api].
+
 ## Contribute and Build
 
 > ATTENTION: Please compile shadow under $GOPATH. Here is a guide about [How to setting GOATH](https://github.com/golang/go/wiki/SettingGOPATH).
 
 ```
 # Clone shadow
-git clone https://github.com/darwinia-network/shadow.git $GOPATH/src/github.com/darwinia-network/shadow
+git clone https://github.com/darwinia-network/shadow.git
 
 # Make the binary
 cd $GOPATH/src/github.com/darwinia-network/shadow && make
+
+# If you are using linux, refresh our static library
+sudo ldconfig
 
 # Check the version
 ./target/shadow version
@@ -55,7 +60,7 @@ Starts shadow service:
 
 ```
 # Start shadow service at port 3000
-dargo shadow 3000
+shadow run -v --fetch
 ```
 
 Avaiable enviroment variables:
@@ -64,43 +69,6 @@ Avaiable enviroment variables:
 |------------------|----------------------------------------------------------------|---------|
 | `INFURA_KEY`     | infura key, doesn't know what's [infura][infura]?              | `""`    |
 | `SHADOW_GENESIS` | shadow service will block all requests before `SHADOW_GENESIS` | `0`     |
-
-The shadow service of dargo follows the [spec][spec].
-
-### Shadow.GetEthHeaderByNumber
-
-```
-curl -d '{"method":"shadow_getEthHeaderByNumber","params":{"number": 0}}' http://127.0.0.1:3000
-```
-
-### Shadow.GetEthHeaderByHash
-
-```
-curl -d '{"method":"shadow_getEthHeaderByHash","params":{"hash": "0x8d0dd9b1f5854bbdc60d06aa04e6e953000aa53f6c6486f18f08666bc17ea228"}}' http://127.0.0.1:3000
-```
-
-### Shadow.GetEthHeaderWithProofByNumber
-
-```
-curl -d '{"method":"shadow_getEthHeaderWithProofByNumber","params":{"block_num": 1, "transcation": false, "options": {"format": "json"}}}' http://127.0.0.1:3000
-```
-
-### Shadow.GetEthHeaderWithProofByHash
-
-```
-curl -d '{"method":"shadow_getEthHeaderWithProofByHash","params":{"hash": "0x8d0dd9b1f5854bbdc60d06aa04e6e953000aa53f6c6486f18f08666bc17ea228", "transcation": false, "options": {"format": "json"}}}' http://127.0.0.1:3000
-```
-
-### Shadow.BatchGetEthHeaderWithProofByNumber
-
-```
-curl -d '{"method":"shadow_batchEthHeaderWithProofByNumber","params":{"number": 1, "batch": 3, "options": {"format": "json"}}}' http://127.0.0.1:3000
-```
-
-### Shadow.GetProposalEthHeaders
-
-```
-curl -d '{"method":"shadow_getProposalEthHeaders","params":{"number": [1, 2, 3], "batch": 3, "options": {"format": "json"}}}' http://127.0.0.1:3000
 ```
 
 ## Trouble Shooting
@@ -117,3 +85,4 @@ GPL-3.0
 [github]: https://github.com/darwinia-network/shadow
 [spec]: https://github.com/darwinia-network/darwinia/wiki/Darwinia-offchain-worker-shadow-service-spec
 [workflow-badge]: https://github.com/darwinia-network/shadow/workflows/Golang%20CI/badge.svg
+[api]: https://darwinia.github.io/shdaow

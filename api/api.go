@@ -1,6 +1,6 @@
-// @title Swagger Example API
+// @title Shadow API
 // @version 1.0
-// @description This is a sample server celler server.
+// @description The shadow service for relayers and verify workers to retrieve header data and generate proof. Shadow will index the data it needs from blockchain nodes, such as Ethereum and Darwinia.
 // @termsOfService http://swagger.io/terms/
 
 // @contact.name API Support

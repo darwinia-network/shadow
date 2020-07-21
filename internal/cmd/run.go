@@ -1,13 +1,10 @@
 package cmd
 
 import (
-	"fmt"
-
 	"github.com/darwinia-network/shadow/api"
 	"github.com/darwinia-network/shadow/internal/core"
 	"github.com/darwinia-network/shadow/internal/ffi"
 	"github.com/darwinia-network/shadow/internal/log"
-	"github.com/darwinia-network/shadow/internal/rpc"
 	"github.com/darwinia-network/shadow/internal/util"
 	"github.com/spf13/cobra"
 )
@@ -85,19 +82,7 @@ var cmdRun = &cobra.Command{
 			go fetch(&shadow, shadow.Config.Genesis)
 		}
 
-		go func() {
-			api.Swagger(&shadow, HTTP)
-		}()
-
-		// Start service
-		log.Info("Shadow RPC service start at %s", RPC)
 		log.Info("Shadow HTTP service start at %s", HTTP)
-		err = rpc.ServeHTTP(
-			&core.ShadowRPC{
-				Shadow: shadow,
-			},
-			fmt.Sprintf(":%s", RPC),
-		)
-		util.Assert(err)
+		api.Swagger(&shadow, HTTP)
 	},
 }

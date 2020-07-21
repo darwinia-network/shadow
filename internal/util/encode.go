@@ -25,9 +25,9 @@ func NumberOrString(ns interface{}) (interface{}, error) {
 		if err != nil {
 			return t, nil
 		}
-		return r, err
+		return r, nil
 	default:
-		return "", fmt.Errorf("Parse number/string failed")
+		return "", fmt.Errorf("Parse %v failed", t)
 	}
 }
 

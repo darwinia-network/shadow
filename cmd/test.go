@@ -1,7 +1,10 @@
 package cmd
 
 import (
-	"github.com/darwinia-network/shadow/internal/log"
+	"fmt"
+
+	"github.com/darwinia-network/shadow/internal"
+	"github.com/darwinia-network/shadow/mock"
 	"github.com/spf13/cobra"
 )
 
@@ -21,6 +24,10 @@ var cmdTest = &cobra.Command{
 	Long:  "This command is for tests, will not port in production",
 	Run: func(cmd *cobra.Command, args []string) {
 		verboseCheck()
-		log.Info("hello, world")
+		conf := internal.Config{}
+		_ = conf.Load()
+
+		h, _ := mock.Proposal(uint64(21), conf)
+		fmt.Println(h)
 	},
 }

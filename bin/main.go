@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/darwinia-network/shadow/internal/cmd"
+	"github.com/darwinia-network/shadow/cmd"
 	"github.com/darwinia-network/shadow/internal/util"
 )
 

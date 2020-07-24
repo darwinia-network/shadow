@@ -69,7 +69,6 @@ Avaiable enviroment variables:
 |------------------|----------------------------------------------------------------|---------|
 | `INFURA_KEY`     | infura key, doesn't know what's [infura][infura]?              | `""`    |
 | `SHADOW_GENESIS` | shadow service will block all requests before `SHADOW_GENESIS` | `0`     |
-```
 
 ## Trouble Shooting
 
@@ -85,4 +84,4 @@ GPL-3.0
 [github]: https://github.com/darwinia-network/shadow
 [spec]: https://github.com/darwinia-network/darwinia/wiki/Darwinia-offchain-worker-shadow-service-spec
 [workflow-badge]: https://github.com/darwinia-network/shadow/workflows/Golang%20CI/badge.svg
-[api]: https://darwinia.github.io/shdaow
+[api]: https://darwinia-network.github.io/shdaow

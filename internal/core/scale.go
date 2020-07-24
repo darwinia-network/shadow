@@ -20,30 +20,30 @@ func lenToBytes(b []uint8, len int) ([]uint8, int) {
 	return lenToBytes(b, len)
 }
 
-func lenToHex(len int) string {
+func LenToHex(len int) string {
 	b, _ := lenToBytes([]uint8{}, len*4)
 	return hex.EncodeToString(b)
 }
 
 // Pack encode proof
-func encodeProofArray(arr []eth.DoubleNodeWithMerkleProof) string {
-	hex := "0x" + lenToHex(len(arr))
+func EncodeProofArray(arr []eth.DoubleNodeWithMerkleProof) string {
+	hex := "0x" + LenToHex(len(arr))
 	for _, v := range arr {
-		hex += encodeProof(v)
+		hex += EncodeProof(v)
 	}
 
 	return hex
 }
 
 // Encode proof to hex with exist hex
-func encodeProof(dnmp eth.DoubleNodeWithMerkleProof) string {
+func EncodeProof(dnmp eth.DoubleNodeWithMerkleProof) string {
 	hex := ""
 	for _, v := range dnmp.DagNodes {
 		hex += v[2:]
 	}
 
 	// pad the length
-	hex += lenToHex(len(dnmp.Proof))
+	hex += LenToHex(len(dnmp.Proof))
 	for _, v := range dnmp.Proof {
 		hex += v[2:]
 	}
@@ -52,9 +52,9 @@ func encodeProof(dnmp eth.DoubleNodeWithMerkleProof) string {
 }
 
 // Encode Darwinia Eth Header
-func encodeDarwiniaEthHeader(header eth.DarwiniaEthHeader) string {
+func EncodeDarwiniaEthHeader(header eth.DarwiniaEthHeader) string {
 	hb, _ := hex.DecodeString(header.ExtraData[2:])
-	len := lenToHex(len(hb))
+	len := LenToHex(len(hb))
 
 	hex := "0x"
 	hex += header.ParentHash[2:]
@@ -71,10 +71,13 @@ func encodeDarwiniaEthHeader(header eth.DarwiniaEthHeader) string {
 	hex += encodeUint(header.GasUsed, 256)
 	hex += encodeUint(header.GasLimited, 256)
 	hex += encodeUint(header.Difficulty, 256)
+	// length
 	hex += "0884"
 	hex += header.Seal[0][2:]
+	// length
 	hex += "24"
 	hex += header.Seal[1][2:]
+	// Option
 	hex += "01"
 	hex += header.Hash[2:]
 

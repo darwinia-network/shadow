@@ -100,7 +100,7 @@ func IntoDarwiniaEthHeader(e types.Header) (DarwiniaEthHeader, error) {
 	h.ParentHash = e.ParentHash.Hex()
 	h.TimeStamp = e.Time
 	h.Number = e.Number.Uint64()
-	h.Author = e.Coinbase.Hex()
+	h.Author = strings.ToLower(e.Coinbase.Hex())
 	h.TransactionsRoot = e.TxHash.Hex()
 	h.UnclesHash = e.UncleHash.Hex()
 	h.ExtraData = "0x" + hex.EncodeToString(e.Extra)

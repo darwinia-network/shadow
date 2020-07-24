@@ -4,7 +4,7 @@ use mmr::{
     bridge::{DoubleNodeWithMerkleProof, EthHeader, HeaderThing},
     bytes, hex,
 };
-use mock::{ha, header, proof, ETHASH_PROOF_CODEC, ETH_HEADER_THING, HEADER};
+use mock::{ha, header, proof, ETHASH_PROOF_CODEC, ETH_HEADER_THING, HEADER, MOCK_HEADER_19};
 use scale::{Decode, Encode};
 
 /// the scale codec of hash is its hex string
@@ -47,9 +47,17 @@ fn eth_header() {
 
 #[test]
 fn eth_header_thing() {
-    // println!("{:?}", ETH_HEADER_THING.len());
     assert!(HeaderThing::decode(&mut bytes!(ETH_HEADER_THING).as_ref()).is_ok());
-    // assert!(HeaderThing::decode(&mut bytes!(ETH_HEADER_THING).as_ref()).is_ok());
+}
+
+#[test]
+fn mock_header_thing() {
+    HeaderThing::decode(&mut bytes!(MOCK_HEADER_19).as_ref()).unwrap();
+}
+
+#[test]
+fn decode_mmr_proof() {
+    <Vec<[u8; 32]>>::decode(&mut bytes!("0c04bd800035533b44381cb1ef207a3eb00c1e1cee6e561312b44c704a61624dd9e91bc2264d69287157d23d450e34f39925cebe653f3bf02d4a81a8308d02ad9d242553d4c882f9a6c72e34652b5245cc5ff0144037665a30695620ecdbe08c7f").as_ref()).unwrap();
 }
 
 #[test]

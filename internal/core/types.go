@@ -1,6 +1,7 @@
 package core
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/darwinia-network/shadow/internal/eth"
@@ -56,8 +57,8 @@ type GetEthHeaderWithProofRawResp struct {
 
 func (r *GetEthHeaderWithProofRawResp) IntoCodec() GetEthHeaderWithProofCodecResp {
 	return GetEthHeaderWithProofCodecResp{
-		encodeDarwiniaEthHeader(r.Header),
-		encodeProofArray(r.Proof),
+		EncodeDarwiniaEthHeader(r.Header),
+		EncodeProofArray(r.Proof),
 		r.Root,
 	}
 }
@@ -83,7 +84,13 @@ func (r *GetEthHeaderWithProofRawResp) IntoProposal(leaf uint64) ProposalHeader 
 func (r *GetEthHeaderWithProofRawResp) IntoProposalCodec(leaf uint64) string {
 	codec := r.IntoCodec()
 	mmrProof := strings.Split(ffi.ProofLeaves(leaf, r.Header.Number), ",")
-	return codec.Header + codec.Proof[2:] + codec.Root + lenToHex(len(mmrProof)) + strings.Join(mmrProof[:], "")
+	return codec.Header + codec.Proof[2:] + codec.Root + LenToHex(len(mmrProof)) + strings.Join(mmrProof[:], "")
+}
+
+func (r *GetEthHeaderWithProofRawResp) IntoProposalCodecWithExProof(mmrProof []string) string {
+	codec := r.IntoCodec()
+	fmt.Println(LenToHex(len(mmrProof)) + strings.Join(mmrProof[:], ""))
+	return codec.Header + codec.Proof[2:] + codec.Root + LenToHex(len(mmrProof)) + strings.Join(mmrProof[:], "")
 }
 
 // Batch Header

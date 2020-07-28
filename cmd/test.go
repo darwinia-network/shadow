@@ -1,9 +1,11 @@
 package cmd
 
 import (
+	"encoding/json"
 	"fmt"
 
 	"github.com/darwinia-network/shadow/internal"
+	"github.com/darwinia-network/shadow/internal/core"
 	"github.com/darwinia-network/shadow/mock"
 	"github.com/spf13/cobra"
 )
@@ -18,6 +20,10 @@ func init() {
 	)
 }
 
+type Codec struct {
+	Headers []string `json:"headers"`
+}
+
 var cmdTest = &cobra.Command{
 	Use:   "test",
 	Short: "Test command",
@@ -27,9 +33,29 @@ var cmdTest = &cobra.Command{
 		conf := internal.Config{}
 		_ = conf.Load()
 
+		shadow, _ := core.NewShadow()
+		members := []uint64{}
+		for i := 0; i < 19; i++ {
+			members = append(members, uint64(i))
+		}
+
+		var res []string = []string{}
+		headers, _ := shadow.GetProposalHeaders(members)
+		for idx, header := range headers {
+			res = append(res, header.IntoProposalCodecWithExProof(mock.PROOFS[idx]))
+		}
+
 		h, _ := mock.Proposal(uint64(21), conf)
 		h.Root = mock.ROOTS[19]
 
-		fmt.Println(h.IntoProposalCodecWithExProof(mock.PROOFS[0]))
+		arr, _ := json.Marshal(
+			Codec{
+				Headers: append(
+					res,
+					h.IntoProposalCodecWithExProof(mock.PROOFS[19]),
+				),
+			},
+		)
+		fmt.Println(string(arr))
 	},
 }

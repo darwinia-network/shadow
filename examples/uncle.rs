@@ -28,7 +28,7 @@ const HASHES: [&str; 20] = [
     "0xf25fe829ebbf3e2459ecb89cbc1aaa5f83c04501df08d63fa8dd1589f6b1cae0",
     "0x480ff3f8a495b764e4361a6c2e296f34e8721cf1ec54fe5c46827937353bf118",
     // "0xec888de9fa46cb7a47b7bd812a2f601d948d89e5317cf9f68976a0dec92b1ee2",
-    // uncle below
+    // the block below is uncle block 21(19)
     "0xb31db2ee05835be4fd025ae16eecaa55b670c1b67a009969a7912bea39f9951b",
 ];
 
@@ -48,13 +48,25 @@ fn main() {
         })
         .collect();
 
-    let proofs = mmr
-        .gen_proof(vec![pos[19]])
-        .unwrap()
-        .proof_items()
-        .iter()
-        .map(|item| H256::hex(item))
-        .collect::<Vec<String>>();
-
-    println!("{:#?}, {:#?}, {:#?}", HASHES, roots, proofs);
+    println!("{:?}\n", roots);
+    (0..20).for_each(|i| {
+        println!(
+            "[]string{{{:?}}},",
+            mmr.gen_proof(vec![pos[i]])
+                .unwrap()
+                .proof_items()
+                .iter()
+                .map(|item| H256::hex(item))
+                .collect::<Vec<String>>()
+        );
+    });
+    // let proofs = mmr
+    //     .gen_proof(vec![pos[19]])
+    //     .unwrap()
+    //     .proof_items()
+    //     .iter()
+    //     .map(|item| H256::hex(item))
+    //     .collect::<Vec<String>>();
+    //
+    // println!("{:#?}, {:#?}, {:#?}", HASHES, roots, proofs);
 }

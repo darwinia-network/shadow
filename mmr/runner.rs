@@ -30,8 +30,12 @@ impl Default for Runner {
 }
 
 impl Runner {
-    /// MMR size to last leaf `O(log2n)`
+    /// MMR size to last leaf `O(log2(log2(n)))`
     pub fn mmr_size_to_last_leaf(mmr_size: i64) -> i64 {
+        if mmr_size == 0 {
+            return 0;
+        }
+
         let mut m = (mmr_size as f64).log2().round() as i64;
         loop {
             match (2 * m - m.count_ones() as i64).cmp(&mmr_size) {

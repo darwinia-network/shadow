@@ -3,7 +3,7 @@ package cmd
 import (
 	"github.com/darwinia-network/shadow/api"
 	"github.com/darwinia-network/shadow/internal/core"
-	// "github.com/darwinia-network/shadow/internal/ffi"
+	"github.com/darwinia-network/shadow/internal/ffi"
 	"github.com/darwinia-network/shadow/internal/log"
 	"github.com/darwinia-network/shadow/internal/util"
 	"github.com/spf13/cobra"
@@ -47,7 +47,7 @@ const (
 
 func fetch(shadow *core.Shadow, genesis uint64) {
 	// run mmr service
-	// go ffi.RunMMR()
+	go ffi.RunMMR()
 
 	// fetcher
 	ptr := core.EthHeaderWithProofCache{Number: genesis}

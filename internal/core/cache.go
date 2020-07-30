@@ -21,14 +21,11 @@ const DB_PATH = ".darwinia/cache/shadow.db"
 
 // EthHeaderWithProof Cache
 type EthHeaderWithProofCache struct {
-	gorm.Model
 	Hash   string `json:"hash"`
 	Number uint64 `json:"number" gorm:"unique_index"`
 	Header string `json:"eth_header"`
 	Proof  string `json:"proof"`
-	// MMR
-	Pos  string `json:"pos"`
-	Root string `json:"root" gorm:"DEFAULT:NULL"`
+	Root   string `json:"root" gorm:"DEFAULT:NULL"`
 }
 
 func (c *EthHeaderWithProofCache) Parse(block interface{}) error {

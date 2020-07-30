@@ -8,7 +8,7 @@ use super::{
 };
 use cmmr::MMR;
 use diesel::{dsl::count, prelude::*, result::Error as DieselError};
-use std::{path::PathBuf, thread, time};
+use std::{cmp::Ordering, path::PathBuf, thread, time};
 
 /// MMR Runner
 pub struct Runner {
@@ -30,26 +30,41 @@ impl Default for Runner {
 }
 
 impl Runner {
+    /// MMR size to last leaf `O(log2n)`
+    pub fn mmr_size_to_last_leaf(mmr_size: i64) -> i64 {
+        let mut m = (mmr_size as f64).log2().round() as i64;
+        loop {
+            match (2 * m - m.count_ones() as i64).cmp(&mmr_size) {
+                Ordering::Equal => return m - 1,
+                Ordering::Greater => m = m - 1,
+                Ordering::Less => m = m + 1,
+            }
+        }
+    }
+
     /// Start the runner
     pub fn start(&mut self) -> Result<(), Error> {
         match self.mmr_count() {
-            Ok(mut base) => loop {
-                if let Err(e) = self.push(base) {
-                    match e {
-                        Error::Diesel(DieselError::NotFound) => {
-                            warn!("Could not find block {:?} in cache", base)
+            Ok(mut base) => {
+                base = Runner::mmr_size_to_last_leaf(base);
+                loop {
+                    if let Err(e) = self.push(base) {
+                        match e {
+                            Error::Diesel(DieselError::NotFound) => {
+                                warn!("Could not find block {:?} in cache", base)
+                            }
+                            _ => error!("Push block to mmr_store failed: {:?}", e),
                         }
-                        _ => error!("Push block to mmr_store failed: {:?}", e),
-                    }
 
-                    trace!("MMR service restarting after 10s...");
-                    thread::sleep(time::Duration::from_secs(10));
-                    return self.start();
-                } else {
-                    trace!("push eth block number {} into db succeed.", base);
-                    base += 1;
+                        trace!("MMR service restarting after 10s...");
+                        thread::sleep(time::Duration::from_secs(10));
+                        return self.start();
+                    } else {
+                        trace!("push eth block number {} into db succeed.", base);
+                        base += 1;
+                    }
                 }
-            },
+            }
             Err(e) => {
                 error!("Get mmr count failed, {:?}", e);
                 trace!("MMR service sleep for 3s...");

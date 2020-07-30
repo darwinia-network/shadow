@@ -42,11 +42,12 @@ var cmdTest = &cobra.Command{
 		var res []string = []string{}
 		headers, _ := shadow.GetProposalHeaders(members)
 		for idx, header := range headers {
+			header.Root = mock.ROOTS[idx][2:]
 			res = append(res, header.IntoProposalCodecWithExProof(mock.PROOFS[idx]))
 		}
 
 		h, _ := mock.Proposal(uint64(21), conf)
-		h.Root = mock.ROOTS[19]
+		h.Root = mock.ROOTS[19][2:]
 
 		arr, _ := json.Marshal(
 			Codec{

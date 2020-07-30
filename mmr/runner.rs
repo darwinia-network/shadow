@@ -40,8 +40,8 @@ impl Runner {
         loop {
             match (2 * m - m.count_ones() as i64).cmp(&mmr_size) {
                 Ordering::Equal => return m - 1,
-                Ordering::Greater => m = m - 1,
-                Ordering::Less => m = m + 1,
+                Ordering::Greater => m -= 1,
+                Ordering::Less => m += 1,
             }
         }
     }
@@ -85,7 +85,7 @@ impl Runner {
             .filter(number.eq(block))
             .first::<Cache>(&store.conn)?;
 
-        Ok(cache.hash.to_string())
+        Ok(cache.hash)
     }
 
     /// Push new header hash into storage

@@ -73,4 +73,4 @@ GPL-3.0
 [github]: https://github.com/darwinia-network/shadow
 [spec]: https://github.com/darwinia-network/darwinia/wiki/Darwinia-offchain-worker-shadow-service-spec
 [workflow-badge]: https://github.com/darwinia-network/shadow/workflows/Golang%20CI/badge.svg
-[api]: https://darwinia-network.github.io/shdaow
+[api]: https://darwinia-network.github.io/shadow

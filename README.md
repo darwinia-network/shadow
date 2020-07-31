@@ -6,23 +6,34 @@ The shadow service for relayers and verify workers to retrieve header data and g
 
 BTW, API docs is [here][api].
 
-## Contribute and Build
+## Getting Started
 
-> ATTENTION: Please compile shadow under $GOPATH. Here is a guide about [How to setting GOATH](https://github.com/golang/go/wiki/SettingGOPATH).
+Downloads shadow service
 
 ```
-# Clone shadow
 git clone https://github.com/darwinia-network/shadow.git
-
-# Make the binary
-cd $GOPATH/src/github.com/darwinia-network/shadow && make
-
-# If you are using linux, refresh our static library
-sudo ldconfig
-
-# Check the version
-./target/shadow version
 ```
+
+Exports your `INFURA_KEY` to envrioment
+
+```
+export INFURA_KEY='<your-infura-key>'
+```
+
+Starts shadow service:
+
+```
+# Start shadow service at port 3000
+./target/shadow run -v --fetch
+```
+
+Avaiable enviroment variables:
+
+| Key              | Description                                                    | default |
+|------------------|----------------------------------------------------------------|---------|
+| `INFURA_KEY`     | infura key, doesn't know what's [infura][infura]?              | `""`    |
+| `SHADOW_GENESIS` | shadow service will block all requests before `SHADOW_GENESIS` | `0`     |
+
 
 ## Usage
 
@@ -47,28 +58,6 @@ Flags:
 Use "shadow [command] --help" for more information about a command.
 
 ```
-
-## Shadow RPC examples
-
-Exports your `INFURA_KEY` to envrioment
-
-```
-export INFURA_KEY='<your-infura-key>'
-```
-
-Starts shadow service:
-
-```
-# Start shadow service at port 3000
-shadow run -v --fetch
-```
-
-Avaiable enviroment variables:
-
-| Key              | Description                                                    | default |
-|------------------|----------------------------------------------------------------|---------|
-| `INFURA_KEY`     | infura key, doesn't know what's [infura][infura]?              | `""`    |
-| `SHADOW_GENESIS` | shadow service will block all requests before `SHADOW_GENESIS` | `0`     |
 
 ## Trouble Shooting
 

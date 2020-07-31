@@ -14,7 +14,6 @@ var (
 	FETCH        bool
 	VERBOSE      bool
 	HTTP         string
-	RPC          string
 	PROOF_FORMAT string
 )
 

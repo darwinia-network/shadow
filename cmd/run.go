@@ -29,15 +29,8 @@ func init() {
 	cmdRun.PersistentFlags().StringVar(
 		&HTTP,
 		"http",
-		"3001",
-		"set port of http api server",
-	)
-
-	cmdRun.PersistentFlags().StringVar(
-		&RPC,
-		"rpc",
 		"3000",
-		"set port of rpc api server",
+		"set port of http api server",
 	)
 }
 

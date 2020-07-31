@@ -2,6 +2,7 @@ use cmmr::{Merge, MMR};
 use mmr::{
     hash::{MergeHash, H256},
     store::Store,
+    Runner,
 };
 use std::{env, fs, path::PathBuf};
 
@@ -90,6 +91,16 @@ fn test_mmr_proof() {
 
     assert!(result);
     assert!(fs::remove_file(db).is_ok());
+}
+
+#[test]
+fn test_mmr_size_n_leaves() {
+    (0..1000).for_each(|i| {
+        assert_eq!(
+            i as i64,
+            Runner::mmr_size_to_last_leaf(cmmr::leaf_index_to_mmr_size(i) as i64)
+        );
+    });
 }
 
 #[test]

@@ -1,4 +1,6 @@
+use mmr::Runner;
+
 fn main() {
-    let runner = Runner::default();
+    let mut runner = Runner::default();
     runner.start().unwrap();
 }

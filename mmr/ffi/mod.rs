@@ -21,6 +21,10 @@ pub extern "C" fn run() -> i32 {
 }
 
 /// Proof leaves
+///
+/// # Safe
+///
+/// Concatenate strings
 #[no_mangle]
 pub unsafe extern "C" fn proof(last_leaf: u64, member: u64) -> CString {
     let store = Store::default();

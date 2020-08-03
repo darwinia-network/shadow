@@ -50,6 +50,7 @@ var cmdImport = &cobra.Command{
 		for _, h := range headers {
 			dh := eth.DarwiniaEthHeader{}
 			err = dh.De(h)
+			util.Assert(err)
 
 			header, err := json.Marshal(dh)
 			util.Assert(err)

@@ -1,9 +1,8 @@
 package cmd
 
 import (
-	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"strings"
 
 	"github.com/darwinia-network/shadow/internal/core"
 	"github.com/darwinia-network/shadow/internal/util"
@@ -44,15 +43,14 @@ var cmdExport = &cobra.Command{
 		var blocks []core.EthHeaderWithProofCache
 		shadow.DB.Find(&blocks)
 
+		var headers []string
 		for _, b := range blocks {
-			b.Proof = ""
+			raw, err := b.IntoResp()
+			util.Assert(err)
+
+			headers = append(headers, raw.Header.Ser())
 		}
 
-		// Convert blocks to header
-		bytes, err := json.Marshal(blocks)
-		util.Assert(err)
-
-		err = ioutil.WriteFile(fmt.Sprintf("%s/%s", PATH, NAME), bytes, 0644)
-		util.Assert(err)
+		fmt.Println(strings.Join(headers, ","))
 	},
 }

@@ -37,6 +37,7 @@ func init() {
 		cmdVersion,
 		cmdTest,
 		cmdExport,
+		cmdImport,
 	)
 }
 

@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"io/ioutil"
 	"strings"
 
 	"github.com/darwinia-network/shadow/internal/core"
@@ -51,6 +52,13 @@ var cmdExport = &cobra.Command{
 			headers = append(headers, raw.Header.Ser())
 		}
 
-		fmt.Println(strings.Join(headers, ","))
+		err = ioutil.WriteFile(
+			fmt.Sprintf("%s/%s", PATH, NAME),
+			[]byte(strings.Join(headers, ",")),
+			0644,
+		)
+		util.Assert(err)
+
+		fmt.Printf("Exported %v blocks!\n", len(headers))
 	},
 }

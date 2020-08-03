@@ -16,6 +16,7 @@ var (
 	HTTP         string
 	PROOF_FORMAT string
 	PATH         string
+	NAME         string
 )
 
 const (

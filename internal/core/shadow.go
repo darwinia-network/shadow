@@ -39,9 +39,7 @@ func NewShadow() (Shadow, error) {
 	}, err
 }
 
-/**
- * Genesis block checker
- */
+// Genesis block checker
 func (s *Shadow) checkGenesis(genesis uint64, block interface{}) (uint64, error) {
 	block, err := util.NumberOrString(block)
 	if err != nil {

@@ -86,7 +86,7 @@ func fetch(shadow *core.Shadow) {
 var cmdRun = &cobra.Command{
 	Use:   "run [port]",
 	Short: "Start shadow service",
-	Long:  "This command will use the config at `~/.darwinia/config.json`",
+	Long:  "The main command of shadow service, lots of avaiable flags",
 	Args:  cobra.MinimumNArgs(0),
 	Run: func(cmd *cobra.Command, _ []string) {
 		verboseCheck()

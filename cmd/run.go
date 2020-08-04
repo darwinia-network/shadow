@@ -1,7 +1,11 @@
 package cmd
 
 import (
+	"fmt"
+	"strings"
+
 	"github.com/darwinia-network/shadow/api"
+	"github.com/darwinia-network/shadow/internal"
 	"github.com/darwinia-network/shadow/internal/core"
 	"github.com/darwinia-network/shadow/internal/ffi"
 	"github.com/darwinia-network/shadow/internal/log"
@@ -10,6 +14,14 @@ import (
 )
 
 func init() {
+	cmdRun.PersistentFlags().StringArrayVarP(
+		&INFURA_KEYS,
+		"infura_keys",
+		"k",
+		[]string{},
+		"mutiple infura keys",
+	)
+
 	cmdRun.PersistentFlags().BoolVarP(
 		&FETCH,
 		"fetch",
@@ -46,12 +58,21 @@ const (
 	GIN_MODE = "GIN_MODE"
 )
 
-func fetch(shadow *core.Shadow, genesis uint64) {
-	ptr := core.EthHeaderWithProofCache{Number: genesis}
-	for ptr.Number >= genesis {
+func fetch(shadow *core.Shadow) {
+	api := 0
+	ptr := core.EthHeaderWithProofCache{Number: shadow.Config.Genesis}
+	for ptr.Number >= shadow.Config.Genesis {
 		err := ptr.Fetch(shadow.Config, shadow.DB)
 		if err != nil {
 			log.Error("fetch header %v failed\n", ptr.Number)
+			if strings.Contains(
+				strings.ToLower(fmt.Sprintf("%v", err)),
+				// TODO: The real error string
+				"infura",
+			) && api < len(INFURA_KEYS)-1 {
+				api += 1
+				shadow.Config.Api = internal.ParseKey(INFURA_KEYS[api])
+			}
 			continue
 		}
 
@@ -76,7 +97,7 @@ var cmdRun = &cobra.Command{
 
 		// if need fetch
 		if FETCH {
-			go fetch(&shadow, shadow.Config.Genesis)
+			go fetch(&shadow)
 		}
 
 		// if trigger MMR

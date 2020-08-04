@@ -18,6 +18,7 @@ var (
 	PATH         string
 	NAME         string
 	MMR          bool
+	INFURA_KEYS  []string
 )
 
 const (

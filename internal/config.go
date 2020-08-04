@@ -66,14 +66,14 @@ func (c *Config) LoadEnv() error {
 	}
 
 	// construct config
-	c.Api = parseKey(api)
+	c.Api = ParseKey(api)
 	return nil
 }
 
 // Parse infura api key
 //
 // return mainnet api if just inputs a infura key
-func parseKey(key string) string {
+func ParseKey(key string) string {
 	if !strings.HasPrefix(key, "https") {
 		key = "https://mainnet.infura.io/v3/" + key
 	}
@@ -89,7 +89,7 @@ func (c *Config) readKeyWithPrompt() {
 	// Return infura key after parsing
 	text, _ := reader.ReadString('\n')
 	text = strings.Trim(text, "\n")
-	c.Api = parseKey(text)
+	c.Api = ParseKey(text)
 
 	// Set INFURA_KEY to env
 	os.Setenv("INFURA_KEY", c.Api)

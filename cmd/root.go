@@ -17,6 +17,7 @@ var (
 	PROOF_FORMAT string
 	PATH         string
 	NAME         string
+	MMR          bool
 )
 
 const (

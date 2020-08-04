@@ -19,6 +19,14 @@ func init() {
 	)
 
 	cmdRun.PersistentFlags().BoolVarP(
+		&MMR,
+		"mmr",
+		"m",
+		false,
+		"trigger mmr service",
+	)
+
+	cmdRun.PersistentFlags().BoolVarP(
 		&VERBOSE,
 		"verbose",
 		"v",
@@ -39,10 +47,6 @@ const (
 )
 
 func fetch(shadow *core.Shadow, genesis uint64) {
-	// run mmr service
-	go ffi.RunMMR()
-
-	// fetcher
 	ptr := core.EthHeaderWithProofCache{Number: genesis}
 	for ptr.Number >= genesis {
 		err := ptr.Fetch(shadow.Config, shadow.DB)
@@ -73,6 +77,11 @@ var cmdRun = &cobra.Command{
 		// if need fetch
 		if FETCH {
 			go fetch(&shadow, shadow.Config.Genesis)
+		}
+
+		// if trigger MMR
+		if MMR {
+			go ffi.RunMMR()
 		}
 
 		log.Info("Shadow HTTP service start at %s", HTTP)

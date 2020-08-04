@@ -17,11 +17,16 @@ Here is a special cargo feature `darwinia` only for test usages, if you are cont
 
 ## Branches
 
-Here are 3 branches on this project
+Here are 3 branches in this project
 
-+ `v1`: The is the stable code which can be importing by other go projects
++ `v1`: The is the stable branch which can be importing by other go projects
 + `next`: This is the branch our prs will merge into
 + `gh-pages`: This branch serves the API docs of shadow
+
+
+## Tagging
+
+Only tagging on the `v1` branch, along with the updates of relay module of darwinia.
 
 
 ## Coding conventions

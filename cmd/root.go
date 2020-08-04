@@ -15,6 +15,8 @@ var (
 	VERBOSE      bool
 	HTTP         string
 	PROOF_FORMAT string
+	PATH         string
+	NAME         string
 )
 
 const (
@@ -34,6 +36,8 @@ func init() {
 		cmdRun,
 		cmdVersion,
 		cmdTest,
+		cmdExport,
+		cmdImport,
 	)
 }
 

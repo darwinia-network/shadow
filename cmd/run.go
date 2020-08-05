@@ -1,12 +1,9 @@
 package cmd
 
 import (
-	"fmt"
 	"runtime"
-	"strings"
 
 	"github.com/darwinia-network/shadow/api"
-	"github.com/darwinia-network/shadow/internal"
 	"github.com/darwinia-network/shadow/internal/core"
 	"github.com/darwinia-network/shadow/internal/ffi"
 	"github.com/darwinia-network/shadow/internal/log"
@@ -69,24 +66,9 @@ const (
 
 func fetchRoutine(api *int, shadow *core.Shadow, ptr uint64, ch chan int) {
 	defer func() { _ = recover() }()
-	cache := core.EthHeaderWithProofCache{Number: ptr}
-	err := cache.Fetch(shadow.Config, shadow.DB)
+	_, err := shadow.FetchHeaderCache(ptr)
 	if err != nil {
-		log.Error("fetch header %v failed\n", ptr)
-		if strings.Contains(
-			strings.ToLower(fmt.Sprintf("%v", err)),
-			"infura",
-		) {
-			if *api < len(INFURA_KEYS)-1 {
-				*api += 1
-			} else {
-				*api = 0
-			}
-
-			shadow.Config.Api = internal.ParseKey(INFURA_KEYS[*api])
-		}
-
-		fetchRoutine(api, shadow, ptr, ch)
+		log.Error("fetch header %v failed %v\n", ptr, err)
 	}
 
 	<-ch

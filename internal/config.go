@@ -15,6 +15,7 @@ import (
 const (
 	INFURA_KEY     = "INFURA_KEY"
 	SHADOW_GENESIS = "SHADOW_GENESIS"
+	GETH_DATADIR   = "GETH_DATADIR"
 )
 
 type RawConfig struct {
@@ -25,6 +26,7 @@ type Config struct {
 	Api     string `json:"api"`
 	Genesis uint64 `json:"genesis"`
 	Root    string `json:"root"`
+	Geth    string `json:"geth"`
 }
 
 // Common load config
@@ -35,6 +37,9 @@ func (c *Config) Load() error {
 	if err != nil {
 		return err
 	}
+
+	// Load Geth datadir
+	c.Geth = os.Getenv(GETH_DATADIR)
 
 	// Load infura key
 	gen := os.Getenv(SHADOW_GENESIS)

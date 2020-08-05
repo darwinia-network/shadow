@@ -41,6 +41,7 @@ func init() {
 		cmdTest,
 		cmdExport,
 		cmdImport,
+		cmdGeth,
 	)
 }
 

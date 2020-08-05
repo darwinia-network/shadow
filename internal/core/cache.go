@@ -28,19 +28,6 @@ type EthHeaderWithProofCache struct {
 	Root   string `json:"root" gorm:"DEFAULT:NULL"`
 }
 
-func (c *EthHeaderWithProofCache) Parse(block interface{}) error {
-	switch b := block.(type) {
-	case uint64:
-		c.Number = b
-	case string:
-		c.Hash = b
-	default:
-		return fmt.Errorf("Invaild block param: %v", block)
-	}
-
-	return nil
-}
-
 // Save header to cache
 func (c *EthHeaderWithProofCache) FromResp(
 	db *gorm.DB,
@@ -162,6 +149,7 @@ func (c *EthHeaderWithProofCache) IntoResp() (GetEthHeaderWithProofRawResp, erro
 func (c *EthHeaderWithProofCache) Fetch(
 	config internal.Config,
 	db *gorm.DB,
+	geth *eth.Geth,
 ) error {
 	// Get header from sqlite3
 	var (
@@ -178,10 +166,19 @@ func (c *EthHeaderWithProofCache) Fetch(
 	}
 
 	if err != nil || util.IsEmpty(c.Header) || c.Header == "" {
-		log.Trace("Fetching block %v ...", block)
-		ethHeader, err := eth.Header(block, config.Api)
-		if err != nil {
-			return err
+		var ethHeader types.Header
+		if !util.IsEmpty(geth) {
+			block := *geth.Header(block)
+			if !util.IsEmpty(block) {
+				ethHeader = block
+			}
+		}
+
+		if util.IsEmpty(ethHeader) {
+			ethHeader, err = eth.Header(block, config.Api)
+			if err != nil {
+				return err
+			}
 		}
 
 		header, err := eth.IntoDarwiniaEthHeader(ethHeader)

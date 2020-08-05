@@ -230,7 +230,10 @@ func ConnectDb() (*gorm.DB, error) {
 	}
 
 	log.Info("Connecting database ~/%v...", DB_PATH)
-	db, err := gorm.Open("sqlite3", path.Join(usr.HomeDir, DB_PATH))
+	db, err := gorm.Open("sqlite3", fmt.Sprintf(
+		"file:%s?cache=shared&mode=rwc",
+		path.Join(usr.HomeDir, DB_PATH)),
+	)
 	if err != nil {
 		return db, err
 	}

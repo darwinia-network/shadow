@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"runtime"
 	"strings"
 
 	"github.com/darwinia-network/shadow/api"
@@ -58,28 +59,40 @@ const (
 	GIN_MODE = "GIN_MODE"
 )
 
-func fetch(shadow *core.Shadow) {
-	api := 0
-	ptr := core.EthHeaderWithProofCache{Number: shadow.Config.Genesis}
-	for ptr.Number >= shadow.Config.Genesis {
-		err := ptr.Fetch(shadow.Config, shadow.DB)
-		if err != nil {
-			log.Error("fetch header %v failed\n", ptr.Number)
-			if strings.Contains(
-				strings.ToLower(fmt.Sprintf("%v", err)),
-				// TODO: The real error string
-				"infura",
-			) && api < len(INFURA_KEYS)-1 {
-				api += 1
-				shadow.Config.Api = internal.ParseKey(INFURA_KEYS[api])
+func fetchRoutine(api *int, shadow *core.Shadow, ptr uint64, ch chan int) {
+	defer func() { _ = recover() }()
+	cache := core.EthHeaderWithProofCache{Number: ptr}
+	err := cache.Fetch(shadow.Config, shadow.DB)
+	if err != nil {
+		log.Error("fetch header %v failed\n", ptr)
+		if strings.Contains(
+			strings.ToLower(fmt.Sprintf("%v", err)),
+			"infura",
+		) {
+			if *api < len(INFURA_KEYS)-1 {
+				*api += 1
+			} else {
+				*api = 0
 			}
-			continue
+
+			shadow.Config.Api = internal.ParseKey(INFURA_KEYS[*api])
 		}
 
-		ptr = core.EthHeaderWithProofCache{
-			Number: ptr.Number + 1,
-			Header: "",
-		}
+		fetchRoutine(api, shadow, ptr, ch)
+	}
+
+	<-ch
+}
+
+func fetch(shadow *core.Shadow) {
+	// set channel
+	runtime.GOMAXPROCS(runtime.NumCPU())
+	ch := make(chan int, 300)
+
+	api := 0
+	for ptr := shadow.Config.Genesis; ; ptr++ {
+		ch <- 1
+		go fetchRoutine(&api, shadow, ptr, ch)
 	}
 }
 
@@ -94,6 +107,7 @@ var cmdRun = &cobra.Command{
 		// Generate Shadow
 		shadow, err := core.NewShadow()
 		util.Assert(err)
+		shadow.DB.DB().SetMaxOpenConns(1)
 
 		// if need fetch
 		if FETCH {

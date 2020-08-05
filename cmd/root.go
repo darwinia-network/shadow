@@ -19,6 +19,7 @@ var (
 	NAME         string
 	MMR          bool
 	INFURA_KEYS  []string
+	CHANNELS     int
 )
 
 const (

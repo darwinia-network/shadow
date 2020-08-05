@@ -23,6 +23,14 @@ func init() {
 		"mutiple infura keys",
 	)
 
+	cmdRun.PersistentFlags().IntVarP(
+		&CHANNELS,
+		"channels",
+		"c",
+		1,
+		"channel counts",
+	)
+
 	cmdRun.PersistentFlags().BoolVarP(
 		&FETCH,
 		"fetch",
@@ -87,7 +95,7 @@ func fetchRoutine(api *int, shadow *core.Shadow, ptr uint64, ch chan int) {
 func fetch(shadow *core.Shadow) {
 	// set channel
 	runtime.GOMAXPROCS(runtime.NumCPU())
-	ch := make(chan int, 300)
+	ch := make(chan int, CHANNELS)
 
 	api := 0
 	for ptr := shadow.Config.Genesis; ; ptr++ {

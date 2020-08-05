@@ -18,8 +18,9 @@ var (
 	PATH         string
 	NAME         string
 	MMR          bool
-	INFURA_KEYS  []string
 	CHANNELS     int
+	LIMITS       uint64
+	PERTX        uint64
 )
 
 const (

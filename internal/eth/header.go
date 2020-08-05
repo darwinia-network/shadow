@@ -8,7 +8,6 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/darwinia-network/shadow/internal/log"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/rlp"
@@ -16,8 +15,6 @@ import (
 
 // Get ethereum header by block number
 func Header(block interface{}, api string) (types.Header, error) {
-	log.Trace("request block %v from infura api...", block)
-
 	// Get header from infura
 	var (
 		resp       *http.Response

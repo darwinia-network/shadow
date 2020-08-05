@@ -3,7 +3,6 @@ package eth
 import (
 	"path"
 
-	"github.com/darwinia-network/shadow/internal/log"
 	"github.com/darwinia-network/shadow/internal/util"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/rawdb"
@@ -37,7 +36,7 @@ func (g *Geth) HashToNumber(h string) uint64 {
 
 func (g *Geth) Header(block interface{}) *types.Header {
 	block, err := util.NumberOrString(block)
-	if err != nil {
+	if err != nil || g.db == nil {
 		return &types.Header{}
 	}
 
@@ -46,7 +45,6 @@ func (g *Geth) Header(block interface{}) *types.Header {
 		hash := common.BytesToHash(common.FromHex(b))
 		return g.Header(rawdb.ReadHeaderNumber(g.db, hash))
 	case uint64:
-		log.Trace("import block %v from leveldb...", block)
 		block := rawdb.ReadBlock(
 			g.db,
 			rawdb.ReadCanonicalHash(g.db, b),

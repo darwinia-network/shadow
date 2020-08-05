@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/user"
 	"path"
+	// "strings"
 
 	"github.com/darwinia-network/shadow/internal"
 	"github.com/darwinia-network/shadow/internal/eth"
@@ -26,6 +27,51 @@ type EthHeaderWithProofCache struct {
 	Header string `json:"eth_header"`
 	Proof  string `json:"proof"`
 	Root   string `json:"root" gorm:"DEFAULT:NULL"`
+}
+
+func CreateEthHeaderCache(db *gorm.DB, header types.Header) error {
+	if util.IsEmpty(header) {
+		return fmt.Errorf("empty header")
+	}
+
+	dh, err := eth.IntoDarwiniaEthHeader(header)
+	if err != nil {
+		return err
+	}
+
+	hstr, err := dh.ToString()
+	if err != nil {
+		return err
+	}
+
+	cache := EthHeaderWithProofCache{
+		Hash:   header.Hash().String(),
+		Number: header.Number.Uint64(),
+		Header: hstr,
+	}
+
+	sql := fmt.Sprintf(
+		"%s %s %s %s ('%s', %v, '%s');",
+		"INSERT or REPLACE INTO",       // insert or replace
+		"eth_header_with_proof_caches", // table
+		"(hash, number, header)",       // columns
+		"values",                       // values
+		cache.Hash,
+		cache.Number,
+		cache.Header,
+	)
+
+	if err := db.Exec(sql).Error; err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func CountCache(db *gorm.DB) uint64 {
+	var count uint64
+	db.Model(&EthHeaderWithProofCache{}).Count(&count)
+	return count
 }
 
 // Save header to cache
@@ -167,6 +213,9 @@ func (c *EthHeaderWithProofCache) Fetch(
 
 	if err != nil || util.IsEmpty(c.Header) || c.Header == "" {
 		var ethHeader types.Header
+
+		// Log the event
+		log.Trace("fetching block %v ...", block)
 		if !util.IsEmpty(geth) {
 			block := *geth.Header(block)
 			if !util.IsEmpty(block) {
@@ -228,7 +277,7 @@ func ConnectDb() (*gorm.DB, error) {
 
 	log.Info("Connecting database ~/%v...", DB_PATH)
 	db, err := gorm.Open("sqlite3", fmt.Sprintf(
-		"file:%s?cache=shared&mode=rwc",
+		"file:%s?cache=shared&mode=rwc&_busy_timeout=9999999&_journal_mode=WAL",
 		path.Join(usr.HomeDir, DB_PATH)),
 	)
 	if err != nil {

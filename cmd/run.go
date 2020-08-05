@@ -12,14 +12,6 @@ import (
 )
 
 func init() {
-	cmdRun.PersistentFlags().StringArrayVarP(
-		&INFURA_KEYS,
-		"infura_keys",
-		"k",
-		[]string{},
-		"mutiple infura keys",
-	)
-
 	cmdRun.PersistentFlags().IntVarP(
 		&CHANNELS,
 		"channels",

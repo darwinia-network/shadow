@@ -1,0 +1,12 @@
+=============== Aug 6, 2020 (CST) ===============
+04:11:25.424426 log@legend F·NumFile S·FileSize N·Entry C·BadEntry B·BadBlock Ke·KeyError D·DroppedEntry L·Level Q·SeqNum T·TimeElapsed
+04:11:25.475932 db@open opening
+04:11:25.479657 version@stat F·[] S·0B[] Sc·[]
+04:11:25.495255 db@janitor F·2 G·0
+04:11:25.495321 db@open done T·19.343618ms
+=============== Aug 6, 2020 (CST) ===============
+04:28:05.203405 log@legend F·NumFile S·FileSize N·Entry C·BadEntry B·BadBlock Ke·KeyError D·DroppedEntry L·Level Q·SeqNum T·TimeElapsed
+04:28:05.223000 db@open opening
+04:28:05.226337 version@stat F·[] S·0B[] Sc·[]
+04:28:05.238150 db@janitor F·2 G·0
+04:28:05.238256 db@open done T·15.183986ms

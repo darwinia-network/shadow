@@ -42,9 +42,9 @@ func init() {
 	cmdImport.PersistentFlags().IntVarP(
 		&CHANNELS,
 		"channels",
-		"c",
+		"r",
 		300,
-		"go channels",
+		"goroutine channel conunts",
 	)
 }
 
@@ -63,9 +63,8 @@ var cmdImport = &cobra.Command{
 		shadow, err := core.NewShadow()
 		util.Assert(err)
 
-		shadow.DB.DB().SetMaxOpenConns(1)
 		// Fetch headers
-		for b := core.CountCache(shadow.DB); b < LIMITS; b++ {
+		for b := uint64(0); b < LIMITS; b++ {
 			defer func() { _ = recover() }()
 			ch <- 1
 			go importBlock(&shadow, b, ch)
@@ -81,10 +80,9 @@ func importBlock(shadow *core.Shadow, block uint64, ch chan int) {
 		time.Sleep(time.Second * 10)
 	}
 
-	err := core.CreateEthHeaderCache(shadow.DB, *header)
+	_, err := core.CreateEthHeaderCache(shadow.DB, header)
 	if err != nil {
-		log.Warn("save eth block %v to shadowdb failed, retry", block)
-		importBlock(shadow, block, ch)
+		util.Assert(err)
 	}
 
 	bs := fmt.Sprintf(

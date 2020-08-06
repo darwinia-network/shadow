@@ -72,7 +72,7 @@ func (s *Shadow) checkGenesis(genesis uint64, block interface{}) (uint64, error)
 		}
 
 		// convert ethHeader to darwinia header
-		dH, err := eth.IntoDarwiniaEthHeader(eH)
+		dH, err := eth.IntoDarwiniaEthHeader(&eH)
 		if err != nil {
 			return dH.Number, err
 		}
@@ -120,17 +120,6 @@ func (s *Shadow) GetHeader(
 
 }
 
-func (s *Shadow) FetchHeaderCache(num uint64) (EthHeaderWithProofCache, error) {
-	// Fetch header from cache
-	cache := EthHeaderWithProofCache{Number: num}
-	err := cache.Fetch(s)
-	if err != nil {
-		return EthHeaderWithProofCache{}, err
-	}
-
-	return cache, nil
-}
-
 func (s *Shadow) GetHeaderWithProof(
 	chain Chain,
 	block interface{},
@@ -146,7 +135,7 @@ func (s *Shadow) GetHeaderWithProof(
 		log.Trace("Request block %v with proof...", num)
 
 		// Fetch header from cache
-		cache, err := s.FetchHeaderCache(num)
+		_, cache, err := FetchHeader(s, num)
 		if err != nil {
 			return GetEthHeaderWithProofRawResp{}, err
 		}

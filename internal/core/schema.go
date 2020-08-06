@@ -25,12 +25,7 @@ func (c *EthHeaderWithProofCache) Fetch(shadow *Shadow) error {
 
 	if err != nil || util.IsEmpty(c.Header) || c.Header == "" {
 		log.Trace("fetching block %v ...", block)
-		ethHeader, err := FetchHeader(shadow, block)
-		if err != nil {
-			return err
-		}
-
-		err = CreateEthHeaderCache(shadow.DB, ethHeader)
+		_, *c, err = FetchHeader(shadow, block)
 		if err != nil {
 			return err
 		}
@@ -66,12 +61,16 @@ func (c *EthHeaderWithProofCache) ApplyProof(shadow *Shadow) error {
 		}
 
 		// Fetch EthHeader
-		ethHeader, err := FetchHeader(shadow, block)
+		ethHeader, cache, err := FetchHeader(shadow, block)
 		if err != nil {
 			return err
 		}
 
-		CreateProofCache(shadow, c, &ethHeader)
+		*c = cache
+		err = CreateProofCache(shadow, c, &ethHeader)
+		if err != nil {
+			return err
+		}
 
 	}
 	return nil

@@ -16,3 +16,14 @@ func UpsertHeaderSQL(cache *EthHeaderWithProofCache) string {
 		cache.Header,
 	)
 }
+
+func SelectHeader(number uint64) string {
+	return fmt.Sprintf(
+		"%s %s %s %s %v;",
+		"SELECT * FROM",
+		"eth_header_with_proof_caches",
+		"WHERE",
+		"number =",
+		number,
+	)
+}

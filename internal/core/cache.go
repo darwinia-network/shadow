@@ -43,6 +43,9 @@ func ConnectDb() (*gorm.DB, error) {
 		return db, err
 	}
 
+	// Setings
+	db.DB().SetMaxOpenConns(1)
+
 	// bootstrap sqlite3
 	db.AutoMigrate(&EthHeaderWithProofCache{})
 	return db, err
@@ -54,48 +57,72 @@ func CountCache(db *gorm.DB) uint64 {
 	return count
 }
 
-func FetchHeader(shadow *Shadow, block interface{}) (types.Header, error) {
+func FetchHeader(shadow *Shadow, block interface{}) (
+	header types.Header,
+	cache EthHeaderWithProofCache,
+	err error,
+) {
 	num, err := shadow.checkGenesis(shadow.Config.Genesis, block)
 	if err != nil {
-		return types.Header{}, err
+		return
 	}
 
-	if !util.IsEmpty(shadow.Geth) {
-		block := *shadow.Geth.Header(block)
-		if !util.IsEmpty(block) {
-			return block, nil
+	shadow.DB.Raw(SelectHeader(num)).Scan(&cache)
+	if !util.IsEmpty(cache.Header) {
+		log.Trace("Block %v exists in shadowdb...", block)
+		return
+	}
+
+	if !util.IsEmpty(cache.Header) && !util.IsEmpty(shadow.Geth) {
+		log.Trace("Request block %v from leveldb...", block)
+		header = *shadow.Geth.Header(block)
+	}
+
+	if util.IsEmpty(header) {
+		log.Trace("Request block %v from infura api...", block)
+		header, err = eth.Header(num, shadow.Config.Api)
+		if err != nil {
+			return
 		}
 	}
 
-	return eth.Header(num, shadow.Config.Api)
+	cache, err = CreateEthHeaderCache(shadow.DB, &header)
+	return
 }
 
-func CreateEthHeaderCache(db *gorm.DB, header types.Header) error {
+func CreateEthHeaderCache(
+	db *gorm.DB,
+	header *types.Header,
+) (
+	cache EthHeaderWithProofCache,
+	err error,
+) {
 	if util.IsEmpty(header) {
-		return fmt.Errorf("empty header")
+		err = fmt.Errorf("empty header")
+		return
 	}
 
 	dh, err := eth.IntoDarwiniaEthHeader(header)
 	if err != nil {
-		return err
+		return
 	}
 
 	hstr, err := dh.ToString()
 	if err != nil {
-		return err
+		return
 	}
 
-	cache := EthHeaderWithProofCache{
+	cache = EthHeaderWithProofCache{
 		Hash:   header.Hash().Hex(),
 		Number: header.Number.Uint64(),
 		Header: hstr,
 	}
 
-	if err := db.Exec(UpsertHeaderSQL(&cache)).Error; err != nil {
-		return err
+	if err = db.Exec(UpsertHeaderSQL(&cache)).Error; err != nil {
+		return
 	}
 
-	return nil
+	return
 }
 
 func CreateProofCache(
@@ -134,7 +161,10 @@ func CreateProofCache(
 	return nil
 }
 
-func IndexHeaderFromDB(db *gorm.DB, cache *EthHeaderWithProofCache) (interface{}, error) {
+func IndexHeaderFromDB(
+	db *gorm.DB,
+	cache *EthHeaderWithProofCache,
+) (interface{}, error) {
 	var (
 		err   error
 		block interface{}

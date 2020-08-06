@@ -21,6 +21,7 @@ var (
 	CHANNELS     int
 	LIMITS       uint64
 	PERTX        uint64
+	CHECK        bool
 )
 
 const (
@@ -40,7 +41,6 @@ func init() {
 		cmdRun,
 		cmdVersion,
 		cmdTest,
-		cmdExport,
 		cmdImport,
 		cmdGeth,
 	)

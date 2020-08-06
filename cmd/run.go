@@ -15,9 +15,9 @@ func init() {
 	cmdRun.PersistentFlags().IntVarP(
 		&CHANNELS,
 		"channels",
-		"c",
+		"r",
 		1,
-		"channel counts",
+		"goroutine channel conunts",
 	)
 
 	cmdRun.PersistentFlags().BoolVarP(
@@ -26,6 +26,14 @@ func init() {
 		"f",
 		false,
 		"keep fetching blocks in background",
+	)
+
+	cmdRun.PersistentFlags().BoolVarP(
+		&CHECK,
+		"check",
+		"c",
+		false,
+		"fetch headers from block 0, check all blocks exists",
 	)
 
 	cmdRun.PersistentFlags().BoolVarP(
@@ -56,11 +64,11 @@ const (
 	GIN_MODE = "GIN_MODE"
 )
 
-func fetchRoutine(api *int, shadow *core.Shadow, ptr uint64, ch chan int) {
+func fetchRoutine(shadow *core.Shadow, ptr uint64, ch chan int) {
 	defer func() { _ = recover() }()
-	_, err := shadow.FetchHeaderCache(ptr)
+	_, _, err := core.FetchHeader(shadow, ptr)
 	if err != nil {
-		log.Error("fetch header %v failed %v\n", ptr, err)
+		log.Error("fetch header %v failed: %v", ptr, err)
 	}
 
 	<-ch
@@ -71,10 +79,15 @@ func fetch(shadow *core.Shadow) {
 	runtime.GOMAXPROCS(runtime.NumCPU())
 	ch := make(chan int, CHANNELS)
 
-	api := 0
-	for ptr := shadow.Config.Genesis; ; ptr++ {
+	var base uint64 = shadow.Config.Genesis
+	if !CHECK {
+		base = core.CountCache(shadow.DB)
+		log.Info("current ethereum block height: %v", base)
+	}
+
+	for ptr := base; ; ptr++ {
 		ch <- 1
-		go fetchRoutine(&api, shadow, ptr, ch)
+		go fetchRoutine(shadow, ptr, ch)
 	}
 }
 

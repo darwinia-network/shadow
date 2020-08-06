@@ -123,7 +123,7 @@ func (s *Shadow) GetHeader(
 func (s *Shadow) FetchHeaderCache(num uint64) (EthHeaderWithProofCache, error) {
 	// Fetch header from cache
 	cache := EthHeaderWithProofCache{Number: num}
-	err := cache.Fetch(s.Config, s.DB, &s.Geth)
+	err := cache.Fetch(s)
 	if err != nil {
 		return EthHeaderWithProofCache{}, err
 	}
@@ -151,7 +151,7 @@ func (s *Shadow) GetHeaderWithProof(
 			return GetEthHeaderWithProofRawResp{}, err
 		}
 
-		err = cache.ApplyProof(s.Config, s.DB)
+		err = cache.ApplyProof(s)
 		if err != nil {
 			return GetEthHeaderWithProofRawResp{}, err
 		}
@@ -230,7 +230,7 @@ func (s *Shadow) GetReceipt(
 
 	resp.ReceiptProof = proof.Proof
 	cache := EthHeaderWithProofCache{Hash: hash}
-	err = cache.Fetch(s.Config, s.DB, &s.Geth)
+	err = cache.Fetch(s)
 	if err != nil {
 		return
 	}

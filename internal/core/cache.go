@@ -75,7 +75,10 @@ func FetchHeader(shadow *Shadow, block interface{}) (
 
 	if !util.IsEmpty(cache.Header) && !util.IsEmpty(shadow.Geth) {
 		log.Trace("Request block %v from leveldb...", block)
-		header = *shadow.Geth.Header(block)
+		dimHeader := shadow.Geth.Header(block)
+		if !util.IsEmpty(dimHeader) {
+			header = *dimHeader
+		}
 	}
 
 	if util.IsEmpty(header) {

@@ -58,6 +58,13 @@ func init() {
 		"3000",
 		"set port of http api server",
 	)
+
+	cmdRun.PersistentFlags().StringVar(
+		&GETH_DATADIR,
+		"geth-datadir",
+		"",
+		"The datadir of geth",
+	)
 }
 
 const (
@@ -92,9 +99,9 @@ func fetch(shadow *core.Shadow) {
 }
 
 var cmdRun = &cobra.Command{
-	Use:   "run [port]",
+	Use:   "run",
 	Short: "Start shadow service",
-	Long:  "The main command of shadow service, lots of avaiable flags",
+	Long:  "The main command of shadow service, lots of available flags",
 	Args:  cobra.MinimumNArgs(0),
 	Run: func(cmd *cobra.Command, _ []string) {
 		verboseCheck()
@@ -102,7 +109,11 @@ var cmdRun = &cobra.Command{
 		// Generate Shadow
 		shadow, err := core.NewShadow()
 		util.Assert(err)
-		shadow.DB.DB().SetMaxOpenConns(1)
+
+		// Check if has geth-datadir
+		if len(GETH_DATADIR) > 0 {
+			shadow.Config.Geth = GETH_DATADIR
+		}
 
 		// if need fetch
 		if FETCH {

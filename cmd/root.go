@@ -22,6 +22,7 @@ var (
 	LIMITS       uint64
 	PERTX        uint64
 	CHECK        bool
+	GETH_DATADIR string
 )
 
 const (

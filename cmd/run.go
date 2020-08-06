@@ -73,7 +73,7 @@ const (
 
 func fetchRoutine(shadow *core.Shadow, ptr uint64, ch chan int) {
 	defer func() { _ = recover() }()
-	_, _, err := core.FetchHeader(shadow, ptr)
+	_, err := core.FetchHeaderCache(shadow, ptr)
 	if err != nil {
 		log.Error("fetch header %v failed: %v", ptr, err)
 	}

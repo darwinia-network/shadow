@@ -10,7 +10,7 @@ import (
 // Check if is empty
 func IsEmpty(x interface{}) bool {
 	if x == nil {
-		return false
+		return true
 	}
 	return reflect.DeepEqual(x, reflect.Zero(reflect.TypeOf(x)).Interface())
 }

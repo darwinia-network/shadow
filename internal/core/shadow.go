@@ -135,7 +135,7 @@ func (s *Shadow) GetHeaderWithProof(
 		log.Trace("Request block %v with proof...", num)
 
 		// Fetch header from cache
-		_, cache, err := FetchHeader(s, num)
+		cache, err := FetchHeaderCache(s, num)
 		if err != nil {
 			return GetEthHeaderWithProofRawResp{}, err
 		}

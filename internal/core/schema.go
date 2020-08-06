@@ -7,6 +7,7 @@ import (
 	"github.com/darwinia-network/shadow/internal/eth"
 	"github.com/darwinia-network/shadow/internal/log"
 	"github.com/darwinia-network/shadow/internal/util"
+	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
 )
@@ -25,7 +26,7 @@ func (c *EthHeaderWithProofCache) Fetch(shadow *Shadow) error {
 
 	if err != nil || util.IsEmpty(c.Header) || c.Header == "" {
 		log.Trace("fetching block %v ...", block)
-		_, *c, err = FetchHeader(shadow, block)
+		*c, err = FetchHeaderCache(shadow, block)
 		if err != nil {
 			return err
 		}
@@ -61,12 +62,12 @@ func (c *EthHeaderWithProofCache) ApplyProof(shadow *Shadow) error {
 		}
 
 		// Fetch EthHeader
-		ethHeader, cache, err := FetchHeader(shadow, block)
+		var ethHeader types.Header
+		ethHeader, err = FetchHeader(shadow, block)
 		if err != nil {
 			return err
 		}
 
-		*c = cache
 		err = CreateProofCache(shadow, c, &ethHeader)
 		if err != nil {
 			return err

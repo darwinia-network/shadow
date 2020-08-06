@@ -59,9 +59,38 @@ func CountCache(db *gorm.DB) uint64 {
 
 func FetchHeader(shadow *Shadow, block interface{}) (
 	header types.Header,
+	err error,
+) {
+	num, err := shadow.checkGenesis(shadow.Config.Genesis, block)
+	if err != nil {
+		return
+	}
+
+	if !util.IsEmpty(shadow.Geth) {
+		log.Trace("Request block %v from leveldb...", num)
+		dimHeader := shadow.Geth.Header(num)
+		if !util.IsEmpty(dimHeader) {
+			header = *dimHeader
+		}
+	}
+
+	if util.IsEmpty(header) {
+		log.Trace("Request block %v from infura api...", num)
+		header, err = eth.Header(num, shadow.Config.Api)
+		if err != nil {
+			return
+		}
+	}
+
+	_, err = CreateEthHeaderCache(shadow.DB, &header)
+	return
+}
+
+func FetchHeaderCache(shadow *Shadow, block interface{}) (
 	cache EthHeaderWithProofCache,
 	err error,
 ) {
+	var header types.Header
 	num, err := shadow.checkGenesis(shadow.Config.Genesis, block)
 	if err != nil {
 		return

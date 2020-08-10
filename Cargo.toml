@@ -11,7 +11,7 @@ path = "mmr/main.rs"
 
 [lib]
 path = "mmr/lib.rs"
-crate_type = ["rlib", "cdylib"]
+crate_type = ["rlib", "staticlib"]
 
 [dependencies]
 uint = "0.8.3"

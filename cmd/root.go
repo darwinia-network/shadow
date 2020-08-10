@@ -17,6 +17,12 @@ var (
 	PROOF_FORMAT string
 	PATH         string
 	NAME         string
+	MMR          bool
+	CHANNELS     int
+	LIMITS       uint64
+	PERTX        uint64
+	CHECK        bool
+	GETH_DATADIR string
 )
 
 const (
@@ -36,8 +42,8 @@ func init() {
 		cmdRun,
 		cmdVersion,
 		cmdTest,
-		cmdExport,
 		cmdImport,
+		cmdGeth,
 	)
 }
 

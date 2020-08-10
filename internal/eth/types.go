@@ -1,6 +1,8 @@
 package eth
 
 import (
+	"encoding/json"
+
 	"github.com/ethereum/go-ethereum/core/types"
 )
 
@@ -28,6 +30,14 @@ type DarwiniaEthHeader struct {
 	Difficulty       uint64   `json:"difficulty"`
 	Seal             []string `json:"seal"`
 	Hash             string   `json:"hash"`
+}
+
+func (d *DarwiniaEthHeader) ToString() (string, error) {
+	bytes, err := json.Marshal(d)
+	if err != nil {
+		return "", err
+	}
+	return string(bytes), nil
 }
 
 type DarwiniaEthHeaderHexFormat struct {

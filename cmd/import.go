@@ -1,76 +1,98 @@
 package cmd
 
 import (
-	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"os"
+	"runtime"
 	"strings"
+	"time"
 
+	"github.com/darwinia-network/shadow/internal"
 	"github.com/darwinia-network/shadow/internal/core"
-	"github.com/darwinia-network/shadow/internal/eth"
+	"github.com/darwinia-network/shadow/internal/log"
 	"github.com/darwinia-network/shadow/internal/util"
 	"github.com/spf13/cobra"
 )
 
 func init() {
-	cmdImport.PersistentFlags().StringVarP(
-		&PATH,
-		"path",
-		"p",
-		".",
-		"The export path",
+	cmdImport.PersistentFlags().BoolVarP(
+		&VERBOSE,
+		"verbose",
+		"v",
+		false,
+		"Enable all shadow logs",
 	)
 
-	cmdImport.PersistentFlags().StringVarP(
-		&NAME,
-		"name",
-		"n",
-		"shadow.blocks",
-		"The database export name",
+	cmdImport.PersistentFlags().Uint64VarP(
+		&PERTX,
+		"pertx",
+		"p",
+		1000,
+		"blocks per transaction",
+	)
+
+	cmdImport.PersistentFlags().Uint64VarP(
+		&LIMITS,
+		"limits",
+		"l",
+		1000000,
+		"block limits",
+	)
+
+	cmdImport.PersistentFlags().IntVarP(
+		&CHANNELS,
+		"channels",
+		"r",
+		300,
+		"goroutine channel conunts",
 	)
 }
 
 var cmdImport = &cobra.Command{
-	Use:   "import",
+	Use:   "import <path>",
 	Short: "Import Shadow blocks",
-	Long:  "Import Shadow blocks from file",
-	Args:  cobra.MinimumNArgs(0),
+	Long:  "Import Shadow blocks from leveldb",
+	Args:  cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
+		verboseCheck()
+		runtime.GOMAXPROCS(runtime.NumCPU())
+		ch := make(chan int, CHANNELS)
+
+		// Set env
+		os.Setenv(internal.GETH_DATADIR, args[0])
 		shadow, err := core.NewShadow()
 		util.Assert(err)
 
-		hb, err := ioutil.ReadFile(
-			fmt.Sprintf("%s/%s", PATH, NAME),
-		)
-		util.Assert(err)
-
-		headers := strings.Split(string(hb), ",")
-
-		var blocks []core.EthHeaderWithProofCache
-		for _, h := range headers {
-			dh := eth.DarwiniaEthHeader{}
-			err = dh.De(h)
-			util.Assert(err)
-
-			header, err := json.Marshal(dh)
-			util.Assert(err)
-
-			blocks = append(blocks, core.EthHeaderWithProofCache{
-				Number: dh.Number,
-				Hash:   dh.Hash,
-				Header: string(header),
-			})
-			util.Assert(err)
+		// Fetch headers
+		for b := uint64(0); b < LIMITS; b++ {
+			defer func() { _ = recover() }()
+			ch <- 1
+			go importBlock(&shadow, b, ch)
 		}
-
-		for _, b := range blocks {
-			if shadow.DB.Model(&b).Where(
-				"number = ?", b.Number,
-			).Updates(&b).RowsAffected == 0 {
-				shadow.DB.Create(&b)
-			}
-		}
-
-		fmt.Printf("Imported %v blocks!\n", len(blocks))
 	},
+}
+
+func importBlock(shadow *core.Shadow, block uint64, ch chan int) {
+	header := shadow.Geth.Header(block)
+	defer func() { _ = recover() }()
+	if util.IsEmpty(header) {
+		log.Warn("fetch block %v from leveldb faield, sleep 10s", block)
+		time.Sleep(time.Second * 10)
+	}
+
+	_, err := core.CreateEthHeaderCache(shadow.DB, header)
+	if err != nil {
+		util.Assert(err)
+	}
+
+	bs := fmt.Sprintf(
+		"%s%v",
+		strings.Repeat(
+			" ",
+			len(fmt.Sprintf("%v", LIMITS))-len(fmt.Sprintf("%v", block)),
+		),
+		block,
+	)
+	log.Info("Imported block %v/%v", bs, LIMITS)
+	<-ch
 }

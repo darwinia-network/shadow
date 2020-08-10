@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"runtime"
+
 	"github.com/darwinia-network/shadow/api"
 	"github.com/darwinia-network/shadow/internal/core"
 	"github.com/darwinia-network/shadow/internal/ffi"
@@ -10,12 +12,36 @@ import (
 )
 
 func init() {
+	cmdRun.PersistentFlags().IntVarP(
+		&CHANNELS,
+		"channels",
+		"r",
+		1,
+		"goroutine channel conunts",
+	)
+
 	cmdRun.PersistentFlags().BoolVarP(
 		&FETCH,
 		"fetch",
 		"f",
 		false,
 		"keep fetching blocks in background",
+	)
+
+	cmdRun.PersistentFlags().BoolVarP(
+		&CHECK,
+		"check",
+		"c",
+		false,
+		"fetch headers from block 0, check all blocks exists",
+	)
+
+	cmdRun.PersistentFlags().BoolVarP(
+		&MMR,
+		"mmr",
+		"m",
+		false,
+		"trigger mmr service",
 	)
 
 	cmdRun.PersistentFlags().BoolVarP(
@@ -32,36 +58,50 @@ func init() {
 		"3000",
 		"set port of http api server",
 	)
+
+	cmdRun.PersistentFlags().StringVar(
+		&GETH_DATADIR,
+		"geth-datadir",
+		"",
+		"The datadir of geth",
+	)
 }
 
 const (
 	GIN_MODE = "GIN_MODE"
 )
 
-func fetch(shadow *core.Shadow, genesis uint64) {
-	// run mmr service
-	go ffi.RunMMR()
+func fetchRoutine(shadow *core.Shadow, ptr uint64, ch chan int) {
+	defer func() { _ = recover() }()
+	_, err := core.FetchHeaderCache(shadow, ptr)
+	if err != nil {
+		log.Error("fetch header %v failed: %v", ptr, err)
+	}
 
-	// fetcher
-	ptr := core.EthHeaderWithProofCache{Number: genesis}
-	for ptr.Number >= genesis {
-		err := ptr.Fetch(shadow.Config, shadow.DB)
-		if err != nil {
-			log.Error("fetch header %v failed\n", ptr.Number)
-			continue
-		}
+	<-ch
+}
 
-		ptr = core.EthHeaderWithProofCache{
-			Number: ptr.Number + 1,
-			Header: "",
-		}
+func fetch(shadow *core.Shadow) {
+	// set channel
+	runtime.GOMAXPROCS(runtime.NumCPU())
+	ch := make(chan int, CHANNELS)
+
+	var base uint64 = shadow.Config.Genesis
+	if !CHECK {
+		base = core.CountCache(shadow.DB)
+		log.Info("current ethereum block height: %v", base)
+	}
+
+	for ptr := base; ; ptr++ {
+		ch <- 1
+		go fetchRoutine(shadow, ptr, ch)
 	}
 }
 
 var cmdRun = &cobra.Command{
-	Use:   "run [port]",
+	Use:   "run",
 	Short: "Start shadow service",
-	Long:  "This command will use the config at `~/.darwinia/config.json`",
+	Long:  "The main command of shadow service, lots of available flags",
 	Args:  cobra.MinimumNArgs(0),
 	Run: func(cmd *cobra.Command, _ []string) {
 		verboseCheck()
@@ -70,9 +110,19 @@ var cmdRun = &cobra.Command{
 		shadow, err := core.NewShadow()
 		util.Assert(err)
 
+		// Check if has geth-datadir
+		if len(GETH_DATADIR) > 0 {
+			shadow.Config.Geth = GETH_DATADIR
+		}
+
 		// if need fetch
 		if FETCH {
-			go fetch(&shadow, shadow.Config.Genesis)
+			go fetch(&shadow)
+		}
+
+		// if trigger MMR
+		if MMR {
+			go ffi.RunMMR()
 		}
 
 		log.Info("Shadow HTTP service start at %s", HTTP)

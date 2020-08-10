@@ -19,6 +19,7 @@ const PROOF_LOCK = "proof.lock"
 type Shadow struct {
 	Config internal.Config
 	DB     *gorm.DB
+	Geth   eth.Geth
 }
 
 func NewShadow() (Shadow, error) {
@@ -33,9 +34,15 @@ func NewShadow() (Shadow, error) {
 		return Shadow{}, err
 	}
 
+	geth, err := eth.NewGeth(conf.Geth)
+	if err != nil {
+		log.Warn("Geth path doen't confirgured")
+	}
+
 	return Shadow{
 		*conf,
 		db,
+		geth,
 	}, err
 }
 
@@ -54,15 +61,18 @@ func (s *Shadow) checkGenesis(genesis uint64, block interface{}) (uint64, error)
 
 		return b, nil
 	case string:
+		if !util.IsEmpty(s.Geth) {
+			return s.Geth.HashToNumber(b), nil
+		}
+
+		// from infura
 		eH, err := eth.Header(b, s.Config.Api)
-		log.Trace("%v", b)
-		log.Trace("%v", eH)
 		if err != nil {
 			return genesis, err
 		}
 
 		// convert ethHeader to darwinia header
-		dH, err := eth.IntoDarwiniaEthHeader(eH)
+		dH, err := eth.IntoDarwiniaEthHeader(&eH)
 		if err != nil {
 			return dH.Number, err
 		}
@@ -98,7 +108,13 @@ func (s *Shadow) GetHeader(
 			return types.Header{}, err
 		}
 
-		log.Trace("request block %v from infura api...", num)
+		if !util.IsEmpty(s.Geth) {
+			block := *s.Geth.Header(block)
+			if !util.IsEmpty(block) {
+				return block, nil
+			}
+		}
+
 		return eth.Header(num, s.Config.Api)
 	}
 
@@ -119,13 +135,12 @@ func (s *Shadow) GetHeaderWithProof(
 		log.Trace("Request block %v with proof...", num)
 
 		// Fetch header from cache
-		cache := EthHeaderWithProofCache{Number: num}
-		err = cache.Fetch(s.Config, s.DB)
+		cache, err := FetchHeaderCache(s, num)
 		if err != nil {
 			return GetEthHeaderWithProofRawResp{}, err
 		}
 
-		err = cache.ApplyProof(s.Config, s.DB)
+		err = cache.ApplyProof(s)
 		if err != nil {
 			return GetEthHeaderWithProofRawResp{}, err
 		}
@@ -204,7 +219,7 @@ func (s *Shadow) GetReceipt(
 
 	resp.ReceiptProof = proof.Proof
 	cache := EthHeaderWithProofCache{Hash: hash}
-	err = cache.Fetch(s.Config, s.DB)
+	err = cache.Fetch(s)
 	if err != nil {
 		return
 	}

@@ -80,7 +80,7 @@ func (h *DarwiniaEthHeader) HexFormat() DarwiniaEthHeaderHexFormat {
 }
 
 // Convert EthHeader to Darwinia Eth Block
-func IntoDarwiniaEthHeader(e types.Header) (DarwiniaEthHeader, error) {
+func IntoDarwiniaEthHeader(e *types.Header) (DarwiniaEthHeader, error) {
 	h := DarwiniaEthHeader{}
 	mixh, err := rlp.EncodeToBytes(e.MixDigest)
 	if err != nil {

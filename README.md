@@ -14,6 +14,12 @@ Downloads shadow service
 git clone https://github.com/darwinia-network/shadow.git
 ```
 
+Build shadow service
+
+```
+cd shadow && make
+```
+
 Exports your `INFURA_KEY` to envrioment
 
 ```

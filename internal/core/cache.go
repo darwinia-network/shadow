@@ -102,7 +102,7 @@ func FetchHeaderCache(shadow *Shadow, block interface{}) (
 		return
 	}
 
-	if !util.IsEmpty(cache.Header) && !util.IsEmpty(shadow.Geth) {
+	if util.IsEmpty(cache.Header) && !util.IsEmpty(shadow.Geth) {
 		log.Trace("Request block %v from leveldb...", block)
 		dimHeader := shadow.Geth.Header(block)
 		if !util.IsEmpty(dimHeader) {
@@ -174,11 +174,12 @@ func CreateProofCache(
 	}
 
 	cache.Proof = string(proofBytes)
-	err = shadow.DB.Model(&cache).Where(
-		"number = ?", cache.Number,
-	).Update(
-		"proof", cache.Proof,
-	).Error
+	err = shadow.DB.Model(&cache).Update(&cache).Error
+	// err = shadow.DB.Model(&cache).Where(
+	// 	"number = ?", cache.Number,
+	// ).Update(
+	// 	"proof", cache.Proof,
+	// ).Error
 
 	if err != nil {
 		return err

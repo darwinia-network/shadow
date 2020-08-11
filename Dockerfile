@@ -1,17 +1,23 @@
 # This Dockerfile only works on linux
 
-FROM ubuntu:latest
+FROM rust:alpine
 
-ARG DEBIAN_FRONTEND=noninteractive
+COPY . .
 
-ENV TZ=America/Los_Angeles
+RUN apk add sqlite-dev bash
 
-COPY target/release/libmmr.so /usr/local/lib
+# FROM golang:1.14-alpine
+#
+# ARG DEBIAN_FRONTEND=noninteractive
+#
+# ENV TZ=America/Los_Angeles
+#
+# COPY target/release/libmmr.so /usr/local/lib
+# COPY . shadow
+#
+# RUN apk add --no-cache sqlite-dev bash musl-dev\
+#     && cp /usr/local/lib/libmmr.so /outputs/libmmr.so \
+#     && go build -o /outputs/shadow -v /go/shadow/bin/main.go
 
-COPY target/shadow .
 
-RUN apt-get update -y \
-    && apt-get install -y libsqlite3-dev libdbus-1-dev \
-    && ldconfig
-
-ENTRYPOINT ["./shadow"]
+# ENTRYPOINT ["./shadow"]

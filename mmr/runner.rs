@@ -10,6 +10,15 @@ use cmmr::MMR;
 use diesel::{dsl::count, prelude::*, result::Error as DieselError};
 use std::{cmp::Ordering, path::PathBuf, thread, time};
 
+fn log2_floor(mut num: i64) -> i64 {
+    let mut res = -1;
+    while num > 0 {
+        res += 1;
+        num >>= 1;
+    }
+    res
+}
+
 /// MMR Runner
 pub struct Runner {
     /// MMR Storage
@@ -36,7 +45,7 @@ impl Runner {
             return 0;
         }
 
-        let mut m = (mmr_size as f64).log2().round() as i64;
+        let mut m = log2_floor(mmr_size);
         loop {
             match (2 * m - m.count_ones() as i64).cmp(&mmr_size) {
                 Ordering::Equal => return m - 1,

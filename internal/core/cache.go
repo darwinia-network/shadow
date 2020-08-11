@@ -35,10 +35,12 @@ func ConnectDb() (*gorm.DB, error) {
 	}
 
 	log.Info("Connecting database ~/%v...", DB_PATH)
-	db, err := gorm.Open("sqlite3", fmt.Sprintf(
-		"file:%s?cache=shared&mode=rwc&_busy_timeout=9999999&_journal_mode=WAL",
-		path.Join(usr.HomeDir, DB_PATH)),
+	db, err := gorm.Open("sqlite3",
+		fmt.Sprintf(
+			"file:%s?cache=shared&mode=rwc&_journal_mode=WAL",
+			path.Join(usr.HomeDir, DB_PATH)),
 	)
+
 	if err != nil {
 		return db, err
 	}
@@ -174,12 +176,12 @@ func CreateProofCache(
 	}
 
 	cache.Proof = string(proofBytes)
-	err = shadow.DB.Model(&cache).Update(&cache).Error
-	// err = shadow.DB.Model(&cache).Where(
-	// 	"number = ?", cache.Number,
-	// ).Update(
-	// 	"proof", cache.Proof,
-	// ).Error
+	err = shadow.DB.Model(&cache).Where(
+		"number = ?", cache.Number,
+	).Updates(EthHeaderWithProofCache{
+		Proof: cache.Proof,
+		Root:  cache.Root,
+	}).Error
 
 	if err != nil {
 		return err

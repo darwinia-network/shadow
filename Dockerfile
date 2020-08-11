@@ -25,8 +25,9 @@ RUN apk add --no-cache sqlite-dev sqlite-libs musl-dev gcc bash \
 FROM alpine:latest
 COPY --from=shadow /outputs /shadow
 COPY --from=ethereum/client-go:latest /usr/local/bin/geth /usr/local/bin/
-RUN mv /shadow/libmmr.a /usr/local/lib/ \
+RUN apk add --no-cache bash \
+    && mv /shadow/libmmr.a /usr/local/lib/ \
     && mv /shadow/shadow /usr/local/bin/ \
     && rm -rf /shadow
 
-ENTRYPOINT ["shadow"]
+EXPOSE 3000

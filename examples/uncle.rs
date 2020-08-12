@@ -35,7 +35,7 @@ const HASHES: [&str; 20] = [
 fn main() {
     let db = env::temp_dir().join("test_mmr_proof.db");
     let store = Store::new(&db);
-    let mut mmr = MMR::<_, MergeHash, _>::new(0, store);
+    let mut mmr = MMR::<_, MergeHash, _>::new(0, &store);
     let mut roots: Vec<String> = vec![];
     let pos: Vec<u64> = (0..20)
         .map(|h| {

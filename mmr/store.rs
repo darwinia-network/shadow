@@ -72,7 +72,7 @@ impl Default for Store {
     }
 }
 
-impl<H> MMRStore<H> for Store
+impl<'s, H> MMRStore<H> for &'s Store
 where
     H: H256,
 {

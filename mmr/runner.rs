@@ -23,6 +23,8 @@ fn log2_floor(mut num: i64) -> i64 {
 pub struct Runner {
     /// MMR Storage
     pub path: PathBuf,
+    store: Store,
+    conn: SqliteConnection,
 }
 
 impl Default for Runner {
@@ -33,8 +35,10 @@ impl Default for Runner {
             "The database path of shadow service is {}",
             DEFAULT_RELATIVE_MMR_DB
         );
+        let store = Store::new(&path);
+        let conn = store.conn();
 
-        Runner { path }
+        Runner { path, store, conn }
     }
 }
 
@@ -89,24 +93,21 @@ impl Runner {
 
     /// Get block hash by number
     pub fn get_hash(&mut self, block: i64) -> Result<String, Error> {
-        let store = Store::new(&self.path);
         let cache = eth_header_with_proof_caches
             .filter(number.eq(block))
-            .first::<Cache>(&store.conn)?;
+            .first::<Cache>(&self.conn)?;
 
         Ok(cache.hash)
     }
 
     /// Push new header hash into storage
     pub fn push(&mut self, pnumber: i64) -> Result<(), Error> {
-        let store = Store::new(&self.path);
-        // Get Hash
-        let conn = store.conn();
         let cache = eth_header_with_proof_caches
             .filter(number.eq(pnumber))
-            .first::<Cache>(&store.conn)?;
+            .first::<Cache>(&self.conn)?;
 
-        let mut mmr = MMR::<_, MergeHash, _>::new(self.mmr_count().unwrap_or(0) as u64, store);
+        let mut mmr =
+            MMR::<_, MergeHash, _>::new(self.mmr_count().unwrap_or(0) as u64, &self.store);
         if let Err(e) = mmr.push(H256::from(&cache.hash[2..])) {
             return Err(Error::MMR(e));
         }
@@ -115,7 +116,7 @@ impl Runner {
         let proot = mmr.get_root()?;
         diesel::update(eth_header_with_proof_caches.filter(number.eq(pnumber)))
             .set(root.eq(Some(H256::hex(&proot))))
-            .execute(&conn)?;
+            .execute(&self.conn)?;
 
         mmr.commit()?;
         Ok(())

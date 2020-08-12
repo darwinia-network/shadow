@@ -62,13 +62,21 @@ impl Runner {
     /// Start the runner
     pub fn start(&mut self) -> Result<(), Error> {
         match self.mmr_count() {
-            Ok(mut base) => {
-                base = Runner::mmr_size_to_last_leaf(base);
+            Ok(mmr_count) => {
+                let mut next = {
+                    let last_leaf = Runner::mmr_size_to_last_leaf(mmr_count);
+                    if last_leaf == 0 {
+                        0
+                    } else {
+                        last_leaf + 1
+                    }
+                };
+
                 loop {
-                    if let Err(e) = self.push(base) {
+                    if let Err(e) = self.push(next) {
                         match e {
                             Error::Diesel(DieselError::NotFound) => {
-                                warn!("Could not find block {:?} in cache", base)
+                                trace!("Could not find block {:?} in cache", next)
                             }
                             _ => error!("Push block to mmr_store failed: {:?}", e),
                         }
@@ -77,8 +85,8 @@ impl Runner {
                         thread::sleep(time::Duration::from_secs(10));
                         return self.start();
                     } else {
-                        trace!("push eth block number {} into db succeed.", base);
-                        base += 1;
+                        trace!("push eth block number {} into db succeed.", next);
+                        next += 1;
                     }
                 }
             }
@@ -124,8 +132,7 @@ impl Runner {
 
     /// Get the count of mmr store
     fn mmr_count(&self) -> Result<i64, Error> {
-        let store = Store::new(&self.path);
-        let res = mmr_store.select(count(elem)).first::<i64>(&store.conn);
+        let res = mmr_store.select(count(elem)).first::<i64>(&self.conn);
         if let Err(e) = res {
             Err(Error::Diesel(e))
         } else {

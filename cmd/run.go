@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"runtime"
 	"os"
 
 	"github.com/darwinia-network/shadow/api"
@@ -14,14 +13,6 @@ import (
 )
 
 func init() {
-	cmdRun.PersistentFlags().IntVarP(
-		&CHANNELS,
-		"channels",
-		"r",
-		1,
-		"goroutine channel conunts",
-	)
-
 	cmdRun.PersistentFlags().BoolVarP(
 		&FETCH,
 		"fetch",
@@ -73,21 +64,16 @@ const (
 	GIN_MODE = "GIN_MODE"
 )
 
-func fetchRoutine(shadow *core.Shadow, ptr uint64, ch chan int) {
+func fetchRoutine(shadow *core.Shadow, ptr uint64) {
 	defer func() { _ = recover() }()
 	_, err := core.FetchHeaderCache(shadow, ptr)
 	if err != nil {
-		log.Error("fetch header %v failed: %v", ptr, err)
+		_, _ = core.FetchHeaderCache(shadow, ptr)
+		log.Warn("fetch header %v failed: %v, refetching...", ptr, err)
 	}
-
-	<-ch
 }
 
 func fetch(shadow *core.Shadow) {
-	// set channel
-	runtime.GOMAXPROCS(runtime.NumCPU())
-	ch := make(chan int, CHANNELS)
-
 	var base uint64 = shadow.Config.Genesis
 	if !CHECK {
 		count := core.CountCache(shadow.DB)
@@ -100,8 +86,7 @@ func fetch(shadow *core.Shadow) {
 	}
 
 	for ptr := base; ; ptr++ {
-		ch <- 1
-		go fetchRoutine(shadow, ptr, ch)
+		fetchRoutine(shadow, ptr)
 	}
 }
 

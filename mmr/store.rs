@@ -7,79 +7,79 @@ use std::path::PathBuf;
 /// Constants
 pub const DEFAULT_RELATIVE_MMR_DB: &str = ".darwinia/cache/shadow.db";
 
-/// MMR Store
-pub struct Store {
-    /// Database path
-    pub path: PathBuf,
-    /// Sqlite3 Connection
-    pub conn: SqliteConnection,
-}
-
-impl Store {
-    /// new conn
-    pub fn conn(&self) -> SqliteConnection {
-        SqliteConnection::establish(&self.path.to_string_lossy())
-            .unwrap_or_else(|_| panic!("Error connecting to {:?}", &self.path))
+/// Connections
+pub fn conn(p: &PathBuf) -> SqliteConnection {
+    let op_dir = p.parent();
+    if op_dir.is_none() {
+        panic!("Wrong db path: {:?}", p);
     }
 
+    let dir = op_dir.unwrap();
+    if !dir.exists() {
+        let res = std::fs::create_dir_all(dir);
+        if res.is_err() {
+            panic!("Create dir failed: {:?}", res);
+        }
+    }
+
+    SqliteConnection::establish(&p.to_string_lossy())
+        .unwrap_or_else(|_| panic!("Error connecting to {:?}", &p))
+}
+
+/// Default Connections
+pub fn default_conn() -> SqliteConnection {
+    let mut root = dirs::home_dir().unwrap_or_default();
+    root.push(DEFAULT_RELATIVE_MMR_DB);
+    SqliteConnection::establish(&root.to_string_lossy())
+        .unwrap_or_else(|_| panic!("Error connecting to {:?}", &root))
+}
+
+/// MMR Store
+pub struct Store<'c> {
+    /// Sqlite3 Connection
+    pub conn: &'c SqliteConnection,
+}
+
+impl<'c> Store<'c> {
     /// New store with path
     ///
     /// This is the very begining part of mmr service, panic when connect db failed.
-    pub fn new(p: &PathBuf) -> Store {
-        let op_dir = p.parent();
-        if op_dir.is_none() {
-            panic!("Wrong db path: {:?}", p);
-        }
-
-        let dir = op_dir.unwrap();
-        if !dir.exists() {
-            let res = std::fs::create_dir_all(dir);
-            if res.is_err() {
-                panic!("Create dir failed: {:?}", res);
-            }
-        }
-
-        let conn = SqliteConnection::establish(&p.to_string_lossy())
-            .unwrap_or_else(|_| panic!("Error connecting to {:?}", p));
-
+    pub fn with(conn: &'c SqliteConnection) -> Store<'c> {
         // Create store table
         diesel::sql_query(CREATE_MMR_STORE_IF_NOT_EXISTS)
-            .execute(&conn)
+            .execute(conn)
             .unwrap_or_default();
 
-        Store {
-            path: p.to_path_buf(),
-            conn,
-        }
+        Store { conn }
     }
 
     /// Drop mmr table and create it again
     pub fn re_create(&self) -> Result<usize, diesel::result::Error> {
-        let r = diesel::sql_query(DROP_MMR_TABLE).execute(&self.conn);
+        let r = diesel::sql_query(DROP_MMR_TABLE).execute(self.conn);
         if r.is_ok() {
-            diesel::sql_query(CREATE_MMR_STORE_IF_NOT_EXISTS).execute(&self.conn)
+            diesel::sql_query(CREATE_MMR_STORE_IF_NOT_EXISTS).execute(self.conn)
         } else {
             r
         }
     }
 }
 
-impl Default for Store {
-    fn default() -> Store {
-        let mut root = dirs::home_dir().unwrap_or_default();
-        root.push(DEFAULT_RELATIVE_MMR_DB);
-        Store::new(&root)
-    }
-}
+// impl Default for Store<'s> {
+//     fn default() -> Store<'s> {
+//         let mut root = dirs::home_dir().unwrap_or_default();
+//         root.push(DEFAULT_RELATIVE_MMR_DB);
+//         Store::new(&root, )
+//     }
+// }
 
-impl<'s, H> MMRStore<H> for &'s Store
+impl<'s, H> MMRStore<H> for &'s Store<'s>
 where
     H: H256,
 {
     fn get_elem(&self, rpos: u64) -> MMRResult<Option<H>> {
         let store = mmr_store
             .filter(pos.eq(rpos as i64))
-            .first::<Header>(&self.conn);
+            .first::<Header>(self.conn);
 
         if let Ok(store) = store {
             Ok(Some(H::from(store.elem.as_str())))
@@ -90,7 +90,7 @@ where
 
     fn append(&mut self, rpos: u64, elems: Vec<H>) -> MMRResult<()> {
         let mut the_count: u64 = 0;
-        let count_res = mmr_store.select(count(elem)).first::<i64>(&self.conn);
+        let count_res = mmr_store.select(count(elem)).first::<i64>(self.conn);
         if let Ok(count) = count_res {
             the_count = count as u64;
         }
@@ -103,7 +103,7 @@ where
             let header = Header::new(relem.hex(), rpos as i64 + i as i64);
             let res = diesel::insert_into(mmr_store)
                 .values(&vec![header])
-                .execute(&self.conn);
+                .execute(self.conn);
 
             if res.is_err() {
                 return Err(Error::StoreError(format!(

@@ -1,8 +1,8 @@
 use cmmr::{Merge, MMR};
 use mmr::{
     hash::{MergeHash, H256},
-    store::Store,
-    Runner,
+    helper,
+    store::{self, Store},
 };
 use std::{env, fs, path::PathBuf};
 
@@ -54,7 +54,8 @@ where
     F: Fn(MMR<[u8; 32], MergeHash, &Store>, Vec<u64>),
 {
     let db = env::temp_dir().join(db);
-    let store = Store::new(&db);
+    let conn = store::conn(&db);
+    let store = Store::with(&conn);
     let mut mmr = MMR::<_, MergeHash, _>::new(0, &store);
     let pos: Vec<u64> = (0..10)
         .map(|h| {
@@ -101,7 +102,7 @@ fn test_mmr_size_n_leaves() {
     (0..1000).for_each(|i| {
         assert_eq!(
             i as i64,
-            Runner::mmr_size_to_last_leaf(cmmr::leaf_index_to_mmr_size(i) as i64)
+            helper::mmr_size_to_last_leaf(cmmr::leaf_index_to_mmr_size(i) as i64)
         );
     });
 }

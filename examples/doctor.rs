@@ -2,11 +2,12 @@
 use cmmr::{leaf_index_to_mmr_size, MMR};
 use mmr::{
     hash::{MergeHash, H256},
-    store::Store,
+    store::{self, Store},
 };
 
 fn main() {
-    let store = Store::default();
+    let conn = store::default_conn();
+    let store = Store::with(&conn);
 
     let mmr = MMR::<_, MergeHash, _>::new(leaf_index_to_mmr_size(1), &store);
     let leaf_root = mmr.get_root().expect("get root failed");

@@ -2,7 +2,8 @@
 use cmmr::MMR;
 use mmr::{
     hash::{MergeHash, H256},
-    store::{self, Store},
+    pool,
+    store::Store,
 };
 use std::env;
 
@@ -34,9 +35,9 @@ const HASHES: [&str; 20] = [
 
 fn main() {
     let db = env::temp_dir().join("test_mmr_proof.db");
-    let conn = store::conn(&db);
-    let store = Store::with(&conn);
-    let mut mmr = MMR::<_, MergeHash, _>::new(0, &store);
+    let conn = pool::conn(Some(db));
+    let store = Store::with(conn);
+    let mut mmr = MMR::<_, MergeHash, _>::new(0, store);
     let mut roots: Vec<String> = vec![];
     let pos: Vec<u64> = (0..20)
         .map(|h| {

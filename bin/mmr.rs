@@ -1,7 +1,8 @@
 use mmr::Runner;
 
 fn main() {
-    let conn = mmr::store::default_conn();
-    let mut runner = Runner::with(&conn);
-    runner.start().unwrap();
+    env_logger::init();
+    let conn = mmr::pool::conn(None);
+    let mut runner = Runner::with(conn);
+    runner.start(10).unwrap();
 }

@@ -7,6 +7,3 @@ pub const CREATE_MMR_STORE_IF_NOT_EXISTS: &str = r#"
     pos    INTEGER  NOT NULL
   )
 "#;
-
-/// Drop mmr table
-pub const DROP_MMR_TABLE: &str = r#"DROP TABLE mmr_store"#;

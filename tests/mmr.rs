@@ -1,8 +1,8 @@
 use cmmr::{Merge, MMR};
 use mmr::{
     hash::{MergeHash, H256},
-    helper,
-    store::{self, Store},
+    helper, pool,
+    store::Store,
 };
 use std::{env, fs, path::PathBuf};
 
@@ -51,12 +51,12 @@ const HEADERS_N_ROOTS: [(&str, &str); 10] = [
 
 fn gen_mmr<F>(db: &PathBuf, f: F)
 where
-    F: Fn(MMR<[u8; 32], MergeHash, &Store>, Vec<u64>),
+    F: Fn(MMR<[u8; 32], MergeHash, Store>, Vec<u64>),
 {
     let db = env::temp_dir().join(db);
-    let conn = store::conn(&db);
-    let store = Store::with(&conn);
-    let mut mmr = MMR::<_, MergeHash, _>::new(0, &store);
+    let conn = pool::conn(Some(db));
+    let store = Store::with(conn);
+    let mut mmr = MMR::<_, MergeHash, _>::new(0, store);
     let pos: Vec<u64> = (0..10)
         .map(|h| {
             mmr.push(<[u8; 32] as H256>::from(HEADERS_N_ROOTS[h].0))

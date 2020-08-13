@@ -3,86 +3,108 @@ use super::{
     hash::{MergeHash, H256},
     helper,
     model::Cache,
+    pool::{ConnPool, PooledConn},
     result::Error,
     schema::{eth_header_with_proof_caches::dsl::*, mmr_store::dsl::*},
-    store::{Store, DEFAULT_RELATIVE_MMR_DB},
+    store::Store,
 };
 use cmmr::MMR;
 use diesel::{dsl::count, prelude::*, result::Error as DieselError};
-use std::{thread, time};
+use std::{
+    // rc::Rc,
+    // sync::{mpsc, Arc, Mutex},
+    thread,
+    time,
+};
 
 /// MMR Runner
-pub struct Runner<'r> {
-    store: Store<'r>,
-    conn: &'r SqliteConnection,
+#[derive(Clone)]
+pub struct Runner {
+    store: Store,
+    pool: ConnPool,
 }
 
-impl<'r> Runner<'r> {
+impl Runner {
+    /// Get Pooled connection
+    pub fn conn(&self) -> Result<PooledConn, Error> {
+        let cfp = self.pool.get();
+        if cfp.is_err() {
+            return Err(Error::Custom("Connect to database failed".into()));
+        }
+
+        Ok(cfp.unwrap())
+    }
+
     /// Start with sqlite3 conn
-    pub fn with(conn: &'r SqliteConnection) -> Runner<'r> {
-        let mut path = dirs::home_dir().unwrap_or_default();
-        path.push(DEFAULT_RELATIVE_MMR_DB);
-        let store = Store::with(conn);
-        Runner { store, conn }
+    pub fn with(pool: ConnPool) -> Runner {
+        let store = Store::with(pool.clone());
+        Runner { store, pool }
+    }
+
+    fn check_push(&mut self, cur: i64) -> i64 {
+        if let Err(e) = self.push(cur) {
+            match e {
+                Error::Diesel(DieselError::NotFound) => {
+                    trace!("Could not find block {:?} in cache", cur)
+                }
+                _ => error!("Push block to mmr_store failed: {:?}", e),
+            }
+
+            trace!("MMR service restarting after 10s...");
+            thread::sleep(time::Duration::from_secs(10));
+            cur
+        } else {
+            trace!("push eth block number {} into db succeed.", cur);
+            cur + 1
+        }
     }
 
     /// Start the runner
-    pub fn start(&mut self) -> Result<(), Error> {
-        match self.mmr_count() {
-            Ok(mmr_count) => {
-                let mut next = {
-                    let last_leaf = helper::mmr_size_to_last_leaf(mmr_count);
-                    if last_leaf == 0 {
-                        0
-                    } else {
-                        last_leaf + 1
-                    }
-                };
-
-                loop {
-                    if let Err(e) = self.push(next) {
-                        match e {
-                            Error::Diesel(DieselError::NotFound) => {
-                                trace!("Could not find block {:?} in cache", next)
-                            }
-                            _ => error!("Push block to mmr_store failed: {:?}", e),
-                        }
-
-                        trace!("MMR service restarting after 10s...");
-                        thread::sleep(time::Duration::from_secs(10));
-                        return self.start();
-                    } else {
-                        trace!("push eth block number {} into db succeed.", next);
-                        next += 1;
-                    }
-                }
+    pub fn start(&mut self, _n: usize) -> Result<(), Error> {
+        let mut next = {
+            let last_leaf = helper::mmr_size_to_last_leaf(self.mmr_count()?);
+            if last_leaf == 0 {
+                0
+            } else {
+                last_leaf + 1
             }
-            Err(e) => {
-                error!("Get mmr count failed, {:?}", e);
-                trace!("MMR service sleep for 3s...");
-                thread::sleep(time::Duration::from_secs(3));
-                self.start()
-            }
+        };
+
+        loop {
+            next = self.check_push(next);
+            // let data = Arc::new(Mutex::new(0));
+            // let (tx, rx) = mpsc::channel();
+            // for _ in 0..n {
+            //     let (data, tx) = (Arc::clone(&data), tx.clone());
+            //     let this = self.clone();
+            //     thread::spawn(move || {
+            //         next = this.check_push(next);
+            //         if *data.lock().unwrap() + 1 == n {
+            //             tx.send(()).unwrap();
+            //         }
+            //     });
         }
+        // Ok(())
     }
 
     /// Get block hash by number
     pub fn get_hash(&mut self, block: i64) -> Result<String, Error> {
         let cache = eth_header_with_proof_caches
             .filter(number.eq(block))
-            .first::<Cache>(self.conn)?;
+            .first::<Cache>(&self.conn()?)?;
 
         Ok(cache.hash)
     }
 
     /// Push new header hash into storage
     pub fn push(&mut self, pnumber: i64) -> Result<(), Error> {
+        let conn = self.conn()?;
         let cache = eth_header_with_proof_caches
             .filter(number.eq(pnumber))
-            .first::<Cache>(self.conn)?;
+            .first::<Cache>(&conn)?;
 
         let mut mmr =
-            MMR::<_, MergeHash, _>::new(self.mmr_count().unwrap_or(0) as u64, &self.store);
+            MMR::<_, MergeHash, _>::new(self.mmr_count().unwrap_or(0) as u64, self.store.clone());
         if let Err(e) = mmr.push(H256::from(&cache.hash[2..])) {
             return Err(Error::MMR(e));
         }
@@ -91,7 +113,7 @@ impl<'r> Runner<'r> {
         let proot = mmr.get_root()?;
         diesel::update(eth_header_with_proof_caches.filter(number.eq(pnumber)))
             .set(root.eq(Some(H256::hex(&proot))))
-            .execute(self.conn)?;
+            .execute(&conn)?;
 
         mmr.commit()?;
         Ok(())
@@ -99,7 +121,8 @@ impl<'r> Runner<'r> {
 
     /// Get the count of mmr store
     fn mmr_count(&self) -> Result<i64, Error> {
-        let res = mmr_store.select(count(elem)).first::<i64>(self.conn);
+        let conn = self.conn()?;
+        let res = mmr_store.select(count(elem)).first::<i64>(&conn);
         if let Err(e) = res {
             Err(Error::Diesel(e))
         } else {

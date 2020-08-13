@@ -21,6 +21,7 @@ mod sql;
 pub mod bridge;
 pub mod hash;
 pub mod helper;
+pub mod pool;
 pub mod store;
 
 pub use runner::Runner;

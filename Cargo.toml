@@ -30,7 +30,7 @@ features = ["derive"]
 
 [dependencies.diesel]
 version = "1.4.4"
-features = ["sqlite"]
+features = ["r2d2", "sqlite"]
 
 [dependencies.eth]
 git = "https://github.com/darwinia-network/darwinia-common.git"

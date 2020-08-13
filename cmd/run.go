@@ -2,6 +2,8 @@ package cmd
 
 import (
 	"os"
+	"sync"
+	"time"
 
 	"github.com/darwinia-network/shadow/api"
 	"github.com/darwinia-network/shadow/internal"
@@ -13,6 +15,14 @@ import (
 )
 
 func init() {
+	cmdRun.PersistentFlags().IntVarP(
+		&CHANNELS,
+		"channels",
+		"r",
+		10,
+		"goroutine channel conunts",
+	)
+
 	cmdRun.PersistentFlags().BoolVarP(
 		&FETCH,
 		"fetch",
@@ -64,29 +74,37 @@ const (
 	GIN_MODE = "GIN_MODE"
 )
 
-func fetchRoutine(shadow *core.Shadow, ptr uint64) {
-	defer func() { _ = recover() }()
+func fetchRoutine(shadow *core.Shadow, ptr uint64, mutex *sync.Mutex) {
+	mutex.Lock()
 	_, err := core.FetchHeaderCache(shadow, ptr)
 	if err != nil {
+		time.Sleep(10 * time.Second)
 		_, _ = core.FetchHeaderCache(shadow, ptr)
-		log.Warn("fetch header %v failed: %v, refetching...", ptr, err)
+		log.Warn("fetch header %v failed: %v, refetching after 10s...", ptr, err)
 	}
+	mutex.Unlock()
 }
 
-func fetch(shadow *core.Shadow) {
-	var base uint64 = shadow.Config.Genesis
+func fetch(shadow *core.Shadow, channels chan struct{}) {
+	var (
+		base  uint64      = shadow.Config.Genesis
+		mutex *sync.Mutex = &sync.Mutex{}
+	)
 	if !CHECK {
 		count := core.CountCache(shadow.DB)
 		if count == uint64(0) {
 			base = 0
 		} else {
-			base = count
+			base = count + 1
 		}
 		log.Info("current ethereum block height: %v", base)
 	}
 
+	// defer func() { recover() }()
 	for ptr := base; ; ptr++ {
-		fetchRoutine(shadow, ptr)
+		channels <- struct{}{}
+		fetchRoutine(shadow, ptr, mutex)
+		<-channels
 	}
 }
 
@@ -110,12 +128,13 @@ var cmdRun = &cobra.Command{
 
 		// if need fetch
 		if FETCH {
-			go fetch(&shadow)
+			channels := make(chan struct{}, CHANNELS)
+			go fetch(&shadow, channels)
 		}
 
 		// if trigger MMR
 		if MMR {
-			go ffi.RunMMR()
+			go ffi.RunMMR(1)
 		}
 
 		log.Info("Shadow HTTP service start at %s", HTTP)

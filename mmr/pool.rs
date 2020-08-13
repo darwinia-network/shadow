@@ -32,6 +32,7 @@ pub fn conn(p: Option<PathBuf>) -> ConnPool {
     }
 
     Builder::new()
+        .max_size(1)
         .build(ConnectionManager::<SqliteConnection>::new(
             path.to_string_lossy(),
         ))

@@ -14,7 +14,7 @@ pub extern "C" fn run(t: i64) -> i32 {
     env_logger::init();
     info!("starting mmr service...");
     let conn = pool::conn(None);
-    if Runner::with(conn).start(t as usize).is_ok() {
+    if Runner::with(conn).start(t).is_ok() {
         0
     } else {
         error!("mmr service start failed");

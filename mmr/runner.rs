@@ -11,10 +11,8 @@ use super::{
 use cmmr::MMR;
 use diesel::{dsl::count, prelude::*, result::Error as DieselError};
 use std::{
-    // rc::Rc,
-    // sync::{mpsc, Arc, Mutex},
-    thread,
-    time,
+    sync::{mpsc, Arc, Mutex},
+    thread, time,
 };
 
 /// MMR Runner
@@ -60,8 +58,8 @@ impl Runner {
     }
 
     /// Start the runner
-    pub fn start(&mut self, _n: usize) -> Result<(), Error> {
-        let mut next = {
+    pub fn start(&mut self, n: i64) -> Result<(), Error> {
+        let mut ptr = {
             let last_leaf = helper::mmr_size_to_last_leaf(self.mmr_count()?);
             if last_leaf == 0 {
                 0
@@ -71,20 +69,22 @@ impl Runner {
         };
 
         loop {
-            next = self.check_push(next);
-            // let data = Arc::new(Mutex::new(0));
-            // let (tx, rx) = mpsc::channel();
-            // for _ in 0..n {
-            //     let (data, tx) = (Arc::clone(&data), tx.clone());
-            //     let this = self.clone();
-            //     thread::spawn(move || {
-            //         next = this.check_push(next);
-            //         if *data.lock().unwrap() + 1 == n {
-            //             tx.send(()).unwrap();
-            //         }
-            //     });
+            let next = Arc::new(Mutex::new(ptr));
+            let (tx, rx) = mpsc::channel();
+            for _ in 0..n {
+                let (next, tx) = (Arc::clone(&next), tx.clone());
+                let mut this = self.clone();
+                thread::spawn(move || {
+                    let mut cur = next.lock().unwrap();
+                    *cur = this.check_push(*cur);
+                    if *cur == n + ptr {
+                        tx.send(*cur).unwrap();
+                    }
+                });
+            }
+
+            ptr = rx.recv().unwrap();
         }
-        // Ok(())
     }
 
     /// Get block hash by number

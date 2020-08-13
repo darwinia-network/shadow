@@ -2,8 +2,10 @@ package cmd
 
 import (
 	"runtime"
+	"os"
 
 	"github.com/darwinia-network/shadow/api"
+	"github.com/darwinia-network/shadow/internal"
 	"github.com/darwinia-network/shadow/internal/core"
 	"github.com/darwinia-network/shadow/internal/ffi"
 	"github.com/darwinia-network/shadow/internal/log"
@@ -88,7 +90,12 @@ func fetch(shadow *core.Shadow) {
 
 	var base uint64 = shadow.Config.Genesis
 	if !CHECK {
-		base = core.CountCache(shadow.DB)
+		count := core.CountCache(shadow.DB)
+		if count == uint64(0) {
+			base = 0
+		} else {
+			base = count
+		}
 		log.Info("current ethereum block height: %v", base)
 	}
 
@@ -106,14 +113,15 @@ var cmdRun = &cobra.Command{
 	Run: func(cmd *cobra.Command, _ []string) {
 		verboseCheck()
 
+		// Check if has geth-datadir
+		if len(GETH_DATADIR) > 0 {
+			log.Info("Geth dir is: %v", GETH_DATADIR)
+			os.Setenv(internal.GETH_DATADIR, GETH_DATADIR)
+		}
+
 		// Generate Shadow
 		shadow, err := core.NewShadow()
 		util.Assert(err)
-
-		// Check if has geth-datadir
-		if len(GETH_DATADIR) > 0 {
-			shadow.Config.Geth = GETH_DATADIR
-		}
 
 		// if need fetch
 		if FETCH {

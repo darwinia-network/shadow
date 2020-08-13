@@ -10,10 +10,21 @@ use cmmr::MMR;
 use diesel::{dsl::count, prelude::*, result::Error as DieselError};
 use std::{cmp::Ordering, path::PathBuf, thread, time};
 
+fn log2_floor(mut num: i64) -> i64 {
+    let mut res = -1;
+    while num > 0 {
+        res += 1;
+        num >>= 1;
+    }
+    res
+}
+
 /// MMR Runner
 pub struct Runner {
     /// MMR Storage
     pub path: PathBuf,
+    store: Store,
+    conn: SqliteConnection,
 }
 
 impl Default for Runner {
@@ -24,8 +35,10 @@ impl Default for Runner {
             "The database path of shadow service is {}",
             DEFAULT_RELATIVE_MMR_DB
         );
+        let store = Store::new(&path);
+        let conn = store.conn();
 
-        Runner { path }
+        Runner { path, store, conn }
     }
 }
 
@@ -36,7 +49,7 @@ impl Runner {
             return 0;
         }
 
-        let mut m = (mmr_size as f64).log2().round() as i64;
+        let mut m = log2_floor(mmr_size);
         loop {
             match (2 * m - m.count_ones() as i64).cmp(&mmr_size) {
                 Ordering::Equal => return m - 1,
@@ -49,13 +62,21 @@ impl Runner {
     /// Start the runner
     pub fn start(&mut self) -> Result<(), Error> {
         match self.mmr_count() {
-            Ok(mut base) => {
-                base = Runner::mmr_size_to_last_leaf(base);
+            Ok(mmr_count) => {
+                let mut next = {
+                    let last_leaf = Runner::mmr_size_to_last_leaf(mmr_count);
+                    if last_leaf == 0 {
+                        0
+                    } else {
+                        last_leaf + 1
+                    }
+                };
+
                 loop {
-                    if let Err(e) = self.push(base) {
+                    if let Err(e) = self.push(next) {
                         match e {
                             Error::Diesel(DieselError::NotFound) => {
-                                warn!("Could not find block {:?} in cache", base)
+                                trace!("Could not find block {:?} in cache", next)
                             }
                             _ => error!("Push block to mmr_store failed: {:?}", e),
                         }
@@ -64,8 +85,8 @@ impl Runner {
                         thread::sleep(time::Duration::from_secs(10));
                         return self.start();
                     } else {
-                        trace!("push eth block number {} into db succeed.", base);
-                        base += 1;
+                        trace!("push eth block number {} into db succeed.", next);
+                        next += 1;
                     }
                 }
             }
@@ -80,24 +101,21 @@ impl Runner {
 
     /// Get block hash by number
     pub fn get_hash(&mut self, block: i64) -> Result<String, Error> {
-        let store = Store::new(&self.path);
         let cache = eth_header_with_proof_caches
             .filter(number.eq(block))
-            .first::<Cache>(&store.conn)?;
+            .first::<Cache>(&self.conn)?;
 
         Ok(cache.hash)
     }
 
     /// Push new header hash into storage
     pub fn push(&mut self, pnumber: i64) -> Result<(), Error> {
-        let store = Store::new(&self.path);
-        // Get Hash
-        let conn = store.conn();
         let cache = eth_header_with_proof_caches
             .filter(number.eq(pnumber))
-            .first::<Cache>(&store.conn)?;
+            .first::<Cache>(&self.conn)?;
 
-        let mut mmr = MMR::<_, MergeHash, _>::new(self.mmr_count().unwrap_or(0) as u64, store);
+        let mut mmr =
+            MMR::<_, MergeHash, _>::new(self.mmr_count().unwrap_or(0) as u64, &self.store);
         if let Err(e) = mmr.push(H256::from(&cache.hash[2..])) {
             return Err(Error::MMR(e));
         }
@@ -106,7 +124,7 @@ impl Runner {
         let proot = mmr.get_root()?;
         diesel::update(eth_header_with_proof_caches.filter(number.eq(pnumber)))
             .set(root.eq(Some(H256::hex(&proot))))
-            .execute(&conn)?;
+            .execute(&self.conn)?;
 
         mmr.commit()?;
         Ok(())
@@ -114,8 +132,7 @@ impl Runner {
 
     /// Get the count of mmr store
     fn mmr_count(&self) -> Result<i64, Error> {
-        let store = Store::new(&self.path);
-        let res = mmr_store.select(count(elem)).first::<i64>(&store.conn);
+        let res = mmr_store.select(count(elem)).first::<i64>(&self.conn);
         if let Err(e) = res {
             Err(Error::Diesel(e))
         } else {

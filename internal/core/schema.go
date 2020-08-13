@@ -51,7 +51,6 @@ func (c *EthHeaderWithProofCache) ApplyProof(shadow *Shadow) error {
 
 	// Check proof lock
 	if err != nil || util.IsEmpty(c.Proof) || c.Proof == "" {
-		log.Trace("Apply ethashproof to block %v...", c.Number)
 		if shadow.Config.CheckLock(PROOF_LOCK) {
 			return fmt.Errorf("Shadow service is busy now, please try again later")
 		} else {

@@ -1,8 +1,8 @@
-EXT := so
+EXT := a
 SUDO := sudo
 
 ifeq ($(shell uname),Darwin)
-    EXT := dylib
+    EXT := a
 	SUDO :=
 endif
 

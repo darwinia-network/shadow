@@ -49,10 +49,13 @@ const HEADERS_N_ROOTS: [(&str, &str); 10] = [
     ),
 ];
 
-fn gen_mmr(db: &PathBuf) -> (MMR<[u8; 32], MergeHash, Store>, Vec<u64>) {
+fn gen_mmr<F>(db: &PathBuf, f: F)
+where
+    F: Fn(MMR<[u8; 32], MergeHash, &Store>, Vec<u64>),
+{
     let db = env::temp_dir().join(db);
     let store = Store::new(&db);
-    let mut mmr = MMR::<_, MergeHash, _>::new(0, store);
+    let mut mmr = MMR::<_, MergeHash, _>::new(0, &store);
     let pos: Vec<u64> = (0..10)
         .map(|h| {
             mmr.push(<[u8; 32] as H256>::from(HEADERS_N_ROOTS[h].0))
@@ -60,7 +63,7 @@ fn gen_mmr(db: &PathBuf) -> (MMR<[u8; 32], MergeHash, Store>, Vec<u64>) {
         })
         .collect();
 
-    (mmr, pos)
+    f(mmr, pos);
 }
 
 #[test]
@@ -73,24 +76,24 @@ fn test_hex() {
 #[test]
 fn test_mmr_proof() {
     let db = env::temp_dir().join("test_mmr_proof.db");
-    let (mmr, pos) = gen_mmr(&db);
+    gen_mmr(&db, |mmr, pos| {
+        let root = mmr.get_root().expect("get root failed");
+        let proof = mmr
+            .gen_proof((0..10).map(|e| pos[e]).collect())
+            .expect("gen proof");
 
-    let root = mmr.get_root().expect("get root failed");
-    let proof = mmr
-        .gen_proof((0..10).map(|e| pos[e]).collect())
-        .expect("gen proof");
+        let result = proof
+            .verify(
+                root,
+                (0..10)
+                    .map(|e| (pos[e], <[u8; 32] as H256>::from(HEADERS_N_ROOTS[e].0)))
+                    .collect(),
+            )
+            .unwrap();
 
-    let result = proof
-        .verify(
-            root,
-            (0..10)
-                .map(|e| (pos[e], <[u8; 32] as H256>::from(HEADERS_N_ROOTS[e].0)))
-                .collect(),
-        )
-        .unwrap();
-
-    assert!(result);
-    assert!(fs::remove_file(db).is_ok());
+        assert!(result);
+        assert!(fs::remove_file(&db).is_ok());
+    });
 }
 
 #[test]

@@ -1,7 +1,7 @@
 package ffi
 
 /*
-#cgo LDFLAGS: -lmmr
+#cgo LDFLAGS: -lmmr -lsqlite3 -ldl
 #include <inttypes.h>
 
 extern int32_t run();

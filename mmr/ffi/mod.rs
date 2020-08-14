@@ -10,11 +10,11 @@ use std::ffi::CString;
 
 /// Run the mmr service
 #[no_mangle]
-pub extern "C" fn run(t: i64) -> i32 {
+pub extern "C" fn run(t: i64, g: u32) -> i32 {
     env_logger::init();
     info!("starting mmr service...");
     let conn = pool::conn(None);
-    if Runner::with(conn).start(t).is_ok() {
+    if Runner::with(conn).start(t, g).is_ok() {
         0
     } else {
         error!("mmr service start failed");

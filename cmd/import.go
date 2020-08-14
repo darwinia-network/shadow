@@ -23,15 +23,7 @@ func init() {
 		"Enable all shadow logs",
 	)
 
-	cmdImport.PersistentFlags().Uint64VarP(
-		&PERTX,
-		"pertx",
-		"p",
-		1000,
-		"blocks per transaction",
-	)
-
-	cmdImport.PersistentFlags().Uint64VarP(
+	cmdImport.PersistentFlags().Uint32VarP(
 		&LIMITS,
 		"limits",
 		"l",
@@ -64,7 +56,7 @@ var cmdImport = &cobra.Command{
 		util.Assert(err)
 
 		// Fetch headers
-		for b := uint64(0); b < LIMITS; b++ {
+		for b := uint64(0); b < uint64(LIMITS); b++ {
 			defer func() { _ = recover() }()
 			ch <- 1
 			go importBlock(&shadow, b, ch)

@@ -58,7 +58,7 @@ impl Runner {
     }
 
     /// Start the runner
-    pub fn start(&mut self, n: i64) -> Result<(), Error> {
+    pub fn start(&mut self, thread: i64, limits: u32) -> Result<(), Error> {
         let mut ptr = {
             let last_leaf = helper::mmr_size_to_last_leaf(self.mmr_count()?);
             if last_leaf == 0 {
@@ -68,16 +68,18 @@ impl Runner {
             }
         };
 
+        let gap: time::Duration = time::Duration::from_secs(1) / limits;
         loop {
             let next = Arc::new(Mutex::new(ptr));
             let (tx, rx) = mpsc::channel();
-            for _ in 0..n {
+            for _ in 0..thread {
                 let (next, tx) = (Arc::clone(&next), tx.clone());
                 let mut this = self.clone();
                 thread::spawn(move || {
                     let mut cur = next.lock().unwrap();
                     *cur = this.check_push(*cur);
-                    if *cur == n + ptr {
+                    thread::sleep(gap);
+                    if *cur == thread + ptr {
                         tx.send(*cur).unwrap();
                     }
                 });

@@ -19,7 +19,7 @@ var (
 	NAME         string
 	MMR          bool
 	CHANNELS     int64
-	LIMITS       uint64
+	LIMITS       uint32
 	PERTX        uint64
 	CHECK        bool
 	GETH_DATADIR string

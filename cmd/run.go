@@ -16,12 +16,12 @@ import (
 )
 
 func init() {
-	cmdRun.PersistentFlags().Uint64VarP(
+	cmdRun.PersistentFlags().Uint32VarP(
 		&LIMITS,
 		"limits",
 		"l",
 		1000,
-		"requests blocks once while",
+		"handle blocks per second",
 	)
 
 	cmdRun.PersistentFlags().Int64VarP(
@@ -95,29 +95,26 @@ func fetchRoutine(shadow *core.Shadow, ptr uint64, mutex *sync.Mutex) {
 	mutex.Unlock()
 }
 
-// func checkLock(shadow *core.Shadow) {
-// 	for shadow.Config.CheckLock(DB_LOCK) {
-// 		time.Sleep(500 * time.Millisecond)
-// 	}
-// }
-
 func fetch(shadow *core.Shadow, channels chan struct{}) {
 	var (
 		base  uint64      = shadow.Config.Genesis
 		mutex *sync.Mutex = &sync.Mutex{}
 	)
 	if !CHECK {
-		base = core.CountCache(shadow.DB)
+		count := core.CountCache(shadow.DB)
+		if count == 0 {
+			base = count
+		} else {
+			base = count - 1
+		}
 		log.Info("current ethereum block height: %v", base)
 	}
 
+	gap := 1 * time.Second / time.Duration(int64(LIMITS))
 	for ptr := base; ; ptr++ {
 		channels <- struct{}{}
 		fetchRoutine(shadow, ptr, mutex)
-		// if ptr%LIMITS == 0 {
-		// 	// shadow.Config.CreateLock(DB_LOCK, []byte(""))
-		// 	// checkLock(shadow)
-		// }
+		time.Sleep(gap)
 		<-channels
 	}
 }
@@ -141,6 +138,10 @@ var cmdRun = &cobra.Command{
 		shadow, err := core.NewShadow()
 		util.Assert(err)
 
+		// Remove all locks
+		err = shadow.Config.RemoveAllLocks()
+		util.Assert(err)
+
 		funcs := []func(){}
 
 		// append swagger
@@ -157,7 +158,7 @@ var cmdRun = &cobra.Command{
 
 		// if trigger MMR
 		if MMR {
-			funcs = append(funcs, func() { ffi.RunMMR(CHANNELS) })
+			funcs = append(funcs, func() { ffi.RunMMR(CHANNELS, LIMITS) })
 		}
 
 		// run parallelize

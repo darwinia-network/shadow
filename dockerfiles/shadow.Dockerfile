@@ -7,7 +7,6 @@ RUN apk add --no-cache sqlite-dev bash musl-dev \
     && cd shadow \
     && cargo build --release
 
-
 # Build Shadow in a stock Go builder container
 FROM golang:1.14-alpine as shadow
 ARG DEBIAN_FRONTEND=noninteractive

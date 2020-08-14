@@ -132,7 +132,7 @@ func CreateEthHeaderCache(
 	err error,
 ) {
 	if util.IsEmpty(header) {
-		err = fmt.Errorf("empty header")
+		err = fmt.Errorf("empty ethereum header")
 		return
 	}
 

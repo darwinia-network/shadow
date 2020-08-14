@@ -4,6 +4,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 // Common load config
@@ -47,4 +48,23 @@ func (c *Config) RemoveLock(filename string) error {
 	}
 
 	return nil
+}
+
+func (c *Config) RemoveAllLocks() (err error) {
+	files, err := ioutil.ReadDir(c.Root)
+	if err != nil {
+		return
+	}
+
+	for _, f := range files {
+		name := f.Name()
+		if strings.HasSuffix(name, ".lock") {
+			err = c.RemoveLock(name)
+			if err != nil {
+				return
+			}
+		}
+	}
+
+	return
 }

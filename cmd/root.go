@@ -23,6 +23,8 @@ var (
 	PERTX        uint64
 	CHECK        bool
 	GETH_DATADIR string
+	NOFETCH      bool
+	NOAPI        bool
 )
 
 const (

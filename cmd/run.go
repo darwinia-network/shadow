@@ -33,11 +33,19 @@ func init() {
 	)
 
 	cmdRun.PersistentFlags().BoolVarP(
-		&FETCH,
-		"fetch",
-		"f",
+		&NOFETCH,
+		"no-fetch",
+		"",
 		false,
-		"keep fetching blocks in background",
+		"doesn't fetch blocks",
+	)
+
+	cmdRun.PersistentFlags().BoolVarP(
+		&NOAPI,
+		"no-api",
+		"",
+		false,
+		"doesn't start api server",
 	)
 
 	cmdRun.PersistentFlags().BoolVarP(
@@ -81,7 +89,6 @@ func init() {
 
 const (
 	GIN_MODE = "GIN_MODE"
-	DB_LOCK  = "db.lock"
 )
 
 func fetchRoutine(shadow *core.Shadow, ptr uint64, mutex *sync.Mutex) {
@@ -145,13 +152,15 @@ var cmdRun = &cobra.Command{
 		funcs := []func(){}
 
 		// append swagger
-		funcs = append(funcs, func() {
-			log.Info("Shadow HTTP service start at %s", HTTP)
-			api.Swagger(&shadow, HTTP)
-		})
+		if !NOAPI {
+			funcs = append(funcs, func() {
+				log.Info("Shadow HTTP service start at %s", HTTP)
+				api.Swagger(&shadow, HTTP)
+			})
+		}
 
 		// if need fetch
-		if FETCH {
+		if !NOFETCH {
 			channels := make(chan struct{}, CHANNELS)
 			funcs = append(funcs, func() { fetch(&shadow, channels) })
 		}

@@ -8,7 +8,7 @@ use super::{
     schema::{eth_header_with_proof_caches::dsl::*, mmr_store::dsl::*},
     store::Store,
 };
-use cmmr::MMR;
+use cmmr::{Error as StoreError, MMR};
 use diesel::{dsl::count, prelude::*, result::Error as DieselError};
 use std::{
     sync::{mpsc, Arc, Mutex},
@@ -41,9 +41,29 @@ impl Runner {
 
     fn check_push(&mut self, cur: i64) -> i64 {
         if let Err(e) = self.push(cur) {
+            let mut locked = |m: &str| {
+                if m.contains("database is locked") {
+                    warn!("Database if locked, retry after 100ms...");
+                    thread::sleep(time::Duration::from_millis(100));
+                    Some(self.check_push(cur))
+                } else {
+                    error!("{:?}", m);
+                    None
+                }
+            };
             match e {
                 Error::Diesel(DieselError::NotFound) => {
                     trace!("Could not find block {:?} in cache", cur)
+                }
+                Error::Diesel(DieselError::DatabaseError(_, e)) => {
+                    if let Some(r) = locked(e.message()) {
+                        return r;
+                    }
+                }
+                Error::MMR(StoreError::StoreError(e)) => {
+                    if let Some(r) = locked(&e) {
+                        return r;
+                    }
                 }
                 _ => error!("Push block to mmr_store failed: {:?}", e),
             }

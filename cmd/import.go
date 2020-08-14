@@ -39,7 +39,7 @@ func init() {
 		"block limits",
 	)
 
-	cmdImport.PersistentFlags().IntVarP(
+	cmdImport.PersistentFlags().Int64VarP(
 		&CHANNELS,
 		"channels",
 		"r",

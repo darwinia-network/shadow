@@ -18,7 +18,7 @@ var (
 	PATH         string
 	NAME         string
 	MMR          bool
-	CHANNELS     int
+	CHANNELS     int64
 	LIMITS       uint64
 	PERTX        uint64
 	CHECK        bool

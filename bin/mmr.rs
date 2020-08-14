@@ -4,5 +4,5 @@ fn main() {
     env_logger::init();
     let conn = mmr::pool::conn(None);
     let mut runner = Runner::with(conn);
-    runner.start(10).unwrap();
+    runner.start(1).unwrap();
 }

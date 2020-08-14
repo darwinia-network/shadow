@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"os"
+	"runtime"
 	"sync"
 	"time"
 
@@ -15,7 +16,15 @@ import (
 )
 
 func init() {
-	cmdRun.PersistentFlags().IntVarP(
+	cmdRun.PersistentFlags().Uint64VarP(
+		&LIMITS,
+		"limits",
+		"l",
+		1000,
+		"requests blocks once while",
+	)
+
+	cmdRun.PersistentFlags().Int64VarP(
 		&CHANNELS,
 		"channels",
 		"r",
@@ -72,6 +81,7 @@ func init() {
 
 const (
 	GIN_MODE = "GIN_MODE"
+	DB_LOCK  = "db.lock"
 )
 
 func fetchRoutine(shadow *core.Shadow, ptr uint64, mutex *sync.Mutex) {
@@ -85,25 +95,29 @@ func fetchRoutine(shadow *core.Shadow, ptr uint64, mutex *sync.Mutex) {
 	mutex.Unlock()
 }
 
+// func checkLock(shadow *core.Shadow) {
+// 	for shadow.Config.CheckLock(DB_LOCK) {
+// 		time.Sleep(500 * time.Millisecond)
+// 	}
+// }
+
 func fetch(shadow *core.Shadow, channels chan struct{}) {
 	var (
 		base  uint64      = shadow.Config.Genesis
 		mutex *sync.Mutex = &sync.Mutex{}
 	)
 	if !CHECK {
-		count := core.CountCache(shadow.DB)
-		if count == uint64(0) {
-			base = 0
-		} else {
-			base = count + 1
-		}
+		base = core.CountCache(shadow.DB)
 		log.Info("current ethereum block height: %v", base)
 	}
 
-	// defer func() { recover() }()
 	for ptr := base; ; ptr++ {
 		channels <- struct{}{}
 		fetchRoutine(shadow, ptr, mutex)
+		// if ptr%LIMITS == 0 {
+		// 	// shadow.Config.CreateLock(DB_LOCK, []byte(""))
+		// 	// checkLock(shadow)
+		// }
 		<-channels
 	}
 }
@@ -115,6 +129,7 @@ var cmdRun = &cobra.Command{
 	Args:  cobra.MinimumNArgs(0),
 	Run: func(cmd *cobra.Command, _ []string) {
 		verboseCheck()
+		runtime.GOMAXPROCS(3)
 
 		// Check if has geth-datadir
 		if len(GETH_DATADIR) > 0 {
@@ -126,18 +141,26 @@ var cmdRun = &cobra.Command{
 		shadow, err := core.NewShadow()
 		util.Assert(err)
 
+		funcs := []func(){}
+
+		// append swagger
+		funcs = append(funcs, func() {
+			log.Info("Shadow HTTP service start at %s", HTTP)
+			api.Swagger(&shadow, HTTP)
+		})
+
 		// if need fetch
 		if FETCH {
 			channels := make(chan struct{}, CHANNELS)
-			go fetch(&shadow, channels)
+			funcs = append(funcs, func() { fetch(&shadow, channels) })
 		}
 
 		// if trigger MMR
 		if MMR {
-			go ffi.RunMMR(1)
+			funcs = append(funcs, func() { ffi.RunMMR(CHANNELS) })
 		}
 
-		log.Info("Shadow HTTP service start at %s", HTTP)
-		api.Swagger(&shadow, HTTP)
+		// run parallelize
+		util.Parallelize(funcs)
 	},
 }

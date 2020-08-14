@@ -50,9 +50,9 @@ impl Runner {
 
             trace!("MMR service restarting after 10s...");
             thread::sleep(time::Duration::from_secs(10));
-            cur
+            self.check_push(cur)
         } else {
-            trace!("push eth block number {} into db succeed.", cur);
+            trace!("push mmr of eth block {} into db succeed.", cur);
             cur + 1
         }
     }

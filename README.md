@@ -6,41 +6,6 @@ The shadow service for relayers and verify workers to retrieve header data and g
 
 BTW, API docs is [here][api].
 
-## Getting Started
-
-Downloads shadow service
-
-```
-git clone https://github.com/darwinia-network/shadow.git
-```
-
-Build shadow service
-
-```
-cd shadow && make
-```
-
-Exports your `INFURA_KEY` to envrioment
-
-```
-export INFURA_KEY='<your-infura-key>'
-```
-
-Starts shadow service:
-
-```
-# Start shadow service at port 3000
-./target/shadow run -v --fetch
-```
-
-Avaiable enviroment variables:
-
-| Key              | Description                                                    | default |
-|------------------|----------------------------------------------------------------|---------|
-| `INFURA_KEY`     | infura key, doesn't know what's [infura][infura]?              | `""`    |
-| `SHADOW_GENESIS` | shadow service will block all requests before `SHADOW_GENESIS` | `0`     |
-
-
 ## Usage
 
 ```sh
@@ -63,6 +28,48 @@ Flags:
 
 Use "shadow [command] --help" for more information about a command.
 
+```
+
+## Getting start with docker
+
+Downloads the docker compose file of shadow
+
+```
+$ wget https://raw.githubusercontent.com/darwinia-network/v1/docker-compose/docker-compose.yml
+```
+
+Swarm the `docker-compose.yml` file
+
+```
+$ docker-compose up
+```
+
+This will start:
+
++ A fetcher service
++ A MMR generating service
++ A geth node
+
+
+## ## Contribute and Build
+
+Downloads shadow service
+
+```
+git clone https://github.com/darwinia-network/shadow.git
+```
+
+Builds shadow service
+
+```
+cd shadow && make
+```
+
+Starts shadow service:
+
+```
+# Start shadow service at port 3000
+./target/shadow run -v --http 3000
 ```
 
 ## Trouble Shooting

@@ -7,7 +7,6 @@ services:
     image: darwinianetwork/shadow:0.1.8
     command: run -v
     environment:
-      - INFURA_KEY=8fdebe351ac94b62862b7c1d3798eb3a
       - ETHEREUM_RPC=http://geth:8545
     ports:
       - 3000:3000

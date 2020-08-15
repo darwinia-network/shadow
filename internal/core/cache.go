@@ -34,12 +34,11 @@ func ConnectDb() (*gorm.DB, error) {
 		}
 	}
 
-	log.Info("Connecting database ~/%v...", DB_PATH)
-	db, err := gorm.Open("sqlite3",
-		fmt.Sprintf(
-			"file:%s?cache=shared&mode=rwc&_journal_mode=WAL",
-			path.Join(usr.HomeDir, DB_PATH)),
-	)
+	dbPath := fmt.Sprintf(
+		"file:%s?cache=shared&mode=rwc&_journal_mode=WAL",
+		path.Join(usr.HomeDir, DB_PATH))
+	log.Info("Connecting database ~/%v...", dbPath)
+	db, err := gorm.Open("sqlite3", dbPath)
 
 	if err != nil {
 		return db, err
@@ -68,21 +67,21 @@ func FetchHeader(shadow *Shadow, block interface{}) (
 		return
 	}
 
-	if !util.IsEmpty(shadow.Geth) {
-		log.Trace("Request block %v from leveldb...", num)
-		dimHeader := shadow.Geth.Header(num)
-		if !util.IsEmpty(dimHeader) {
-			header = *dimHeader
-		}
-	}
+	// if !util.IsEmpty(shadow.Geth) {
+	// 	log.Trace("Request block %v from leveldb...", num)
+	// 	dimHeader := shadow.Geth.Header(num)
+	// 	if !util.IsEmpty(dimHeader) {
+	// 		header = *dimHeader
+	// 	}
+	// }
 
-	if util.IsEmpty(header) {
-		log.Trace("Request block %v from infura api...", num)
-		header, err = eth.Header(num, shadow.Config.Api)
-		if err != nil {
-			return
-		}
+	// if util.IsEmpty(header) {
+	log.Trace("Request block %v ...", num)
+	header, err = eth.Header(num, shadow.Config.Api)
+	if err != nil {
+		return
 	}
+	// }
 
 	_, err = CreateEthHeaderCache(shadow.DB, &header)
 	return
@@ -104,21 +103,21 @@ func FetchHeaderCache(shadow *Shadow, block interface{}) (
 		return
 	}
 
-	if util.IsEmpty(cache.Header) && !util.IsEmpty(shadow.Geth) {
-		log.Trace("Request block %v from leveldb...", block)
-		dimHeader := shadow.Geth.Header(block)
-		if !util.IsEmpty(dimHeader) {
-			header = *dimHeader
-		}
-	}
+	// if util.IsEmpty(cache.Header) && !util.IsEmpty(shadow.Geth) {
+	// 	log.Trace("Request block %v from leveldb...", block)
+	// 	dimHeader := shadow.Geth.Header(block)
+	// 	if !util.IsEmpty(dimHeader) {
+	// 		header = *dimHeader
+	// 	}
+	// }
 
-	if util.IsEmpty(header) {
-		log.Trace("Request block %v from infura api...", block)
-		header, err = eth.Header(num, shadow.Config.Api)
-		if err != nil {
-			return
-		}
+	// if util.IsEmpty(header) {
+	log.Trace("Requesting block %v...", block)
+	header, err = eth.Header(num, shadow.Config.Api)
+	if err != nil {
+		return
 	}
+	// }
 
 	cache, err = CreateEthHeaderCache(shadow.DB, &header)
 	return

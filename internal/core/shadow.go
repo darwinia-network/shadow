@@ -19,7 +19,7 @@ const PROOF_LOCK = "proof.lock"
 type Shadow struct {
 	Config internal.Config
 	DB     *gorm.DB
-	Geth   eth.Geth
+	// Geth   eth.Geth
 }
 
 func NewShadow() (Shadow, error) {
@@ -34,15 +34,15 @@ func NewShadow() (Shadow, error) {
 		return Shadow{}, err
 	}
 
-	geth, err := eth.NewGeth(conf.Geth)
-	if err != nil {
-		log.Warn("Geth path hasn't been confirgured, %v", err)
-	}
+	// geth, err := eth.NewGeth(conf.Geth)
+	// if err != nil {
+	// 	log.Warn("Geth path hasn't been confirgured, %v", err)
+	// }
 
 	return Shadow{
 		*conf,
 		db,
-		geth,
+		// geth,
 	}, err
 }
 
@@ -61,9 +61,9 @@ func (s *Shadow) checkGenesis(genesis uint64, block interface{}) (uint64, error)
 
 		return b, nil
 	case string:
-		if !util.IsEmpty(s.Geth) {
-			return s.Geth.HashToNumber(b), nil
-		}
+		// if !util.IsEmpty(s.Geth) {
+		// 	return s.Geth.HashToNumber(b), nil
+		// }
 
 		// from infura
 		eH, err := eth.Header(b, s.Config.Api)
@@ -108,12 +108,12 @@ func (s *Shadow) GetHeader(
 			return types.Header{}, err
 		}
 
-		if !util.IsEmpty(s.Geth) {
-			block := *s.Geth.Header(block)
-			if !util.IsEmpty(block) {
-				return block, nil
-			}
-		}
+		// if !util.IsEmpty(s.Geth) {
+		// 	block := *s.Geth.Header(block)
+		// 	if !util.IsEmpty(block) {
+		// 		return block, nil
+		// 	}
+		// }
 
 		return eth.Header(num, s.Config.Api)
 	}

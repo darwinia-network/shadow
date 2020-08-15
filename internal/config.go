@@ -1,21 +1,22 @@
 package internal
 
 import (
-	"bufio"
-	"errors"
-	"fmt"
+	// "bufio"
+	// "errors"
+	// "fmt"
 	"os"
 	"path/filepath"
 	"strconv"
-	"strings"
+	// "strings"
 
 	"github.com/darwinia-network/shadow/internal/util"
 )
 
 const (
-	INFURA_KEY     = "INFURA_KEY"
-	SHADOW_GENESIS = "SHADOW_GENESIS"
-	GETH_DATADIR   = "GETH_DATADIR"
+	ETHEREUM_RPC         = "ETHEREUM_RPC"
+	SHADOW_GENESIS       = "SHADOW_GENESIS"
+	GETH_DATADIR         = "GETH_DATADIR"
+	DEFAULT_ETHEREUM_RPC = "https://mainnet.infura.io/v3/0bfb9acbb13c426097aabb1d81a9d016"
 )
 
 type RawConfig struct {
@@ -54,50 +55,14 @@ func (c *Config) Load() error {
 	}
 
 	// Load api from env
-	err = c.LoadEnv()
-	if err != nil || c.Api == "" {
-		c.readKeyWithPrompt()
+	// err = c.LoadEnv()
+	c.Api = os.Getenv(ETHEREUM_RPC)
+	if c.Api == "" {
+		c.Api = DEFAULT_ETHEREUM_RPC
+		// c.readKeyWithPrompt()
 	}
 
 	return nil
-}
-
-// Load config from env
-func (c *Config) LoadEnv() error {
-	// load infura key
-	api := os.Getenv(INFURA_KEY)
-	if api == "" {
-		return errors.New("Empty INFURA_KEY in env")
-	}
-
-	// construct config
-	c.Api = ParseKey(api)
-	return nil
-}
-
-// Parse infura api key
-//
-// return mainnet api if just inputs a infura key
-func ParseKey(key string) string {
-	if !strings.HasPrefix(key, "https") {
-		key = "https://mainnet.infura.io/v3/" + key
-	}
-
-	return key
-}
-
-// Read infura key from command-line
-func (c *Config) readKeyWithPrompt() {
-	reader := bufio.NewReader(os.Stdin)
-	fmt.Print("Please input your infura key: ")
-
-	// Return infura key after parsing
-	text, _ := reader.ReadString('\n')
-	text = strings.Trim(text, "\n")
-	c.Api = ParseKey(text)
-
-	// Set INFURA_KEY to env
-	os.Setenv("INFURA_KEY", c.Api)
 }
 
 // Get darwinia config root directory
@@ -116,3 +81,41 @@ func RootDir() (string, error) {
 
 	return root, nil
 }
+
+// // Load config from env
+// func (c *Config) LoadEnv() error {
+// 	// load infura key
+// 	api := os.Getenv(ETHEREUM_RPC)
+// 	if api == "" {
+// 		return errors.New("Empty ETHEREUM_RPC in env")
+// 	}
+//
+// 	// construct config
+// 	c.Api = ParseKey(api)
+// 	return nil
+// }
+
+// Parse infura api key
+//
+// return mainnet api if just inputs a infura key
+// func ParseKey(key string) string {
+// 	if !strings.HasPrefix(key, "https") {
+// 		key = "https://mainnet.infura.io/v3/" + key
+// 	}
+//
+// 	return key
+// }
+
+// // Read infura key from command-line
+// func (c *Config) readKeyWithPrompt() {
+// 	reader := bufio.NewReader(os.Stdin)
+// 	fmt.Print("Please input your ethereum rpc url: ")
+//
+// 	// Return infura key after parsing
+// 	text, _ := reader.ReadString('\n')
+// 	text = strings.Trim(text, "\n")
+// 	c.Api = ParseKey(text)
+//
+// 	// Set ETHEREUM_RPC to env
+// 	os.Setenv("ETHEREUM_RPC", c.Api)
+// }

@@ -8,6 +8,7 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/darwinia-network/shadow/internal"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/rlp"
@@ -40,6 +41,9 @@ func Header(block interface{}, api string) (types.Header, error) {
 		return infuraResp.Result, fmt.Errorf("Heaader function only accepts blockHash and blockNumber")
 	}
 	if err != nil {
+		if !strings.Contains(api, "infura") {
+			return Header(block, internal.DEFAULT_ETHEREUM_RPC)
+		}
 		return infuraResp.Result, err
 	}
 

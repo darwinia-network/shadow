@@ -1,13 +1,13 @@
 package cmd
 
 import (
-	"os"
+	// "os"
 	"runtime"
 	"sync"
 	"time"
 
 	"github.com/darwinia-network/shadow/api"
-	"github.com/darwinia-network/shadow/internal"
+	// "github.com/darwinia-network/shadow/internal"
 	"github.com/darwinia-network/shadow/internal/core"
 	"github.com/darwinia-network/shadow/internal/ffi"
 	"github.com/darwinia-network/shadow/internal/log"
@@ -79,12 +79,12 @@ func init() {
 		"set port of http api server",
 	)
 
-	cmdRun.PersistentFlags().StringVar(
-		&GETH_DATADIR,
-		"geth-datadir",
-		"",
-		"The datadir of geth",
-	)
+	// cmdRun.PersistentFlags().StringVar(
+	// 	&GETH_DATADIR,
+	// 	"geth-datadir",
+	// 	"",
+	// 	"The datadir of geth",
+	// )
 }
 
 const (
@@ -136,10 +136,10 @@ var cmdRun = &cobra.Command{
 		runtime.GOMAXPROCS(3)
 
 		// Check if has geth-datadir
-		if len(GETH_DATADIR) > 0 {
-			log.Info("Geth dir is: %v", GETH_DATADIR)
-			os.Setenv(internal.GETH_DATADIR, GETH_DATADIR)
-		}
+		// if len(GETH_DATADIR) > 0 {
+		// 	log.Info("Geth dir is: %v", GETH_DATADIR)
+		// 	os.Setenv(internal.GETH_DATADIR, GETH_DATADIR)
+		// }
 
 		// Generate Shadow
 		shadow, err := core.NewShadow()

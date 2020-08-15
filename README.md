@@ -4,8 +4,6 @@
 
 The shadow service for relayers and verify workers to retrieve header data and generate proof. Shadow will index the data it needs from blockchain nodes, such as Ethereum and Darwinia.
 
-BTW, API docs is [here][api].
-
 ## Usage
 
 ```sh
@@ -20,15 +18,18 @@ Available Commands:
   header      Get eth block by number
   help        Help about any command
   proof       Proof the block by number
+  receipt     Get receipt by tx hash
   run         Start shadow service
   version     Print the version number of dargo
 
 Flags:
-  -h, --help   help for dargo
+  -h, --help   help for shadow
 
 Use "shadow [command] --help" for more information about a command.
-
 ```
+
+You can find shadow's API docs [here][api].
+
 
 ## Getting start with docker
 
@@ -46,12 +47,14 @@ $ docker-compose up
 
 This will start:
 
++ A geth node
 + A fetcher service
 + A MMR generating service
-+ A geth node
 
 
-## ## Contribute and Build
+More detail please check the [docker-compose.yml](./docker-compose.yml)
+
+## Contribute and Build
 
 Downloads shadow service
 

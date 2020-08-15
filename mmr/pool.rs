@@ -17,7 +17,6 @@ pub const DEFAULT_RELATIVE_MMR_DB: &str = ".darwinia/cache/shadow.db";
 /// Connections
 pub fn conn(p: Option<PathBuf>) -> ConnPool {
     let path = p.unwrap_or_else(|| dirs::home_dir().unwrap().join(DEFAULT_RELATIVE_MMR_DB));
-
     let op_dir = path.parent();
     if op_dir.is_none() {
         panic!("Wrong db path: {:?}", path);

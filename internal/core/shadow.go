@@ -36,7 +36,7 @@ func NewShadow() (Shadow, error) {
 
 	geth, err := eth.NewGeth(conf.Geth)
 	if err != nil {
-		log.Warn("Geth path doen't confirgured")
+		log.Warn("Geth path hasn't been confirgured, %v", err)
 	}
 
 	return Shadow{

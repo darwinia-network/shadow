@@ -1,0 +1,33 @@
+version: "3"
+services:
+  geth:
+    image: ethereum/client-go:stable
+    command: --syncmode fast --datadir /usr/local/share
+    volumes:
+      - geth_chaindata:/usr/local/share/geth/chaindata
+  fetcher:
+    image: darwinianetwork/shadow:0.1.8
+    command: run -v -l 10
+    environment:
+      - INFURA_KEY=8fdebe351ac94b62862b7c1d3798eb3a
+      - GETH_DATADIR=/usr/local/share/geth/chaindata
+    volumes:
+      - data:/root/.darwinia
+      - geth_chaindata:/usr/local/share/geth/chaindata
+    depends_on:
+      - geth
+  mmr:
+    image: darwinianetwork/shadow:0.1.8
+    command: run -vm --no-fetch --no-api
+    environment:
+      - INFURA_KEY=8fdebe351ac94b62862b7c1d3798eb3a
+      - GETH_DATADIR=/usr/local/share/geth/chaindata
+    volumes:
+      - data:/.darwinia
+      - geth_chaindata:/usr/local/share/geth/chaindata
+    depends_on:
+      - fetcher
+
+volumes:
+  data:
+  geth_chaindata:

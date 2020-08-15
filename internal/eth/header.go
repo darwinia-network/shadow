@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"reflect"
 	"strings"
 
 	"github.com/darwinia-network/shadow/internal"
@@ -51,12 +50,10 @@ func Header(block interface{}, api string) (types.Header, error) {
 	defer resp.Body.Close()
 	err = json.NewDecoder(resp.Body).Decode(&infuraResp)
 	if err != nil {
+		if !strings.Contains(api, "infura") {
+			return Header(block, internal.DEFAULT_ETHEREUM_RPC)
+		}
 		return infuraResp.Result, err
-	}
-
-	// Empty result
-	if reflect.DeepEqual(types.Header{}, infuraResp.Result) {
-		return infuraResp.Result, fmt.Errorf("The requesting block does not exist")
 	}
 
 	// Return eth header

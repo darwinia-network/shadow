@@ -1,13 +1,11 @@
 package cmd
 
 import (
-	// "os"
 	"runtime"
 	"sync"
 	"time"
 
 	"github.com/darwinia-network/shadow/api"
-	// "github.com/darwinia-network/shadow/internal"
 	"github.com/darwinia-network/shadow/internal/core"
 	"github.com/darwinia-network/shadow/internal/ffi"
 	"github.com/darwinia-network/shadow/internal/log"
@@ -20,7 +18,7 @@ func init() {
 		&LIMITS,
 		"limits",
 		"l",
-		1000,
+		300,
 		"handle blocks per second",
 	)
 
@@ -78,13 +76,6 @@ func init() {
 		"3000",
 		"set port of http api server",
 	)
-
-	// cmdRun.PersistentFlags().StringVar(
-	// 	&GETH_DATADIR,
-	// 	"geth-datadir",
-	// 	"",
-	// 	"The datadir of geth",
-	// )
 }
 
 const (
@@ -94,10 +85,10 @@ const (
 func fetchRoutine(shadow *core.Shadow, ptr uint64, mutex *sync.Mutex) {
 	mutex.Lock()
 	_, err := core.FetchHeaderCache(shadow, ptr)
-	if err != nil {
-		time.Sleep(10 * time.Second)
-		_, _ = core.FetchHeaderCache(shadow, ptr)
+	for err != nil {
 		log.Warn("fetch header %v failed: %v, refetching after 10s...", ptr, err)
+		time.Sleep(10 * time.Second)
+		_, err = core.FetchHeaderCache(shadow, ptr)
 	}
 	mutex.Unlock()
 }
@@ -134,12 +125,6 @@ var cmdRun = &cobra.Command{
 	Run: func(cmd *cobra.Command, _ []string) {
 		verboseCheck()
 		runtime.GOMAXPROCS(3)
-
-		// Check if has geth-datadir
-		// if len(GETH_DATADIR) > 0 {
-		// 	log.Info("Geth dir is: %v", GETH_DATADIR)
-		// 	os.Setenv(internal.GETH_DATADIR, GETH_DATADIR)
-		// }
 
 		// Generate Shadow
 		shadow, err := core.NewShadow()

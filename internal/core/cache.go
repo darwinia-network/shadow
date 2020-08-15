@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/user"
 	"path"
+	"path/filepath"
 
 	"github.com/darwinia-network/shadow/internal/eth"
 	"github.com/darwinia-network/shadow/internal/log"
@@ -16,7 +17,7 @@ import (
 )
 
 // Same directory as `darwinia.js`
-const DB_PATH = ".darwinia/cache/shadow.db"
+const RELATIVE_DB_PATH = ".darwinia/cache/shadow.db"
 
 // Connect to cache
 func ConnectDb() (*gorm.DB, error) {
@@ -26,7 +27,7 @@ func ConnectDb() (*gorm.DB, error) {
 	}
 
 	// Check path exists
-	cachePath := path.Join(usr.HomeDir, path.Dir(DB_PATH))
+	cachePath := path.Join(usr.HomeDir, path.Dir(RELATIVE_DB_PATH))
 	if _, err = os.Stat(cachePath); os.IsNotExist(err) {
 		err = os.MkdirAll(cachePath, 0700)
 		if err != nil {
@@ -34,11 +35,12 @@ func ConnectDb() (*gorm.DB, error) {
 		}
 	}
 
-	dbPath := fmt.Sprintf(
+	log.Info("Connecting database ~/%v...", cachePath)
+	realDBPath := filepath.Join(usr.HomeDir, RELATIVE_DB_PATH)
+	db, err := gorm.Open("sqlite3", fmt.Sprintf(
 		"file:%s?cache=shared&mode=rwc&_journal_mode=WAL",
-		path.Join(usr.HomeDir, DB_PATH))
-	log.Info("Connecting database ~/%v...", dbPath)
-	db, err := gorm.Open("sqlite3", dbPath)
+		realDBPath,
+	))
 
 	if err != nil {
 		return db, err
@@ -67,21 +69,11 @@ func FetchHeader(shadow *Shadow, block interface{}) (
 		return
 	}
 
-	// if !util.IsEmpty(shadow.Geth) {
-	// 	log.Trace("Request block %v from leveldb...", num)
-	// 	dimHeader := shadow.Geth.Header(num)
-	// 	if !util.IsEmpty(dimHeader) {
-	// 		header = *dimHeader
-	// 	}
-	// }
-
-	// if util.IsEmpty(header) {
 	log.Trace("Request block %v ...", num)
 	header, err = eth.Header(num, shadow.Config.Api)
 	if err != nil {
 		return
 	}
-	// }
 
 	_, err = CreateEthHeaderCache(shadow.DB, &header)
 	return
@@ -103,21 +95,11 @@ func FetchHeaderCache(shadow *Shadow, block interface{}) (
 		return
 	}
 
-	// if util.IsEmpty(cache.Header) && !util.IsEmpty(shadow.Geth) {
-	// 	log.Trace("Request block %v from leveldb...", block)
-	// 	dimHeader := shadow.Geth.Header(block)
-	// 	if !util.IsEmpty(dimHeader) {
-	// 		header = *dimHeader
-	// 	}
-	// }
-
-	// if util.IsEmpty(header) {
 	log.Trace("Requesting block %v...", block)
 	header, err = eth.Header(num, shadow.Config.Api)
 	if err != nil {
 		return
 	}
-	// }
 
 	cache, err = CreateEthHeaderCache(shadow.DB, &header)
 	return
@@ -137,11 +119,13 @@ func CreateEthHeaderCache(
 
 	dh, err := eth.IntoDarwiniaEthHeader(header)
 	if err != nil {
+		log.Error(err.Error())
 		return
 	}
 
 	hstr, err := dh.ToString()
 	if err != nil {
+		log.Error(err.Error())
 		return
 	}
 

@@ -36,7 +36,7 @@ You can find shadow's API docs [here][api].
 Downloads the docker compose file of shadow
 
 ```
-$ wget https://raw.githubusercontent.com/darwinia-network/v1/docker-compose/docker-compose.yml
+$ wget https://raw.githubusercontent.com/darwinia-network/go1/docker-compose/docker-compose.yml
 ```
 
 Swarm the `docker-compose.yml` file

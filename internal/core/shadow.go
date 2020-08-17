@@ -19,7 +19,7 @@ const PROOF_LOCK = "proof.lock"
 type Shadow struct {
 	Config internal.Config
 	DB     *gorm.DB
-	Geth   eth.Geth
+	// Geth   eth.Geth
 }
 
 func NewShadow() (Shadow, error) {
@@ -34,15 +34,9 @@ func NewShadow() (Shadow, error) {
 		return Shadow{}, err
 	}
 
-	geth, err := eth.NewGeth(conf.Geth)
-	if err != nil {
-		log.Warn("Geth path doen't confirgured")
-	}
-
 	return Shadow{
 		*conf,
 		db,
-		geth,
 	}, err
 }
 
@@ -61,11 +55,6 @@ func (s *Shadow) checkGenesis(genesis uint64, block interface{}) (uint64, error)
 
 		return b, nil
 	case string:
-		if !util.IsEmpty(s.Geth) {
-			return s.Geth.HashToNumber(b), nil
-		}
-
-		// from infura
 		eH, err := eth.Header(b, s.Config.Api)
 		if err != nil {
 			return genesis, err
@@ -106,13 +95,6 @@ func (s *Shadow) GetHeader(
 		num, err := s.checkGenesis(s.Config.Genesis, block)
 		if err != nil {
 			return types.Header{}, err
-		}
-
-		if !util.IsEmpty(s.Geth) {
-			block := *s.Geth.Header(block)
-			if !util.IsEmpty(block) {
-				return block, nil
-			}
 		}
 
 		return eth.Header(num, s.Config.Api)

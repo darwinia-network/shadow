@@ -2,10 +2,10 @@ package cmd
 
 import (
 	"runtime"
-	"os"
+	"sync"
+	"time"
 
 	"github.com/darwinia-network/shadow/api"
-	"github.com/darwinia-network/shadow/internal"
 	"github.com/darwinia-network/shadow/internal/core"
 	"github.com/darwinia-network/shadow/internal/ffi"
 	"github.com/darwinia-network/shadow/internal/log"
@@ -14,20 +14,36 @@ import (
 )
 
 func init() {
-	cmdRun.PersistentFlags().IntVarP(
+	cmdRun.PersistentFlags().Uint32VarP(
+		&LIMITS,
+		"limits",
+		"l",
+		300,
+		"handle blocks per second",
+	)
+
+	cmdRun.PersistentFlags().Int64VarP(
 		&CHANNELS,
 		"channels",
 		"r",
-		1,
+		10,
 		"goroutine channel conunts",
 	)
 
 	cmdRun.PersistentFlags().BoolVarP(
-		&FETCH,
-		"fetch",
-		"f",
+		&NOFETCH,
+		"no-fetch",
+		"",
 		false,
-		"keep fetching blocks in background",
+		"doesn't fetch blocks",
+	)
+
+	cmdRun.PersistentFlags().BoolVarP(
+		&NOAPI,
+		"no-api",
+		"",
+		false,
+		"doesn't start api server",
 	)
 
 	cmdRun.PersistentFlags().BoolVarP(
@@ -60,48 +76,44 @@ func init() {
 		"3000",
 		"set port of http api server",
 	)
-
-	cmdRun.PersistentFlags().StringVar(
-		&GETH_DATADIR,
-		"geth-datadir",
-		"",
-		"The datadir of geth",
-	)
 }
 
 const (
 	GIN_MODE = "GIN_MODE"
 )
 
-func fetchRoutine(shadow *core.Shadow, ptr uint64, ch chan int) {
-	defer func() { _ = recover() }()
+func fetchRoutine(shadow *core.Shadow, ptr uint64, mutex *sync.Mutex) {
+	mutex.Lock()
 	_, err := core.FetchHeaderCache(shadow, ptr)
-	if err != nil {
-		log.Error("fetch header %v failed: %v", ptr, err)
+	for err != nil {
+		log.Warn("fetch header %v failed: %v, refetching after 10s...", ptr, err)
+		time.Sleep(10 * time.Second)
+		_, err = core.FetchHeaderCache(shadow, ptr)
 	}
-
-	<-ch
+	mutex.Unlock()
 }
 
-func fetch(shadow *core.Shadow) {
-	// set channel
-	runtime.GOMAXPROCS(runtime.NumCPU())
-	ch := make(chan int, CHANNELS)
-
-	var base uint64 = shadow.Config.Genesis
+func fetch(shadow *core.Shadow, channels chan struct{}) {
+	var (
+		base  uint64      = shadow.Config.Genesis
+		mutex *sync.Mutex = &sync.Mutex{}
+	)
 	if !CHECK {
 		count := core.CountCache(shadow.DB)
-		if count == uint64(0) {
-			base = 0
-		} else {
+		if count == 0 {
 			base = count
+		} else {
+			base = count - 1
 		}
 		log.Info("current ethereum block height: %v", base)
 	}
 
+	gap := 1 * time.Second / time.Duration(int64(LIMITS))
 	for ptr := base; ; ptr++ {
-		ch <- 1
-		go fetchRoutine(shadow, ptr, ch)
+		channels <- struct{}{}
+		fetchRoutine(shadow, ptr, mutex)
+		time.Sleep(gap)
+		<-channels
 	}
 }
 
@@ -112,28 +124,38 @@ var cmdRun = &cobra.Command{
 	Args:  cobra.MinimumNArgs(0),
 	Run: func(cmd *cobra.Command, _ []string) {
 		verboseCheck()
-
-		// Check if has geth-datadir
-		if len(GETH_DATADIR) > 0 {
-			log.Info("Geth dir is: %v", GETH_DATADIR)
-			os.Setenv(internal.GETH_DATADIR, GETH_DATADIR)
-		}
+		runtime.GOMAXPROCS(3)
 
 		// Generate Shadow
 		shadow, err := core.NewShadow()
 		util.Assert(err)
 
+		// Remove all locks
+		err = shadow.Config.RemoveAllLocks()
+		util.Assert(err)
+
+		funcs := []func(){}
+
+		// append swagger
+		if !NOAPI {
+			funcs = append(funcs, func() {
+				log.Info("Shadow HTTP service start at %s", HTTP)
+				api.Swagger(&shadow, HTTP)
+			})
+		}
+
 		// if need fetch
-		if FETCH {
-			go fetch(&shadow)
+		if !NOFETCH {
+			channels := make(chan struct{}, CHANNELS)
+			funcs = append(funcs, func() { fetch(&shadow, channels) })
 		}
 
 		// if trigger MMR
 		if MMR {
-			go ffi.RunMMR()
+			funcs = append(funcs, func() { ffi.RunMMR(CHANNELS, LIMITS) })
 		}
 
-		log.Info("Shadow HTTP service start at %s", HTTP)
-		api.Swagger(&shadow, HTTP)
+		// run parallelize
+		util.Parallelize(funcs)
 	},
 }

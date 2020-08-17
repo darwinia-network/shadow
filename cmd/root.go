@@ -18,11 +18,13 @@ var (
 	PATH         string
 	NAME         string
 	MMR          bool
-	CHANNELS     int
-	LIMITS       uint64
+	CHANNELS     int64
+	LIMITS       uint32
 	PERTX        uint64
 	CHECK        bool
 	GETH_DATADIR string
+	NOFETCH      bool
+	NOAPI        bool
 )
 
 const (
@@ -41,9 +43,6 @@ func init() {
 		cmdReceipt,
 		cmdRun,
 		cmdVersion,
-		cmdTest,
-		cmdImport,
-		cmdGeth,
 	)
 }
 

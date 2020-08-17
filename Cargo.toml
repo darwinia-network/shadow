@@ -4,11 +4,6 @@ version = "0.1.0"
 authors = ["clearloop <udtrokia@gmail.com>"]
 edition = "2018"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-[[bin]]
-name = "mmr"
-path = "mmr/main.rs"
-
 [lib]
 path = "mmr/lib.rs"
 crate_type = ["rlib", "staticlib"]
@@ -30,7 +25,7 @@ features = ["derive"]
 
 [dependencies.diesel]
 version = "1.4.4"
-features = ["sqlite"]
+features = ["r2d2", "sqlite"]
 
 [dependencies.eth]
 git = "https://github.com/darwinia-network/darwinia-common.git"

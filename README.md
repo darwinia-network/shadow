@@ -4,43 +4,6 @@
 
 The shadow service for relayers and verify workers to retrieve header data and generate proof. Shadow will index the data it needs from blockchain nodes, such as Ethereum and Darwinia.
 
-BTW, API docs is [here][api].
-
-## Getting Started
-
-Downloads shadow service
-
-```
-git clone https://github.com/darwinia-network/shadow.git
-```
-
-Build shadow service
-
-```
-cd shadow && make
-```
-
-Exports your `INFURA_KEY` to envrioment
-
-```
-export INFURA_KEY='<your-infura-key>'
-```
-
-Starts shadow service:
-
-```
-# Start shadow service at port 3000
-./target/shadow run -v --fetch
-```
-
-Avaiable enviroment variables:
-
-| Key              | Description                                                    | default |
-|------------------|----------------------------------------------------------------|---------|
-| `INFURA_KEY`     | infura key, doesn't know what's [infura][infura]?              | `""`    |
-| `SHADOW_GENESIS` | shadow service will block all requests before `SHADOW_GENESIS` | `0`     |
-
-
 ## Usage
 
 ```sh
@@ -55,14 +18,61 @@ Available Commands:
   header      Get eth block by number
   help        Help about any command
   proof       Proof the block by number
+  receipt     Get receipt by tx hash
   run         Start shadow service
   version     Print the version number of dargo
 
 Flags:
-  -h, --help   help for dargo
+  -h, --help   help for shadow
 
 Use "shadow [command] --help" for more information about a command.
+```
 
+You can find shadow's API docs [here][api].
+
+
+## Getting start with docker
+
+Downloads the docker compose file of shadow
+
+```
+$ wget https://raw.githubusercontent.com/darwinia-network/go1/docker-compose/docker-compose.yml
+```
+
+Swarm the `docker-compose.yml` file
+
+```
+$ docker-compose up
+```
+
+This will start:
+
++ A geth node
++ A fetcher service
++ A MMR generating service
+
+
+More detail please check the [docker-compose.yml](./docker-compose.yml)
+
+## Contribute and Build
+
+Downloads shadow service
+
+```
+git clone https://github.com/darwinia-network/shadow.git
+```
+
+Builds shadow service
+
+```
+cd shadow && make
+```
+
+Starts shadow service:
+
+```
+# Start shadow service at port 3000
+./target/shadow run -v --http 3000
 ```
 
 ## Trouble Shooting

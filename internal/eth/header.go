@@ -5,9 +5,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"reflect"
 	"strings"
 
+	"github.com/darwinia-network/shadow/internal"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/rlp"
@@ -40,6 +40,9 @@ func Header(block interface{}, api string) (types.Header, error) {
 		return infuraResp.Result, fmt.Errorf("Heaader function only accepts blockHash and blockNumber")
 	}
 	if err != nil {
+		if !strings.Contains(api, "infura") {
+			return Header(block, internal.DEFAULT_ETHEREUM_RPC)
+		}
 		return infuraResp.Result, err
 	}
 
@@ -47,12 +50,10 @@ func Header(block interface{}, api string) (types.Header, error) {
 	defer resp.Body.Close()
 	err = json.NewDecoder(resp.Body).Decode(&infuraResp)
 	if err != nil {
+		if !strings.Contains(api, "infura") {
+			return Header(block, internal.DEFAULT_ETHEREUM_RPC)
+		}
 		return infuraResp.Result, err
-	}
-
-	// Empty result
-	if reflect.DeepEqual(types.Header{}, infuraResp.Result) {
-		return infuraResp.Result, fmt.Errorf("The requesting block does not exist")
 	}
 
 	// Return eth header

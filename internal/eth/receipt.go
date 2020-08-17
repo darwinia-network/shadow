@@ -29,7 +29,7 @@ var (
 
 func init() {
 	conf := new(internal.Config)
-	_ = conf.LoadEnv()
+	_ = conf.Load()
 	API = conf.Api
 }
 

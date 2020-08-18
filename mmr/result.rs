@@ -9,6 +9,8 @@ pub enum Error {
     Diesel(DieselError),
     /// MMR Error
     MMR(MMRError),
+    /// Custom
+    Custom(String),
 }
 
 impl From<MMRError> for Error {

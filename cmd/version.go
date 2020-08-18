@@ -8,9 +8,8 @@ import (
 
 var cmdVersion = &cobra.Command{
 	Use:   "version",
-	Short: "Print the version number of dargo",
-	Long:  `All software has versions. This is dargo's`,
+	Short: "Print the version number of shadow",
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("shadow 0.1.5")
+		fmt.Println("shadow 0.1.8")
 	},
 }

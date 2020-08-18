@@ -3,14 +3,13 @@ package core
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"os"
 	"os/user"
 	"path"
-	"strings"
+	"path/filepath"
 
-	"github.com/darwinia-network/shadow/internal"
 	"github.com/darwinia-network/shadow/internal/eth"
+	"github.com/darwinia-network/shadow/internal/log"
 	"github.com/darwinia-network/shadow/internal/util"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/jinzhu/gorm"
@@ -18,211 +17,184 @@ import (
 )
 
 // Same directory as `darwinia.js`
-const DB_PATH = ".darwinia/cache/shadow.db"
-
-// EthHeaderWithProof Cache
-type EthHeaderWithProofCache struct {
-	gorm.Model
-	Hash   string `json:"hash"`
-	Number uint64 `json:"number" gorm:"unique_index"`
-	Header string `json:"eth_header"`
-	Proof  string `json:"proof"`
-	// MMR
-	Pos      string `json:"pos"`
-	Root     string `json:"root" gorm:"DEFAULT:NULL"`
-	MMRProof string `json:"mmr_proof" gorm:"DEFAULT:NULL"`
-}
-
-func (c *EthHeaderWithProofCache) Parse(block interface{}) error {
-	switch b := block.(type) {
-	case uint64:
-		c.Number = b
-	case string:
-		c.Hash = b
-	default:
-		return fmt.Errorf("Invaild block param: %v", block)
-	}
-
-	return nil
-}
-
-// Save header to cache
-func (c *EthHeaderWithProofCache) FromResp(
-	db *gorm.DB,
-	resp GetEthHeaderWithProofRawResp,
-) error {
-	// Convert header to string
-	header, err := json.Marshal(resp.Header)
-	if err != nil {
-		return err
-	}
-
-	proof, err := json.Marshal(resp.Proof)
-	if err != nil {
-		return err
-	}
-
-	db.Create(&EthHeaderWithProofCache{
-		Hash:   resp.Header.Hash,
-		Number: resp.Header.Number,
-		Header: string(header),
-		Proof:  string(proof),
-	})
-
-	return nil
-}
-
-/// The func should run after `Fetch`
-func (c *EthHeaderWithProofCache) ApplyProof(
-	config internal.Config,
-	db *gorm.DB,
-) error {
-	var (
-		ethHeader types.Header
-		err       error
-	)
-
-	if util.IsEmpty(c.Number) && c.Number != 0 {
-		return fmt.Errorf("Empty eth number")
-	} else if util.IsEmpty(c.Header) || c.Header == "" {
-		return fmt.Errorf("Empty eth header")
-	} else {
-		ethHeader, err = eth.Header(c.Number, config.Api)
-		if err != nil {
-			return err
-		}
-	}
-
-	// Check proof lock
-	if util.IsEmpty(c.Proof) || c.Proof == "" {
-		if config.CheckLock(PROOF_LOCK) {
-			return fmt.Errorf("Shadow service is busy now, please try again later")
-		} else {
-			err := config.CreateLock(PROOF_LOCK, []byte(""))
-			if err != nil {
-				return err
-			}
-		}
-
-		// Proof header
-		proof, err := eth.Proof(&ethHeader, config)
-		if err != nil {
-			return err
-		}
-
-		proofBytes, err := json.Marshal(proof.Format())
-		if err != nil {
-			return err
-		}
-
-		c.Proof = string(proofBytes)
-		err = db.Model(&c).Where("number = ?", c.Number).Update("proof", c.Proof).Error
-		if err != nil {
-			return err
-		}
-
-		// Remove proof lock
-		err = config.RemoveLock(PROOF_LOCK)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-// Convert EthHeader
-func (c *EthHeaderWithProofCache) IntoResp() (GetEthHeaderWithProofRawResp, error) {
-	var rResp GetEthHeaderWithProofRawResp
-	header, proof := eth.DarwiniaEthHeader{}, []eth.DoubleNodeWithMerkleProof{}
-
-	// Decode header
-	err := json.Unmarshal([]byte(c.Header), &header)
-	if err != nil {
-		return rResp, err
-	}
-
-	// Decode proof
-	err = json.Unmarshal([]byte(c.Proof), &proof)
-	if err != nil {
-		return rResp, err
-	}
-
-	// Construct resp
-	return GetEthHeaderWithProofRawResp{
-		header,
-		proof,
-		c.Root,
-		strings.Split(c.MMRProof, ","),
-	}, nil
-}
-
-// Fetch Eth Header by number
-func (c *EthHeaderWithProofCache) Fetch(
-	config internal.Config,
-	db *gorm.DB,
-) error {
-	// Get header from sqlite3
-	err := db.Where("number = ?", c.Number).Take(&c).Error
-	if err != nil {
-		err = db.Where("hash = ?", c.Hash).Take(&c).Error
-	}
-
-	if err != nil || util.IsEmpty(c.Header) || c.Header == "" {
-		ethHeader, err := eth.Header(c.Number, config.Api)
-		if err != nil {
-			return err
-		}
-
-		header, err := eth.IntoDarwiniaEthHeader(ethHeader)
-		if err != nil {
-			return err
-		}
-
-		bytes, err := json.Marshal(header)
-		if err != nil {
-			return err
-		}
-
-		c.Header = string(bytes)
-		c.Hash = ethHeader.Hash().Hex()
-		db.Create(&c)
-
-		// Prints logs every 100 headers
-		if c.Number > 0 && c.Number%100 == 0 {
-			log.Printf(
-				"imported headers from #%v to #%v\n",
-				c.Number-100,
-				c.Number,
-			)
-		}
-	}
-
-	// Return resp
-	return nil
-}
+const RELATIVE_DB_PATH = ".darwinia/cache/shadow.db"
 
 // Connect to cache
 func ConnectDb() (*gorm.DB, error) {
 	usr, err := user.Current()
 	if err != nil {
-		log.Fatal("Can not find current os user")
+		log.Error("Can not find current os user")
 	}
 
 	// Check path exists
-	cachePath := path.Join(usr.HomeDir, path.Dir(DB_PATH))
+	cachePath := path.Join(usr.HomeDir, path.Dir(RELATIVE_DB_PATH))
 	if _, err = os.Stat(cachePath); os.IsNotExist(err) {
 		err = os.MkdirAll(cachePath, 0700)
 		if err != nil {
-			log.Fatalf("Can not create cache folder at %s", cachePath)
+			log.Error("Can not create cache folder at %s", cachePath)
 		}
 	}
 
-	db, err := gorm.Open("sqlite3", path.Join(usr.HomeDir, DB_PATH))
+	log.Info("Connecting database ~/%v...", cachePath)
+	realDBPath := filepath.Join(usr.HomeDir, RELATIVE_DB_PATH)
+	db, err := gorm.Open("sqlite3", fmt.Sprintf(
+		"file:%s?cache=shared&mode=rwc&_journal_mode=WAL",
+		realDBPath,
+	))
+
 	if err != nil {
 		return db, err
 	}
 
+	// Setings
+	db.DB().SetMaxOpenConns(1)
+
 	// bootstrap sqlite3
 	db.AutoMigrate(&EthHeaderWithProofCache{})
 	return db, err
+}
+
+func CountCache(db *gorm.DB) uint64 {
+	var count uint64
+	db.Model(&EthHeaderWithProofCache{}).Count(&count)
+	return count
+}
+
+func FetchHeader(shadow *Shadow, block interface{}) (
+	header types.Header,
+	err error,
+) {
+	num, err := shadow.checkGenesis(shadow.Config.Genesis, block)
+	if err != nil {
+		return
+	}
+
+	log.Trace("Request block %v ...", num)
+	header, err = eth.Header(num, shadow.Config.Api)
+	if err != nil {
+		return
+	}
+
+	_, err = CreateEthHeaderCache(shadow.DB, &header)
+	return
+}
+
+func FetchHeaderCache(shadow *Shadow, block interface{}) (
+	cache EthHeaderWithProofCache,
+	err error,
+) {
+	var header types.Header
+	num, err := shadow.checkGenesis(shadow.Config.Genesis, block)
+	if err != nil {
+		return
+	}
+
+	shadow.DB.Raw(SelectHeader(num)).Scan(&cache)
+	if !util.IsEmpty(cache.Header) {
+		log.Trace("Block %v exists in shadowdb...", block)
+		return
+	}
+
+	log.Trace("Requesting block %v...", block)
+	header, err = eth.Header(num, shadow.Config.Api)
+	if err != nil {
+		return
+	}
+
+	cache, err = CreateEthHeaderCache(shadow.DB, &header)
+	return
+}
+
+func CreateEthHeaderCache(
+	db *gorm.DB,
+	header *types.Header,
+) (
+	cache EthHeaderWithProofCache,
+	err error,
+) {
+	if util.IsEmpty(header) {
+		err = fmt.Errorf("empty ethereum header")
+		return
+	}
+
+	dh, err := eth.IntoDarwiniaEthHeader(header)
+	if err != nil {
+		log.Error(err.Error())
+		return
+	}
+
+	hstr, err := dh.ToString()
+	if err != nil {
+		log.Error(err.Error())
+		return
+	}
+
+	cache = EthHeaderWithProofCache{
+		Hash:   header.Hash().Hex(),
+		Number: header.Number.Uint64(),
+		Header: hstr,
+	}
+
+	if err = db.Exec(UpsertHeaderSQL(&cache)).Error; err != nil {
+		return
+	}
+
+	return
+}
+
+func CreateProofCache(
+	shadow *Shadow,
+	cache *EthHeaderWithProofCache,
+	header *types.Header,
+) error {
+	// Proof header
+	proof, err := eth.Proof(header, shadow.Config)
+	if err != nil {
+		return err
+	}
+
+	proofBytes, err := json.Marshal(proof.Format())
+	if err != nil {
+		return err
+	}
+
+	cache.Proof = string(proofBytes)
+	err = shadow.DB.Model(&cache).Where(
+		"number = ?", cache.Number,
+	).Updates(EthHeaderWithProofCache{
+		Proof: cache.Proof,
+		Root:  cache.Root,
+	}).Error
+
+	if err != nil {
+		return err
+	}
+
+	// Remove proof lock
+	err = shadow.Config.RemoveLock(PROOF_LOCK)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func IndexHeaderFromDB(
+	db *gorm.DB,
+	cache *EthHeaderWithProofCache,
+) (interface{}, error) {
+	var (
+		err   error
+		block interface{}
+	)
+
+	if !util.IsEmpty(cache.Number) || cache.Number == 0 {
+		block = cache.Number
+		err = db.Where("number = ?", cache.Number).Take(&cache).Error
+	} else if !util.IsEmpty(cache.Hash) {
+		block = cache.Hash
+		err = db.Where("hash = ?", cache.Hash).Take(&cache).Error
+	}
+
+	return block, err
 }

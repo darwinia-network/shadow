@@ -9,12 +9,25 @@ import (
 	"github.com/spf13/cobra"
 )
 
+func init() {
+	cmdHeader.PersistentFlags().BoolVarP(
+		&VERBOSE,
+		"verbose",
+		"v",
+		false,
+		"Enable all shadow logs",
+	)
+}
+
 var cmdHeader = &cobra.Command{
 	Use:   "header [number]",
 	Short: "Get eth block by number",
 	Long:  "This command will use the config at `~/.darwinia/config.json`",
 	Args:  cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
+		verboseCheck()
+
+		// new shadow service
 		shadow, err := core.NewShadow()
 		util.Assert(err)
 

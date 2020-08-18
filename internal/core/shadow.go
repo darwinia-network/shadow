@@ -2,10 +2,10 @@ package core
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/darwinia-network/shadow/internal"
 	"github.com/darwinia-network/shadow/internal/eth"
+	"github.com/darwinia-network/shadow/internal/log"
 	"github.com/darwinia-network/shadow/internal/util"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/jinzhu/gorm"
@@ -19,6 +19,7 @@ const PROOF_LOCK = "proof.lock"
 type Shadow struct {
 	Config internal.Config
 	DB     *gorm.DB
+	// Geth   eth.Geth
 }
 
 func NewShadow() (Shadow, error) {
@@ -39,9 +40,7 @@ func NewShadow() (Shadow, error) {
 	}, err
 }
 
-/**
- * Genesis block checker
- */
+// Genesis block checker
 func (s *Shadow) checkGenesis(genesis uint64, block interface{}) (uint64, error) {
 	block, err := util.NumberOrString(block)
 	if err != nil {
@@ -62,7 +61,7 @@ func (s *Shadow) checkGenesis(genesis uint64, block interface{}) (uint64, error)
 		}
 
 		// convert ethHeader to darwinia header
-		dH, err := eth.IntoDarwiniaEthHeader(eH)
+		dH, err := eth.IntoDarwiniaEthHeader(&eH)
 		if err != nil {
 			return dH.Number, err
 		}
@@ -73,7 +72,8 @@ func (s *Shadow) checkGenesis(genesis uint64, block interface{}) (uint64, error)
 		}
 
 		// Check genesis by number
-		if dH.Number <= genesis {
+		if dH.Number < genesis {
+			log.Error("Requesting block %v", dH.Number)
 			return genesis, fmt.Errorf(GENESIS_ERROR, genesis)
 		}
 
@@ -105,54 +105,34 @@ func (s *Shadow) GetHeader(
 func (s *Shadow) GetHeaderWithProof(
 	chain Chain,
 	block interface{},
-	format ProofFormat,
-) (interface{}, error) {
-	var resp interface{}
+) (GetEthHeaderWithProofRawResp, error) {
 	switch chain {
 	default:
 		num, err := s.checkGenesis(s.Config.Genesis, block)
 		if err != nil {
-			return GetEthHeaderWithProofCodecResp{}, err
+			return GetEthHeaderWithProofRawResp{}, err
 		}
+
+		// Log the event
+		log.Trace("Request block %v with proof...", num)
 
 		// Fetch header from cache
-		cache := EthHeaderWithProofCache{Number: num}
-		err = cache.Fetch(s.Config, s.DB)
+		cache, err := FetchHeaderCache(s, num)
 		if err != nil {
-			return GetEthHeaderWithProofCodecResp{}, err
+			return GetEthHeaderWithProofRawResp{}, err
 		}
 
-		err = cache.ApplyProof(s.Config, s.DB)
+		err = cache.ApplyProof(s)
 		if err != nil {
-			return GetEthHeaderWithProofCodecResp{}, err
+			return GetEthHeaderWithProofRawResp{}, err
 		}
 
 		rawResp, err := cache.IntoResp()
 		if err != nil {
-			return GetEthHeaderWithProofCodecResp{}, err
+			return GetEthHeaderWithProofRawResp{}, err
 		}
 
-		// Set response
-		resp = rawResp
-
-		// Check if need codec
-		if format == ScaleFormat {
-			resp = GetEthHeaderWithProofCodecResp{
-				encodeDarwiniaEthHeader(rawResp.Header),
-				encodeProofArray(rawResp.Proof),
-				rawResp.Root,
-				rawResp.MMRProof,
-			}
-		} else if format == JsonFormat {
-			resp = GetEthHeaderWithProofJSONResp{
-				rawResp.Header.HexFormat(),
-				rawResp.Proof,
-				rawResp.Root,
-				rawResp.MMRProof,
-			}
-		}
-
-		return resp, nil
+		return rawResp, nil
 	}
 }
 
@@ -162,18 +142,15 @@ func (s *Shadow) GetHeaderWithProof(
 func (s *Shadow) BatchHeaderWithProof(
 	block uint64,
 	batch int,
-	format ProofFormat,
-) (interface{}, error) {
-	var (
-		nps []interface{}
-		err error
-	)
+) ([]GetEthHeaderWithProofRawResp, error) {
+	log.Trace("Batching blocks %v - %v...", block, block+uint64(batch))
+
+	// Batch headers
+	var nps []GetEthHeaderWithProofRawResp
 	for i := 0; i < batch; i++ {
-		var np interface{}
-		np, err = s.GetHeaderWithProof(
+		np, err := s.GetHeaderWithProof(
 			Ethereum,
 			block+uint64(i),
-			format,
 		)
 
 		if err != nil {
@@ -189,31 +166,25 @@ func (s *Shadow) BatchHeaderWithProof(
 /**
  * Get proposal headers
  */
-func (s *Shadow) GetProposalHeaders(
-	numbers []uint64,
-	format ProofFormat,
-) (interface{}, error) {
+func (s *Shadow) GetProposalHeaders(numbers []uint64) ([]GetEthHeaderWithProofRawResp, error) {
 	var (
-		nps []interface{}
-		err error
+		phs []GetEthHeaderWithProofRawResp
 	)
 
+	log.Trace("Geting proposal block %v...", numbers)
 	for _, i := range numbers {
-		var np interface{}
-		np, err = s.GetHeaderWithProof(
+		rawp, err := s.GetHeaderWithProof(
 			Ethereum,
 			uint64(i),
-			format,
 		)
-
 		if err != nil {
-			return nps, err
+			return phs, err
 		}
 
-		nps = append(nps, np)
+		phs = append(phs, rawp)
 	}
 
-	return nps, nil
+	return phs, nil
 }
 
 /**
@@ -222,18 +193,20 @@ func (s *Shadow) GetProposalHeaders(
 func (s *Shadow) GetReceipt(
 	tx string,
 ) (resp GetReceiptResp, err error) {
+	log.Trace("Geting ethereum receipt of tx %v...", tx)
 	proof, hash, err := eth.GetReceipt(tx)
 	if err != nil {
 		return
 	}
 
-	resp.ReceiptProof = proof
+	resp.ReceiptProof = proof.Proof
 	cache := EthHeaderWithProofCache{Hash: hash}
-	err = cache.Fetch(s.Config, s.DB)
+	err = cache.Fetch(s)
 	if err != nil {
 		return
 	}
 
-	resp.MMRProof = strings.Split(cache.MMRProof, ",")
+	cr, err := cache.IntoResp()
+	resp.Header = cr.Header
 	return
 }

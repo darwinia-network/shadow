@@ -1,6 +1,6 @@
-// @title Swagger Example API
+// @title Shadow API
 // @version 1.0
-// @description This is a sample server celler server.
+// @description The shadow service for relayers and verify workers to retrieve header data and generate proof. Shadow will index the data it needs from blockchain nodes, such as Ethereum and Darwinia.
 // @termsOfService http://swagger.io/terms/
 
 // @contact.name API Support
@@ -48,13 +48,14 @@ import (
 	"fmt"
 
 	"github.com/darwinia-network/shadow/api/docs"
+	"github.com/darwinia-network/shadow/internal/core"
 	"github.com/darwinia-network/shadow/internal/util"
 	"github.com/gin-gonic/gin"
 	"github.com/swaggo/files"
 	"github.com/swaggo/gin-swagger"
 )
 
-func Swagger(port string) {
+func Swagger(shadow *core.Shadow, port string) {
 	// programatically set swagger info
 	docs.SwaggerInfo.Title = "Swagger Example API"
 	docs.SwaggerInfo.Description = "This is a sample server Petstore server."
@@ -63,18 +64,19 @@ func Swagger(port string) {
 	docs.SwaggerInfo.BasePath = "/v2"
 	docs.SwaggerInfo.Schemes = []string{"http", "https"}
 
+	gin.SetMode(gin.ReleaseMode)
 	r := gin.Default()
-	c, err := NewShadowHTTP()
+	c, err := NewShadowHTTP(shadow)
 	util.Assert(err)
 
 	v1 := r.Group("/api/v1")
 	{
+		v1.GET("/batch/:block", c.BatchHeaders)
 		v1.GET("/header/:block", c.GetHeader)
 		v1.GET("/proof/:block", c.GetProof)
 		v1.GET("/receipt/:tx", c.GetReceipt)
 		v1.POST("/proposal", c.Proposal)
 	}
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
-	gin.SetMode(gin.ReleaseMode)
 	util.Assert(r.Run(fmt.Sprintf(":%s", port)))
 }

@@ -46,10 +46,24 @@ var doc = `{
                 "operationId": "get-header-by-block",
                 "parameters": [
                     {
-                        "type": "string",
-                        "description": "Eth header number or hash",
+                        "type": "number",
+                        "description": "Eth header number",
                         "name": "block",
                         "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "number",
+                        "description": "Batch how many blocks",
+                        "name": "batch",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "supports ` + "`" + `[",
+                        "name": "format",
+                        "in": "query",
                         "required": true
                     }
                 ],
@@ -92,6 +106,13 @@ var doc = `{
                         "description": "Eth header number or hash",
                         "name": "block",
                         "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "supports ` + "`" + `[",
+                        "name": "format",
+                        "in": "query",
                         "required": true
                     }
                 ],
@@ -137,6 +158,13 @@ var doc = `{
                         "collectionFormat": "multi",
                         "description": "Eth header numbers",
                         "name": "numbers",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "supports ` + "`" + `[",
+                        "name": "format",
                         "in": "query",
                         "required": true
                     }
@@ -187,6 +215,13 @@ var doc = `{
                         "name": "tx",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "type": "number",
+                        "description": "last confirm block",
+                        "name": "last",
+                        "in": "query",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -233,15 +268,13 @@ var doc = `{
             "type": "object",
             "properties": {
                 "eth_header": {
-                    "type": "string"
+                    "type": "object",
+                    "$ref": "#/definitions/eth.DarwiniaEthHeaderHexFormat"
                 },
                 "ethash_proof": {
-                    "type": "string"
-                },
-                "mmr_proof": {
                     "type": "array",
                     "items": {
-                        "type": "string"
+                        "$ref": "#/definitions/eth.DoubleNodeWithMerkleProof"
                     }
                 },
                 "mmr_root": {
@@ -252,6 +285,10 @@ var doc = `{
         "core.GetReceiptResp": {
             "type": "object",
             "properties": {
+                "header": {
+                    "type": "object",
+                    "$ref": "#/definitions/eth.DarwiniaEthHeader"
+                },
                 "mmr_proof": {
                     "type": "array",
                     "items": {
@@ -260,6 +297,129 @@ var doc = `{
                 },
                 "receipt_proof": {
                     "type": "string"
+                }
+            }
+        },
+        "eth.DarwiniaEthHeader": {
+            "type": "object",
+            "properties": {
+                "author": {
+                    "type": "string"
+                },
+                "difficulty": {
+                    "type": "integer"
+                },
+                "extra_data": {
+                    "type": "string"
+                },
+                "gas_limit": {
+                    "type": "integer"
+                },
+                "gas_used": {
+                    "type": "integer"
+                },
+                "hash": {
+                    "type": "string"
+                },
+                "log_bloom": {
+                    "type": "string"
+                },
+                "number": {
+                    "type": "integer"
+                },
+                "parent_hash": {
+                    "type": "string"
+                },
+                "receipts_root": {
+                    "type": "string"
+                },
+                "seal": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "state_root": {
+                    "type": "string"
+                },
+                "timestamp": {
+                    "type": "integer"
+                },
+                "transactions_root": {
+                    "type": "string"
+                },
+                "uncles_hash": {
+                    "type": "string"
+                }
+            }
+        },
+        "eth.DarwiniaEthHeaderHexFormat": {
+            "type": "object",
+            "properties": {
+                "author": {
+                    "type": "string"
+                },
+                "difficulty": {
+                    "type": "string"
+                },
+                "extra_data": {
+                    "type": "string"
+                },
+                "gas_limit": {
+                    "type": "string"
+                },
+                "gas_used": {
+                    "type": "string"
+                },
+                "hash": {
+                    "type": "string"
+                },
+                "log_bloom": {
+                    "type": "string"
+                },
+                "number": {
+                    "type": "string"
+                },
+                "parent_hash": {
+                    "type": "string"
+                },
+                "receipts_root": {
+                    "type": "string"
+                },
+                "seal": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "state_root": {
+                    "type": "string"
+                },
+                "timestamp": {
+                    "type": "string"
+                },
+                "transactions_root": {
+                    "type": "string"
+                },
+                "uncles_hash": {
+                    "type": "string"
+                }
+            }
+        },
+        "eth.DoubleNodeWithMerkleProof": {
+            "type": "object",
+            "properties": {
+                "dag_nodes": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "proof": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 }
             }
         },
@@ -384,8 +544,8 @@ var SwaggerInfo = swaggerInfo{
 	Host:        "localhost:8080",
 	BasePath:    "/api/v1",
 	Schemes:     []string{},
-	Title:       "Swagger Example API",
-	Description: "This is a sample server celler server.",
+	Title:       "Shadow API",
+	Description: "The shadow service for relayers and verify workers to retrieve header data and generate proof. Shadow will index the data it needs from blockchain nodes, such as Ethereum and Darwinia.",
 }
 
 type s struct{}

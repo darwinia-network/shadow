@@ -1,0 +1,28 @@
+version: "3"
+services:
+  geth:
+    image: ethereum/client-go:stable
+    command: --syncmode fast --http --http.addr 0.0.0.0 -http.vhosts *
+    volumes:
+      - data:/root/.ethereum
+  fetcher:
+    image: darwinianetwork/shadow:0.1.8
+    command: run -v
+    environment:
+      - ETHEREUM_RPC=http://geth:8545
+    ports:
+      - 3000:3000
+    volumes:
+      - data:/root/.darwinia
+    depends_on:
+      - geth
+  mmr:
+    image: darwinianetwork/shadow:0.1.8
+    command: run -vm --no-fetch --no-api
+    volumes:
+      - data:/root/.darwinia
+    depends_on:
+      - fetcher
+
+volumes:
+  data:

@@ -12,24 +12,107 @@ definitions:
   core.GetEthHeaderWithProofJSONResp:
     properties:
       eth_header:
-        type: string
+        $ref: '#/definitions/eth.DarwiniaEthHeaderHexFormat'
+        type: object
       ethash_proof:
-        type: string
-      mmr_proof:
         items:
-          type: string
+          $ref: '#/definitions/eth.DoubleNodeWithMerkleProof'
         type: array
       mmr_root:
         type: string
     type: object
   core.GetReceiptResp:
     properties:
+      header:
+        $ref: '#/definitions/eth.DarwiniaEthHeader'
+        type: object
       mmr_proof:
         items:
           type: string
         type: array
       receipt_proof:
         type: string
+    type: object
+  eth.DarwiniaEthHeader:
+    properties:
+      author:
+        type: string
+      difficulty:
+        type: integer
+      extra_data:
+        type: string
+      gas_limit:
+        type: integer
+      gas_used:
+        type: integer
+      hash:
+        type: string
+      log_bloom:
+        type: string
+      number:
+        type: integer
+      parent_hash:
+        type: string
+      receipts_root:
+        type: string
+      seal:
+        items:
+          type: string
+        type: array
+      state_root:
+        type: string
+      timestamp:
+        type: integer
+      transactions_root:
+        type: string
+      uncles_hash:
+        type: string
+    type: object
+  eth.DarwiniaEthHeaderHexFormat:
+    properties:
+      author:
+        type: string
+      difficulty:
+        type: string
+      extra_data:
+        type: string
+      gas_limit:
+        type: string
+      gas_used:
+        type: string
+      hash:
+        type: string
+      log_bloom:
+        type: string
+      number:
+        type: string
+      parent_hash:
+        type: string
+      receipts_root:
+        type: string
+      seal:
+        items:
+          type: string
+        type: array
+      state_root:
+        type: string
+      timestamp:
+        type: string
+      transactions_root:
+        type: string
+      uncles_hash:
+        type: string
+    type: object
+  eth.DoubleNodeWithMerkleProof:
+    properties:
+      dag_nodes:
+        items:
+          type: string
+        type: array
+      proof:
+        items:
+          type: string
+        type: array
     type: object
   types.Header:
     properties:
@@ -72,12 +155,12 @@ info:
     email: support@swagger.io
     name: API Support
     url: http://www.swagger.io/support
-  description: This is a sample server celler server.
+  description: The shadow service for relayers and verify workers to retrieve header data and generate proof. Shadow will index the data it needs from blockchain nodes, such as Ethereum and Darwinia.
   license:
     name: Apache 2.0
     url: http://www.apache.org/licenses/LICENSE-2.0.html
   termsOfService: http://swagger.io/terms/
-  title: Swagger Example API
+  title: Shadow API
   version: "1.0"
 paths:
   /header/{block}:
@@ -87,9 +170,19 @@ paths:
       description: Get ETH Header by block number or hash
       operationId: get-header-by-block
       parameters:
-      - description: Eth header number or hash
+      - description: Eth header number
         in: path
         name: block
+        required: true
+        type: number
+      - description: Batch how many blocks
+        in: query
+        name: batch
+        required: true
+        type: number
+      - description: supports `[
+        in: query
+        name: format
         required: true
         type: string
       produces:
@@ -118,6 +211,11 @@ paths:
       - description: Eth header number or hash
         in: path
         name: block
+        required: true
+        type: string
+      - description: supports `[
+        in: query
+        name: format
         required: true
         type: string
       produces:
@@ -151,6 +249,11 @@ paths:
         name: numbers
         required: true
         type: array
+      - description: supports `[
+        in: query
+        name: format
+        required: true
+        type: string
       produces:
       - application/json
       responses:
@@ -183,6 +286,11 @@ paths:
         name: tx
         required: true
         type: string
+      - description: last confirm block
+        in: query
+        name: last
+        required: true
+        type: number
       produces:
       - application/json
       responses:

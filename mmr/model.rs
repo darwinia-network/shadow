@@ -29,10 +29,6 @@ pub struct Cache {
     pub hash: String,
     /// MMR Result Number
     pub number: i64,
-    /// MMR position
-    pub pos: i64,
     /// MMR Result Root
     pub root: Option<String>,
-    /// MMR proof
-    pub mmr_proof: Option<String>,
 }

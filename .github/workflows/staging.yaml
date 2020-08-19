@@ -24,7 +24,7 @@ jobs:
           repository: ${{ github.repository }}
           add_git_labels: true
           tag_with_sha: true
-          tag_with_ref: false # Do not tag on every individual branch
+          tag_with_ref: true
 
       - uses: ./.github/actions/trigger-deployment
         with:

@@ -6,7 +6,7 @@ services:
     volumes:
       - data:/root/.ethereum
   fetcher:
-    image: darwinianetwork/shadow:0.1.8
+    image: quay.io/darwinia-network/shadow:next
     command: run -v
     environment:
       - ETHEREUM_RPC=http://geth:8545
@@ -17,7 +17,7 @@ services:
     depends_on:
       - geth
   mmr:
-    image: darwinianetwork/shadow:0.1.8
+    image: quay.io/darwinia-network/shadow:next
     command: run -vm --no-fetch --no-api
     volumes:
       - data:/root/.darwinia

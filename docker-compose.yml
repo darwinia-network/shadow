@@ -5,6 +5,8 @@ services:
     command: --syncmode fast --http --http.addr 0.0.0.0 -http.vhosts *
     volumes:
       - data:/root/.ethereum
+      - data:/root/.ethash
+      - data:/root/.ethashproof
   fetcher:
     image: quay.io/darwinia-network/shadow:next
     command: run -v

@@ -25,11 +25,9 @@ func (c *Config) CheckLock(lock Lock) bool {
 	p := filepath.Join(c.Root, lock.toString())
 	if stat, err := os.Stat(p); os.IsNotExist(err) {
 		return false
-	} else {
-		if time.Since(stat.ModTime()).Minutes() > 30 {
-			if err = c.RemoveLock(lock); err != nil {
-				return true
-			}
+	} else if time.Since(stat.ModTime()).Minutes() > 30 {
+		if err = c.RemoveLock(lock); err != nil {
+			return true
 		}
 	}
 

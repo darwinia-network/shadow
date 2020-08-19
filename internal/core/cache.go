@@ -8,6 +8,7 @@ import (
 	"path"
 	"path/filepath"
 
+	"github.com/darwinia-network/shadow/internal"
 	"github.com/darwinia-network/shadow/internal/eth"
 	"github.com/darwinia-network/shadow/internal/log"
 	"github.com/darwinia-network/shadow/internal/util"
@@ -171,7 +172,7 @@ func CreateProofCache(
 	}
 
 	// Remove proof lock
-	err = shadow.Config.RemoveLock(PROOF_LOCK)
+	err = shadow.Config.RemoveLock(internal.PROOF_LOCK)
 	if err != nil {
 		return err
 	}

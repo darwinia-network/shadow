@@ -13,13 +13,11 @@ import (
 
 // Shadow genesis block error message
 const GENESIS_ERROR = "The requested block number is too low, only support blocks heigher than %v"
-const PROOF_LOCK = "proof.lock"
 
 // Dimmy shadow service
 type Shadow struct {
 	Config internal.Config
 	DB     *gorm.DB
-	// Geth   eth.Geth
 }
 
 func NewShadow() (Shadow, error) {

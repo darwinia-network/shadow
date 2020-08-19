@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/darwinia-network/shadow/internal"
 	"github.com/darwinia-network/shadow/internal/eth"
 	"github.com/darwinia-network/shadow/internal/log"
 	"github.com/darwinia-network/shadow/internal/util"
@@ -51,10 +52,10 @@ func (c *EthHeaderWithProofCache) ApplyProof(shadow *Shadow) error {
 
 	// Check proof lock
 	if err != nil || util.IsEmpty(c.Proof) || c.Proof == "" {
-		if shadow.Config.CheckLock(PROOF_LOCK) {
+		if shadow.Config.CheckLock(internal.PROOF_LOCK) {
 			return fmt.Errorf("Shadow service is busy now, please try again later")
 		} else {
-			err := shadow.Config.CreateLock(PROOF_LOCK, []byte(""))
+			err := shadow.Config.CreateLock(internal.PROOF_LOCK)
 			if err != nil {
 				return err
 			}

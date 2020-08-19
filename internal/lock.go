@@ -7,9 +7,21 @@ import (
 	"strings"
 )
 
-// Common load config
-func (c *Config) CheckLock(filename string) bool {
-	p := filepath.Join(c.Root, filename)
+// Lock enum
+type Lock string
+
+const (
+	PROOF_LOCK Lock = "proof.lock"
+	EPOCH_LOCK Lock = "epoch.lock"
+)
+
+func (l *Lock) toString() string {
+	return string(*l)
+}
+
+// Check if lock exists
+func (c *Config) CheckLock(lock Lock) bool {
+	p := filepath.Join(c.Root, lock.toString())
 	if _, err := os.Stat(p); os.IsNotExist(err) {
 		return false
 	}
@@ -18,16 +30,16 @@ func (c *Config) CheckLock(filename string) bool {
 
 }
 
-// Common load config
-func (c *Config) CreateLock(filename string, ctx []byte) error {
-	p := filepath.Join(c.Root, filename)
+// Create lock
+func (c *Config) CreateLock(lock Lock) error {
+	p := filepath.Join(c.Root, lock.toString())
 	if _, err := os.Stat(p); os.IsNotExist(err) {
 		_, err = os.Create(p)
 		if err != nil {
 			return err
 		}
 
-		err = ioutil.WriteFile(p, ctx, 0600)
+		err = ioutil.WriteFile(p, []byte(""), 0600)
 		if err != nil {
 			return err
 		}
@@ -36,9 +48,9 @@ func (c *Config) CreateLock(filename string, ctx []byte) error {
 	return nil
 }
 
-// Common load config
-func (c *Config) RemoveLock(filename string) error {
-	p := filepath.Join(c.Root, filename)
+// Remove lock
+func (c *Config) removeLockByString(lock string) error {
+	p := filepath.Join(c.Root, lock)
 	_, err := os.Stat(p)
 	if err == nil {
 		err = os.Remove(p)
@@ -50,6 +62,12 @@ func (c *Config) RemoveLock(filename string) error {
 	return nil
 }
 
+// Remove lock
+func (c *Config) RemoveLock(lock Lock) error {
+	return c.removeLockByString(lock.toString())
+}
+
+// Remove all locks
 func (c *Config) RemoveAllLocks() (err error) {
 	files, err := ioutil.ReadDir(c.Root)
 	if err != nil {
@@ -59,7 +77,7 @@ func (c *Config) RemoveAllLocks() (err error) {
 	for _, f := range files {
 		name := f.Name()
 		if strings.HasSuffix(name, ".lock") {
-			err = c.RemoveLock(name)
+			err = c.removeLockByString(name)
 			if err != nil {
 				return
 			}

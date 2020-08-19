@@ -17,7 +17,6 @@ import (
 )
 
 // Constants
-const EPOCH_LOCK = "epoch.lock"
 const ETHASHPROOF_CACHE = ".ethashproof"
 
 // Final outputs of ethashproof
@@ -68,13 +67,13 @@ func (o *ProofOutput) Format() []DoubleNodeWithMerkleProof {
 // Epoch in background
 func bgEpoch(epoch uint64, config internal.Config) {
 	_, _ = ethashproof.CalculateDatasetMerkleRoot(epoch, true)
-	_ = config.RemoveLock(EPOCH_LOCK)
+	_ = config.RemoveLock(internal.EPOCH_LOCK)
 }
 
 // Check if need epoch
 func epochGently(epoch uint64, config internal.Config) error {
 	// Check if is epoching
-	if config.CheckLock(EPOCH_LOCK) {
+	if config.CheckLock(internal.EPOCH_LOCK) {
 		return nil
 	}
 
@@ -100,7 +99,7 @@ func epochGently(epoch uint64, config internal.Config) error {
 	}
 
 	// Create epoch lock
-	err = config.CreateLock(EPOCH_LOCK, []byte(""))
+	err = config.CreateLock(internal.EPOCH_LOCK)
 	if err != nil {
 		return err
 	}
@@ -122,7 +121,7 @@ func Proof(header *types.Header, config internal.Config) (ProofOutput, error) {
 	// Get proof from cache
 	cache, err := ethashproof.LoadCache(int(epoch))
 	if err != nil {
-		err = config.RemoveLock(EPOCH_LOCK)
+		err = config.RemoveLock(internal.EPOCH_LOCK)
 		if err != nil {
 			return *output, err
 		}

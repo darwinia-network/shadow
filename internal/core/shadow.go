@@ -18,7 +18,6 @@ const GENESIS_ERROR = "The requested block number is too low, only support block
 type Shadow struct {
 	Config internal.Config
 	DB     *gorm.DB
-	// Geth   eth.Geth
 }
 
 func NewShadow() (Shadow, error) {

@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 )
 
 // Lock enum
@@ -22,7 +23,13 @@ func (l *Lock) toString() string {
 // Check if lock exists
 func (c *Config) CheckLock(lock Lock) bool {
 	p := filepath.Join(c.Root, lock.toString())
-	if _, err := os.Stat(p); os.IsNotExist(err) {
+	if stat, err := os.Stat(p); os.IsNotExist(err) {
+		if time.Since(stat.ModTime()).Minutes() > 30 {
+			if err = c.RemoveLock(lock); err != nil {
+				return true
+			}
+		}
+
 		return false
 	}
 

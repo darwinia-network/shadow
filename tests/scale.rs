@@ -1,8 +1,9 @@
 mod mock;
 
 use mmr::{
-    bridge::{DoubleNodeWithMerkleProof, EthHeader, HeaderThing},
-    bytes, hex,
+    bytes,
+    chain::eth::{DoubleNodeWithMerkleProof, EthHeader, HeaderThing},
+    hex,
 };
 use mock::{ha, header, proof, ETHASH_PROOF_CODEC, ETH_HEADER_THING, HEADER, MOCK_HEADER_19};
 use scale::{Decode, Encode};

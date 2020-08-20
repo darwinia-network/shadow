@@ -1,9 +1,10 @@
-use super::{Bloom, U256};
+use crate::chain::array::{H1024, U256};
 use scale::{Decode, Encode};
+use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
 
 /// Darwinia Eth header
-#[derive(Decode, Encode, Debug, PartialEq, Eq)]
+#[derive(Decode, Encode, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct EthHeader {
     parent_hash: [u8; 32],
     timestamp: u64,
@@ -14,7 +15,7 @@ pub struct EthHeader {
     extra_data: Vec<u8>,
     state_root: [u8; 32],
     receipts_root: [u8; 32],
-    log_bloom: Bloom,
+    log_bloom: H1024,
     gas_used: U256,
     gas_limit: U256,
     difficulty: U256,
@@ -52,7 +53,7 @@ impl EthHeader {
             extra_data: bytes!(extra_data),
             state_root: bytes!(state_root, 32),
             receipts_root: bytes!(receipts_root, 32),
-            log_bloom: Bloom(bytes!(log_bloom, 256)),
+            log_bloom: H1024(bytes!(log_bloom, 256)),
             gas_used: U256::from_dec_str(gas_used).unwrap_or_default(),
             gas_limit: U256::from_dec_str(gas_limit).unwrap_or_default(),
             difficulty: U256::from_dec_str(difficulty).unwrap_or_default(),

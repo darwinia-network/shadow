@@ -13,7 +13,7 @@ pub use header_thing::ETH_HEADER_THING;
 pub use mock_header_19::MOCK_HEADER_19;
 
 use mmr::{
-    bridge::{DoubleNodeWithMerkleProof, EthHeader},
+    chain::eth::{DoubleNodeWithMerkleProof, EthHeader},
     hash::H256,
 };
 

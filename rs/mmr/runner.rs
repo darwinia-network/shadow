@@ -1,8 +1,8 @@
 //! MMR Runner
 use crate::{
+    chain::eth::EthHeaderRPCResp,
     hash::{MergeHash, H256},
     helper,
-    model::Cache,
     pool::{ConnPool, PooledConn},
     result::Error,
     schema::{eth_header_with_proof_caches::dsl::*, mmr_store::dsl::*},
@@ -10,6 +10,7 @@ use crate::{
 };
 use cmmr::{Error as StoreError, MMR};
 use diesel::{dsl::count, prelude::*, result::Error as DieselError};
+use reqwest::blocking::Client;
 use std::{
     sync::{mpsc, Arc, Mutex},
     thread, time,
@@ -20,6 +21,7 @@ use std::{
 pub struct Runner {
     store: Store,
     pool: ConnPool,
+    client: Client,
 }
 
 impl Runner {
@@ -36,7 +38,11 @@ impl Runner {
     /// Start with sqlite3 conn
     pub fn with(pool: ConnPool) -> Runner {
         let store = Store::with(pool.clone());
-        Runner { store, pool }
+        Runner {
+            store,
+            pool,
+            client: Client::new(),
+        }
     }
 
     fn check_push(&mut self, cur: i64) -> i64 {
@@ -111,23 +117,21 @@ impl Runner {
 
     /// Get block hash by number
     pub fn get_hash(&mut self, block: i64) -> Result<String, Error> {
-        let cache = eth_header_with_proof_caches
-            .filter(number.eq(block))
-            .first::<Cache>(&self.conn()?)?;
-
-        Ok(cache.hash)
+        Ok(EthHeaderRPCResp::get(&self.client, block as u64)?
+            .result
+            .hash)
     }
 
     /// Push new header hash into storage
     pub fn push(&mut self, pnumber: i64) -> Result<(), Error> {
         let conn = self.conn()?;
-        let cache = eth_header_with_proof_caches
-            .filter(number.eq(pnumber))
-            .first::<Cache>(&conn)?;
-
         let mut mmr =
             MMR::<_, MergeHash, _>::new(self.mmr_count().unwrap_or(0) as u64, self.store.clone());
-        if let Err(e) = mmr.push(H256::from(&cache.hash[2..])) {
+        if let Err(e) = mmr.push(H256::from(
+            &EthHeaderRPCResp::get(&self.client, pnumber as u64)?
+                .result
+                .hash,
+        )) {
             return Err(Error::MMR(e));
         }
 

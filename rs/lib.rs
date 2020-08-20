@@ -11,17 +11,11 @@ extern crate diesel;
 #[macro_use]
 extern crate log;
 
+mod bridge;
+mod db;
 mod ffi;
-mod model;
+mod mmr;
 mod result;
-mod runner;
-mod schema;
-mod sql;
 
-pub mod bridge;
-pub mod hash;
-pub mod helper;
-pub mod pool;
-pub mod store;
-
-pub use runner::Runner;
+pub use db::{model, pool, schema, sql};
+pub use mmr::{hash, helper, runner::Runner, store};

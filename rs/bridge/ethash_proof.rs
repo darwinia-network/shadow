@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 use super::{H128, H512};
 use scale::{Decode, Encode};
 

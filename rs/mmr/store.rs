@@ -1,5 +1,5 @@
 //! MMR store
-use super::{hash::H256, model::*, pool::ConnPool, schema::mmr_store::dsl::*, sql::*};
+use crate::{hash::H256, model::*, pool::ConnPool, schema::mmr_store::dsl::*, sql::*};
 use cmmr::{Error, MMRStore, Result as MMRResult};
 use diesel::{dsl::count, prelude::*};
 

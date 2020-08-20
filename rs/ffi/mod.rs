@@ -2,8 +2,8 @@
 use crate::{
     hash::{MergeHash, H256},
     pool,
-    runner::Runner,
     store::Store,
+    Runner,
 };
 use cmmr::MMR;
 use std::ffi::CString;

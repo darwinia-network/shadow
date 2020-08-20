@@ -1,5 +1,4 @@
 //! Helper fns
-
 use std::cmp::Ordering;
 
 fn log2_floor(mut num: i64) -> i64 {

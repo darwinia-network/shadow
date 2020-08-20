@@ -1,5 +1,5 @@
 //! MMR Runner
-use super::{
+use crate::{
     hash::{MergeHash, H256},
     helper,
     model::Cache,

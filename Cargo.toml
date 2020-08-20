@@ -9,7 +9,6 @@ path = "rs/lib.rs"
 crate_type = ["rlib", "staticlib"]
 
 [dependencies]
-uint = "0.8.3"
 blake2-rfc = "0.2.18"
 cmmr = { version = "0.3.0", package = "ckb-merkle-mountain-range"}
 dirs = "2.0.2"
@@ -17,8 +16,10 @@ env_logger = "0.7.1"
 etc = "0.1.7"
 libc = "0.2.71"
 log = "0.4.0"
-serde = { version = "1.0", features = ["derive"]}
+reqwest = { version = "0.10", features = ["blocking", "json"] }
+serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
+uint = "0.8.3"
 
 [dependencies.scale]
 package = "parity-scale-codec"

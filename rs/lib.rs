@@ -13,6 +13,7 @@ extern crate log;
 #[macro_use]
 extern crate serde;
 
+mod conf;
 mod db;
 mod ffi;
 mod mmr;

@@ -1,7 +1,64 @@
-use crate::chain::array::{H1024, U256};
+use crate::{
+    chain::array::{H1024, U256},
+    result::Error,
+};
+use reqwest::blocking::Client;
 use scale::{Decode, Encode};
 use serde::{Deserialize, Serialize};
-use std::fmt::Debug;
+use serde_json::Value;
+use std::{env, fmt::Debug};
+
+/// Ethereum JSON rpc response
+#[derive(Serialize, Deserialize, Debug)]
+pub struct EthHeaderRPCResp {
+    jsonrpc: String,
+    id: i32,
+    /// Header Result of RPC
+    pub result: RawEthHeader,
+}
+
+impl EthHeaderRPCResp {
+    /// Get `EthHeader` by number
+    pub fn get(client: &Client, block: u64) -> Result<EthHeaderRPCResp, Error> {
+        let api = env::var("ETHEREUM_RPC").unwrap_or(crate::conf::DEFAULT_ETHEREUM_RPC.into());
+        let map: Value = serde_json::from_str(&format! {
+            "{{{}}}", vec![
+                r#""jsonrpc":"2.0","#,
+                r#""method":"eth_getBlockByNumber","#,
+                &format!(r#""params":["{:#X}", false],"#, block),
+                r#""id": 1"#,
+            ].concat(),
+        })?;
+
+        Ok(client.post(&api).json(&map).send()?.json()?)
+    }
+}
+
+/// Raw EthHeader from Ethereum rpc
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct RawEthHeader {
+    difficulty: String,
+    extra_data: String,
+    gas_limit: String,
+    /// Ethereum header hash
+    pub hash: String,
+    logs_bloom: String,
+    miner: String,
+    mix_hash: String,
+    nonce: String,
+    number: String,
+    parent_hash: String,
+    receipts_root: String,
+    sha3_uncles: String,
+    size: String,
+    state_root: String,
+    timestamp: String,
+    total_difficulty: String,
+    transactions: Vec<String>,
+    transactions_root: String,
+    uncles: Vec<String>,
+}
 
 /// Darwinia Eth header
 #[derive(Decode, Encode, Debug, PartialEq, Eq, Serialize, Deserialize)]

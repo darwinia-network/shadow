@@ -14,7 +14,7 @@ import (
 )
 
 // Get ethereum header by block number
-func Header(block interface{}, api string) (types.Header, error) {
+func Header(block uint64, api string) (types.Header, error) {
 	// Get header from infura
 	var (
 		resp       *http.Response
@@ -22,23 +22,12 @@ func Header(block interface{}, api string) (types.Header, error) {
 		infuraResp InfuraResponse
 	)
 
-	// Request block by number or hash
-	switch b := block.(type) {
-	case uint64:
-		resp, err = http.Post(
-			api,
-			"application/json",
-			strings.NewReader(fmt.Sprintf(GETBLOCK, b)),
-		)
-	case string:
-		resp, err = http.Post(
-			api,
-			"application/json",
-			strings.NewReader(fmt.Sprintf(GETBLOCK_BYHASH, b)),
-		)
-	default:
-		return infuraResp.Result, fmt.Errorf("Heaader function only accepts blockHash and blockNumber")
-	}
+	resp, err = http.Post(
+		api,
+		"application/json",
+		strings.NewReader(fmt.Sprintf(GETBLOCK, block)),
+	)
+
 	if err != nil {
 		if !strings.Contains(api, "infura") {
 			return Header(block, internal.DEFAULT_ETHEREUM_RPC)

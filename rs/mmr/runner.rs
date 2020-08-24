@@ -11,10 +11,7 @@ use crate::{
 use cmmr::{Error as StoreError, MMR};
 use diesel::{dsl::count, prelude::*, result::Error as DieselError};
 use reqwest::blocking::Client;
-use std::{
-    sync::{mpsc, Arc, Mutex},
-    thread, time,
-};
+use std::{thread, time};
 
 /// MMR Runner
 #[derive(Clone)]
@@ -84,7 +81,7 @@ impl Runner {
     }
 
     /// Start the runner
-    pub fn start(&mut self, thread: i64, limits: u32) -> Result<(), Error> {
+    pub fn start(&mut self) -> Result<(), Error> {
         let mut ptr = {
             let last_leaf = helper::mmr_size_to_last_leaf(self.mmr_count()?);
             if last_leaf == 0 {
@@ -94,24 +91,9 @@ impl Runner {
             }
         };
 
-        let gap: time::Duration = time::Duration::from_secs(1) / limits;
         loop {
-            let next = Arc::new(Mutex::new(ptr));
-            let (tx, rx) = mpsc::channel();
-            for _ in 0..thread {
-                let (next, tx) = (Arc::clone(&next), tx.clone());
-                let mut this = self.clone();
-                thread::spawn(move || {
-                    let mut cur = next.lock().unwrap();
-                    *cur = this.check_push(*cur);
-                    thread::sleep(gap);
-                    if *cur == thread + ptr {
-                        tx.send(*cur).unwrap();
-                    }
-                });
-            }
-
-            ptr = rx.recv().unwrap();
+            self.check_push(ptr);
+            ptr += 1;
         }
     }
 
@@ -125,8 +107,10 @@ impl Runner {
     /// Push new header hash into storage
     pub fn push(&mut self, pnumber: i64) -> Result<(), Error> {
         let conn = self.conn()?;
-        let mut mmr =
-            MMR::<_, MergeHash, _>::new(self.mmr_count().unwrap_or(0) as u64, self.store.clone());
+        let mut mmr = MMR::<_, MergeHash, _>::new(
+            cmmr::leaf_index_to_mmr_size((pnumber - 1) as u64),
+            &self.store,
+        );
         if let Err(e) = mmr.push(H256::from(
             &EthHeaderRPCResp::get(&self.client, pnumber as u64)?
                 .result

@@ -60,9 +60,12 @@ func GetReceiptLog(tx string) (*Receipts, error) {
 	params[0] = tx
 	var receipt Receipts
 	if receiptResult, err := RPC("eth_getTransactionReceipt", params); err != nil {
-		return &Receipts{}, err
+		return nil, err
 	} else {
 		err := mapstructure.Decode(receiptResult.Result, &receipt)
+		if err != nil {
+			return nil, err
+		}
 		receipt.ChainSource = "Eth"
 		receipt.Solidity = true
 		return &receipt, err
@@ -114,7 +117,7 @@ type RedeemFor struct {
 
 func GetReceipt(tx string) (ProofRecord, string, error) {
 	r, err := GetReceiptLog(tx)
-	if err != nil {
+	if err != nil || r == nil {
 		return ProofRecord{}, "", err
 	}
 
@@ -128,7 +131,7 @@ func BuildProofRecord(r *Receipts) (ProofRecord, string, error) {
 	}
 	block, err := GetChainBlockInfo(util.U256(r.BlockNumber).Int64())
 	if err != nil {
-		return ProofRecord{}, block.Hash, err
+		return ProofRecord{}, "", err
 	}
 	receiptsMap := cmap.New()
 

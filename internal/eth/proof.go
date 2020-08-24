@@ -65,13 +65,13 @@ func (o *ProofOutput) Format() []DoubleNodeWithMerkleProof {
 }
 
 // Epoch in background
-func bgEpoch(epoch uint64, config internal.Config) {
+func bgEpoch(epoch uint64, config *internal.Config) {
 	_, _ = ethashproof.CalculateDatasetMerkleRoot(epoch, true)
 	_ = config.RemoveLock(internal.EPOCH_LOCK)
 }
 
 // Check if need epoch
-func epochGently(epoch uint64, config internal.Config) error {
+func epochGently(epoch uint64, config *internal.Config) error {
 	// Check if is epoching
 	if config.CheckLock(internal.EPOCH_LOCK) {
 		return nil
@@ -113,7 +113,7 @@ func epochGently(epoch uint64, config internal.Config) error {
 }
 
 // Proof eth blockheader
-func Proof(header *types.Header, config internal.Config) (ProofOutput, error) {
+func Proof(header *types.Header, config *internal.Config) (ProofOutput, error) {
 	blockno := header.Number.Uint64()
 	epoch := blockno / 30000
 	output := &ProofOutput{}

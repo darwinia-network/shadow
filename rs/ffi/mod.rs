@@ -10,11 +10,11 @@ use std::ffi::CString;
 
 /// Run the mmr service
 #[no_mangle]
-pub extern "C" fn run(t: i64, g: u32) -> i32 {
+pub extern "C" fn run(_t: i64, _g: u32) -> i32 {
     env_logger::init();
     info!("starting mmr service...");
     let conn = pool::conn(None);
-    if Runner::with(conn).start(t, g).is_ok() {
+    if Runner::with(conn).start().is_ok() {
         0
     } else {
         error!("mmr service start failed");
@@ -31,7 +31,7 @@ pub extern "C" fn run(t: i64, g: u32) -> i32 {
 pub unsafe extern "C" fn proof(last_leaf: u64, member: u64) -> CString {
     let conn = pool::conn(None);
     let store = Store::with(conn);
-    let mmr = MMR::<_, MergeHash, _>::new(cmmr::leaf_index_to_mmr_size(last_leaf), store);
+    let mmr = MMR::<_, MergeHash, _>::new(cmmr::leaf_index_to_mmr_size(last_leaf), &store);
     match mmr.gen_proof(vec![cmmr::leaf_index_to_pos(member)]) {
         Err(e) => {
             error!(

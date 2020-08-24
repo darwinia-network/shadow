@@ -24,7 +24,7 @@ impl Store {
     }
 }
 
-impl<H> MMRStore<H> for Store
+impl<H> MMRStore<H> for &Store
 where
     H: H256,
 {

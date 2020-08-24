@@ -1,9 +1,6 @@
-use std::{fs, process::Command};
+use std::process::Command;
 
 fn main() {
-    println!(r"cargo:rustc-link-search=target/debug");
-    println!("cargo:rerun-if-changed=internal/ffi/mod.go");
-
     let os = Command::new("uname").output().unwrap();
     let ext = match String::from_utf8_lossy(os.stdout.as_slice())
         .into_owned()
@@ -14,18 +11,22 @@ fn main() {
         _ => "so",
     };
 
-    let debug = format!("target/debug/libeth.{}", ext);
-    let release = debug.replace("debug", "release");
+    let profile = match std::env::var("PROFILE").unwrap().as_str() {
+        "release" => "release",
+        _ => "debug",
+    };
+
+    let lib = format!("target/{}/libeth.{}", profile, ext);
     Command::new("go")
         .args(&[
             "build",
             "-o",
-            &debug,
+            &lib,
             "-buildmode=c-shared",
             "internal/ffi/mod.go",
         ])
         .status()
         .unwrap();
 
-    fs::copy(&debug, &release).unwrap();
+    println!(r"cargo:rustc-link-search=target/debug");
 }

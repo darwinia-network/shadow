@@ -10,7 +10,7 @@ fn main() {
     let conn = pool::conn(None);
     let store = Store::with(conn);
 
-    let mmr = MMR::<_, MergeHash, _>::new(leaf_index_to_mmr_size(1), store);
+    let mmr = MMR::<_, MergeHash, _>::new(leaf_index_to_mmr_size(1), &store);
     let leaf_root = mmr.get_root().expect("get root failed");
 
     // let proofs = mmr

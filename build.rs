@@ -1,4 +1,4 @@
-use std::process::Command;
+use std::{fs, process::Command};
 
 fn main() {
     println!(r"cargo:rustc-link-search=target/debug");
@@ -14,14 +14,18 @@ fn main() {
         _ => "so",
     };
 
+    let debug = format!("target/debug/libeth.{}", ext);
+    let release = debug.replace("debug", "release");
     Command::new("go")
         .args(&[
             "build",
             "-o",
-            &format!("target/debug/libeth.{}", ext),
+            &debug,
             "-buildmode=c-shared",
             "internal/ffi/mod.go",
         ])
         .status()
         .unwrap();
+
+    fs::copy(&debug, &release).unwrap();
 }

@@ -15,7 +15,6 @@ extern crate serde;
 
 mod conf;
 mod db;
-mod ffi;
 mod mmr;
 mod result;
 

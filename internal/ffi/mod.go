@@ -15,16 +15,28 @@ func init() {
 }
 
 //export Proof
-func Proof(number uint64) string {
-	header, _ := eth.Header(number, CONFIG.Api)
-	proof, _ := eth.Proof(&header, &CONFIG)
-	return eth.EncodeProofArray(proof.Format())
+func Proof(number uint64) *C.char {
+	header, err := eth.Header(number, CONFIG.Api)
+	if err != nil {
+		return C.CString("")
+	}
+
+	proof, err := eth.Proof(&header, &CONFIG)
+	if err != nil {
+		return C.CString("")
+	}
+
+	return C.CString(eth.EncodeProofArray(proof.Format()))
 }
 
 //export Receipt
-func Receipt(tx string) (string, string) {
-	proof, hash, _ := eth.GetReceipt(tx)
-	return proof.Proof, hash
+func Receipt(tx string) (*C.char, *C.char) {
+	proof, hash, err := eth.GetReceipt(tx)
+	if err != nil {
+		return C.CString(""), C.CString("")
+	}
+
+	return C.CString(proof.Proof), C.CString(hash)
 }
 
 func main() {}

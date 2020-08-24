@@ -65,8 +65,8 @@ impl Into<EthHeader> for RawEthHeader {
     fn into(self) -> EthHeader {
         EthHeader {
             parent_hash: bytes!(self.parent_hash.as_str(), 32),
-            timestamp: u64::from_str_radix(&self.timestamp.as_str(), 16).unwrap(),
-            number: u64::from_str_radix(&self.number.as_str(), 16).unwrap(),
+            timestamp: u64::from_str_radix(&self.timestamp.as_str()[2..], 16).unwrap_or_default(),
+            number: u64::from_str_radix(&self.number.as_str()[2..], 16).unwrap_or_default(),
             author: bytes!(self.miner.as_str(), 20),
             transactions_root: bytes!(self.transactions_root.as_str(), 32),
             uncles_hash: bytes!(self.sha3_uncles.as_str(), 32),

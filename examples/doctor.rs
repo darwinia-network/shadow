@@ -1,6 +1,6 @@
 //! Mock the uncle block
 use cmmr::{leaf_index_to_mmr_size, MMR};
-use mmr::{
+use shadow::{
     hash::{MergeHash, H256},
     pool,
     store::Store,

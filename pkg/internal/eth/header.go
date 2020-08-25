@@ -30,7 +30,7 @@ func Header(block uint64, api string) (types.Header, error) {
 
 	if err != nil {
 		if !strings.Contains(api, "infura") {
-			return Header(block, pkg/internal.DEFAULT_ETHEREUM_RPC)
+			return Header(block, internal.DEFAULT_ETHEREUM_RPC)
 		}
 		return infuraResp.Result, err
 	}
@@ -40,7 +40,7 @@ func Header(block uint64, api string) (types.Header, error) {
 	err = json.NewDecoder(resp.Body).Decode(&infuraResp)
 	if err != nil {
 		if !strings.Contains(api, "infura") {
-			return Header(block, pkg/internal.DEFAULT_ETHEREUM_RPC)
+			return Header(block, internal.DEFAULT_ETHEREUM_RPC)
 		}
 		return infuraResp.Result, err
 	}

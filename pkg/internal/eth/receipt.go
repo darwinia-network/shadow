@@ -28,7 +28,7 @@ var (
 )
 
 func init() {
-	conf := new(pkg/internal.Config)
+	conf := new(internal.Config)
 	_ = conf.Load()
 	API = conf.Api
 }

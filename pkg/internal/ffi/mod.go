@@ -7,7 +7,7 @@ import (
 )
 
 var (
-	CONFIG pkg/internal.Config = pkg/internal.Config{}
+	CONFIG internal.Config = internal.Config{}
 )
 
 func init() {

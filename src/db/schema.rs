@@ -7,11 +7,3 @@ table! {
         pos -> BigInt,
     }
 }
-
-table! {
-    eth_header_with_proof_caches(number) {
-        hash -> Text,
-        number -> BigInt,
-        root -> Nullable<Text>,
-    }
-}

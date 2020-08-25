@@ -20,15 +20,3 @@ impl Header {
         }
     }
 }
-
-/// MMR Store Result
-#[derive(AsChangeset, Clone, Insertable, Queryable, Debug, Default)]
-#[table_name = "eth_header_with_proof_caches"]
-pub struct Cache {
-    /// MMR Cache Hash
-    pub hash: String,
-    /// MMR Result Number
-    pub number: i64,
-    /// MMR Result Root
-    pub root: Option<String>,
-}

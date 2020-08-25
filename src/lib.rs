@@ -15,10 +15,10 @@ extern crate serde;
 
 mod conf;
 mod db;
-mod ffi;
 mod mmr;
 mod result;
 
+pub mod api;
 pub mod chain;
 pub use self::{
     db::{model, pool, schema, sql},

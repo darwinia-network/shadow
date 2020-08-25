@@ -1,12 +1,12 @@
 mod mock;
 
-use mmr::{
+use mock::{ha, header, proof, ETHASH_PROOF_CODEC, ETH_HEADER_THING, HEADER, MOCK_HEADER_19};
+use scale::{Decode, Encode};
+use shadow::{
     bytes,
     chain::eth::{DoubleNodeWithMerkleProof, EthHeader, HeaderThing},
     hex,
 };
-use mock::{ha, header, proof, ETHASH_PROOF_CODEC, ETH_HEADER_THING, HEADER, MOCK_HEADER_19};
-use scale::{Decode, Encode};
 
 /// the scale codec of hash is its hex string
 #[test]

@@ -3,7 +3,7 @@ use crate::chain::array::{H128, H512};
 use scale::{Decode, Encode};
 
 /// Ethash proof
-#[derive(Encode, Decode, Debug, PartialEq, Eq)]
+#[derive(Encode, Decode, Debug, PartialEq, Eq, Deserialize, Serialize)]
 pub struct DoubleNodeWithMerkleProof {
     /// Dag nodes
     pub dag_nodes: [H512; 2],

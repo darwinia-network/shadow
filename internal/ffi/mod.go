@@ -2,6 +2,9 @@ package main
 
 import "C"
 import (
+	"fmt"
+	// "strings"
+
 	"github.com/darwinia-network/shadow/internal"
 	"github.com/darwinia-network/shadow/internal/eth"
 )
@@ -31,6 +34,7 @@ func Proof(number uint64) *C.char {
 
 //export Receipt
 func Receipt(tx string) (*C.char, *C.char) {
+	tx = "0x" + tx[2:]
 	proof, hash, err := eth.GetReceipt(tx)
 	if err != nil {
 		return C.CString(""), C.CString("")

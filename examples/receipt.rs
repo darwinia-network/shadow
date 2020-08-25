@@ -30,8 +30,9 @@ fn main() {
         b: c_tx.as_bytes().len() as i64,
     };
 
-    println!("{:?}", unsafe {
+    unsafe {
         let gt = Receipt(tx);
-        CStr::from_ptr(gt.proof)
-    });
+        println!("{:?}", CStr::from_ptr(gt.proof));
+        println!("{:?}", CStr::from_ptr(gt.hash));
+    }
 }

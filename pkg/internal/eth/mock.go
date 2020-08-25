@@ -7,7 +7,7 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/darwinia-network/shadow/internal/log"
+	"github.com/darwinia-network/shadow/pkg/internal/log"
 	"github.com/ethereum/go-ethereum/core/types"
 )
 

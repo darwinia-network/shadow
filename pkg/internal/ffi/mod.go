@@ -2,12 +2,12 @@ package main
 
 import "C"
 import (
-	"github.com/darwinia-network/shadow/internal"
-	"github.com/darwinia-network/shadow/internal/eth"
+	"github.com/darwinia-network/shadow/pkg/internal"
+	"github.com/darwinia-network/shadow/pkg/internal/eth"
 )
 
 var (
-	CONFIG internal.Config = internal.Config{}
+	CONFIG pkg/internal.Config = pkg/internal.Config{}
 )
 
 func init() {

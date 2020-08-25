@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"strconv"
 
-	"github.com/darwinia-network/shadow/internal/util"
+	"github.com/darwinia-network/shadow/pkg/internal/util"
 )
 
 const (

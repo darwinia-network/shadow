@@ -7,8 +7,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/darwinia-network/shadow/internal"
-	"github.com/darwinia-network/shadow/internal/util"
+	"github.com/darwinia-network/shadow/pkg/internal"
+	"github.com/darwinia-network/shadow/pkg/internal/util"
 	"github.com/darwinia-network/shadow/pkg/ethashproof"
 	"github.com/darwinia-network/shadow/pkg/ethashproof/ethash"
 	"github.com/darwinia-network/shadow/pkg/ethashproof/mtree"
@@ -65,15 +65,15 @@ func (o *ProofOutput) Format() []DoubleNodeWithMerkleProof {
 }
 
 // Epoch in background
-func bgEpoch(epoch uint64, config *internal.Config) {
+func bgEpoch(epoch uint64, config *pkg/internal.Config) {
 	_, _ = ethashproof.CalculateDatasetMerkleRoot(epoch, true)
-	_ = config.RemoveLock(internal.EPOCH_LOCK)
+	_ = config.RemoveLock(pkg/internal.EPOCH_LOCK)
 }
 
 // Check if need epoch
-func epochGently(epoch uint64, config *internal.Config) error {
+func epochGently(epoch uint64, config *pkg/internal.Config) error {
 	// Check if is epoching
-	if config.CheckLock(internal.EPOCH_LOCK) {
+	if config.CheckLock(pkg/internal.EPOCH_LOCK) {
 		return nil
 	}
 
@@ -99,7 +99,7 @@ func epochGently(epoch uint64, config *internal.Config) error {
 	}
 
 	// Create epoch lock
-	err = config.CreateLock(internal.EPOCH_LOCK)
+	err = config.CreateLock(pkg/internal.EPOCH_LOCK)
 	if err != nil {
 		return err
 	}
@@ -113,7 +113,7 @@ func epochGently(epoch uint64, config *internal.Config) error {
 }
 
 // Proof eth blockheader
-func Proof(header *types.Header, config *internal.Config) (ProofOutput, error) {
+func Proof(header *types.Header, config *pkg/internal.Config) (ProofOutput, error) {
 	blockno := header.Number.Uint64()
 	epoch := blockno / 30000
 	output := &ProofOutput{}
@@ -121,7 +121,7 @@ func Proof(header *types.Header, config *internal.Config) (ProofOutput, error) {
 	// Get proof from cache
 	cache, err := ethashproof.LoadCache(int(epoch))
 	if err != nil {
-		err = config.RemoveLock(internal.EPOCH_LOCK)
+		err = config.RemoveLock(pkg/internal.EPOCH_LOCK)
 		if err != nil {
 			return *output, err
 		}

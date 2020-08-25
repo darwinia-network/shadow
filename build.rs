@@ -23,7 +23,7 @@ fn main() {
             "-o",
             &lib,
             "-buildmode=c-shared",
-            "internal/ffi/mod.go",
+            "pkg/internal/ffi/mod.go",
         ])
         .status()
         .unwrap();

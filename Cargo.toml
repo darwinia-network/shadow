@@ -9,6 +9,7 @@ path = "src/lib.rs"
 
 [dependencies]
 actix-web = "2.0.0"
+actix-rt = "1.0"
 blake2-rfc = "0.2.18"
 cmmr = { version = "0.3.0", package = "ckb-merkle-mountain-range"}
 dirs = "2.0.2"

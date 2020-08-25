@@ -18,6 +18,7 @@ mod db;
 mod mmr;
 mod result;
 
+pub mod api;
 pub mod chain;
 pub use self::{
     db::{model, pool, schema, sql},

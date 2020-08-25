@@ -11,9 +11,15 @@ struct GoString {
     b: i64,
 }
 
+#[repr(C)]
+struct GoTuple {
+    proof: *const c_char,
+    hash: *const c_char,
+}
+
 #[link(name = "eth")]
 extern "C" {
-    fn Receipt(input: GoString) -> (*const c_char, *const c_char);
+    fn Receipt(input: GoString) -> GoTuple;
 }
 
 fn main() {
@@ -25,7 +31,7 @@ fn main() {
     };
 
     println!("{:?}", unsafe {
-        let (proof, _) = Receipt(tx);
-        CStr::from_ptr(proof)
+        let gt = Receipt(tx);
+        CStr::from_ptr(gt.proof)
     });
 }

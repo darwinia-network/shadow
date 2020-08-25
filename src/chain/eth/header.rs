@@ -1,5 +1,6 @@
 use crate::{
     chain::array::{H1024, U256},
+    hex,
     result::Error,
 };
 use reqwest::{blocking::Client, Client as AsyncClient};
@@ -138,5 +139,51 @@ impl EthHeader {
             .await?
             .result
             .into())
+    }
+}
+
+/// Darwinia Eth header Json foramt
+#[derive(Debug, PartialEq, Eq, Serialize, Deserialize, Default)]
+pub struct EthHeaderJson {
+    parent_hash: String,
+    timestamp: u64,
+    number: u64,
+    author: String,
+    transactions_root: String,
+    uncles_hash: String,
+    extra_data: String,
+    state_root: String,
+    receipts_root: String,
+    log_bloom: String,
+    gas_used: String,
+    gas_limit: String,
+    difficulty: String,
+    seal: Vec<String>,
+    hash: String,
+}
+
+impl From<EthHeader> for EthHeaderJson {
+    fn from(e: EthHeader) -> EthHeaderJson {
+        EthHeaderJson {
+            parent_hash: format!("0x{}", hex!(e.parent_hash.to_vec())),
+            timestamp: e.timestamp,
+            number: e.number,
+            author: format!("0x{}", hex!(e.author.to_vec())),
+            transactions_root: format!("0x{}", hex!(e.transactions_root.to_vec())),
+            uncles_hash: format!("0x{}", hex!(e.uncles_hash.to_vec())),
+            extra_data: format!("0x{}", hex!(e.extra_data.to_vec())),
+            state_root: format!("0x{}", hex!(e.state_root.to_vec())),
+            receipts_root: format!("0x{}", hex!(e.receipts_root.to_vec())),
+            log_bloom: format!("0x{}", hex!(e.log_bloom.0.to_vec())),
+            gas_used: format!("0x{}", hex!(e.gas_used.0.to_vec())),
+            gas_limit: format!("0x{}", hex!(e.gas_limit.0.to_vec())),
+            difficulty: format!("0x{}", hex!(e.difficulty.0.to_vec())),
+            seal: e
+                .seal
+                .iter()
+                .map(|s| format!("0x{}", hex!(s.to_vec())))
+                .collect(),
+            hash: format!("0x{}", hex!(e.hash.unwrap_or_default().to_vec())),
+        }
     }
 }

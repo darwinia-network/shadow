@@ -1,5 +1,8 @@
 #![allow(dead_code)]
-use crate::chain::array::{H128, H512};
+use crate::{
+    chain::array::{H128, H512},
+    hex,
+};
 use scale::{Decode, Encode};
 
 /// Ethash proof
@@ -23,6 +26,31 @@ impl EthashProof {
                 .iter()
                 .map(|s| H128(bytes!(*s, 16)))
                 .collect::<Vec<H128>>(),
+        }
+    }
+}
+
+/// Json string format of `EthashProof`
+#[derive(Serialize)]
+pub struct EthashProofJson {
+    dag_nodes: Vec<String>,
+    proof: Vec<String>,
+}
+
+impl From<&EthashProof> for EthashProofJson {
+    fn from(e: &EthashProof) -> EthashProofJson {
+        EthashProofJson {
+            dag_nodes: e
+                .dag_nodes
+                .as_ref()
+                .iter()
+                .map(|n| format!("0x{}", hex!(n.0.to_vec())))
+                .collect(),
+            proof: e
+                .proof
+                .iter()
+                .map(|p| format!("0x{}", hex!(p.0.to_vec())))
+                .collect(),
         }
     }
 }

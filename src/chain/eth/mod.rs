@@ -14,6 +14,6 @@ pub struct HeaderThing {
 }
 
 pub use self::{
-    ethash_proof::EthashProof,
-    header::{EthHeader, EthHeaderRPCResp},
+    ethash_proof::{EthashProof, EthashProofJson},
+    header::{EthHeader, EthHeaderJson, EthHeaderRPCResp},
 };

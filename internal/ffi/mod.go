@@ -2,9 +2,6 @@ package main
 
 import "C"
 import (
-	"fmt"
-	// "strings"
-
 	"github.com/darwinia-network/shadow/internal"
 	"github.com/darwinia-network/shadow/internal/eth"
 )

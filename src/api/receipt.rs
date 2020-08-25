@@ -13,8 +13,9 @@ struct ReceiptResp {
 /// Receipt Handler
 pub async fn handle(tx: web::Path<String>) -> impl Responder {
     unsafe {
-        let resp: ReceiptResp = Receipt(GoString::from(tx.to_string())).into();
-        web::Json(resp)
+        web::Json(Into::<ReceiptResp>::into(Receipt(GoString::from(
+            tx.to_string(),
+        ))))
     }
 }
 

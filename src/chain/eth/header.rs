@@ -110,6 +110,13 @@ pub struct EthHeader {
 }
 
 impl EthHeader {
+    /// Get header
+    pub fn get(client: &Client, block: u64) -> Result<EthHeader, Error> {
+        Ok(EthHeaderRPCResp::get(client, block)?.result.into())
+    }
+}
+
+impl EthHeader {
     /// New EthHeader from string array
     pub fn from_go_ffi(
         parent_hash: &str,

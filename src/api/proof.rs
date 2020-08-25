@@ -7,7 +7,7 @@ use crate::{
 };
 use actix_web::{web, Responder};
 use cmmr::MMR;
-use reqwest::blocking::Client;
+use reqwest::Client;
 use scale::Decode;
 use std::{ffi::CStr, os::raw::c_char};
 
@@ -20,8 +20,10 @@ pub struct ProposalReq {
 
 impl ProposalReq {
     /// Get `EthHeader`
-    fn eth_header(client: &Client, block: u64) -> EthHeader {
-        EthHeader::get(&client, block).unwrap_or_default()
+    async fn eth_header(client: &Client, block: u64) -> EthHeader {
+        EthHeader::async_get(&client, block)
+            .await
+            .unwrap_or_default()
     }
 
     /// Get `EtHashProof`
@@ -59,18 +61,9 @@ impl ProposalReq {
                 .collect::<Vec<String>>(),
         }
     }
-}
 
-#[derive(Serialize)]
-struct ProposalHeader {
-    eth_header: EthHeader,
-    ethash_proof: Vec<DoubleNodeWithMerkleProof>,
-    mmr_root: String,
-    mmr_proof: Vec<String>,
-}
-
-impl From<ProposalReq> for Vec<ProposalHeader> {
-    fn from(p: ProposalReq) -> Vec<ProposalHeader> {
+    /// To headers
+    pub async fn headers(&self) -> Vec<ProposalHeader> {
         // TODO: optimzie the `clients` below
         //
         // Move them out of this handler
@@ -80,20 +73,29 @@ impl From<ProposalReq> for Vec<ProposalHeader> {
 
         // Proposal Headers
         let mut phs = vec![];
-        for m in p.members.iter() {
+        for m in self.members.iter() {
             phs.push(ProposalHeader {
-                eth_header: ProposalReq::eth_header(&client, *m),
+                eth_header: ProposalReq::eth_header(&client, *m).await,
                 ethash_proof: ProposalReq::ethash_proof(*m),
                 mmr_root: ProposalReq::mmr_root(&store, *m),
-                mmr_proof: ProposalReq::mmr_proof(&p, &store, *m),
+                mmr_proof: ProposalReq::mmr_proof(&self, &store, *m),
             });
         }
         phs
     }
 }
 
+/// Proposal Headers
+#[derive(Serialize)]
+pub struct ProposalHeader {
+    eth_header: EthHeader,
+    ethash_proof: Vec<DoubleNodeWithMerkleProof>,
+    mmr_root: String,
+    mmr_proof: Vec<String>,
+}
+
 pub async fn handle(req: web::Json<ProposalReq>) -> impl Responder {
-    web::Json(Into::<Vec<ProposalHeader>>::into(req.0))
+    web::Json(req.0.headers().await)
 }
 
 #[link(name = "eth")]

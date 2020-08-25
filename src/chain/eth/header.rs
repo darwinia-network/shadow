@@ -2,7 +2,7 @@ use crate::{
     chain::array::{H1024, U256},
     result::Error,
 };
-use reqwest::blocking::Client;
+use reqwest::{blocking::Client, Client as AsyncClient};
 use scale::{Decode, Encode};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -18,19 +18,36 @@ pub struct EthHeaderRPCResp {
 }
 
 impl EthHeaderRPCResp {
-    /// Get `EthHeader` by number
-    pub fn get(client: &Client, block: u64) -> Result<EthHeaderRPCResp, Error> {
-        let api = env::var("ETHEREUM_RPC").unwrap_or(crate::conf::DEFAULT_ETHEREUM_RPC.into());
-        let map: Value = serde_json::from_str(&format! {
+    /// The get block api
+    pub fn get_block_api(block: u64) -> Result<Value, Error> {
+        Ok(serde_json::from_str(&format! {
             "{{{}}}", vec![
                 r#""jsonrpc":"2.0","#,
                 r#""method":"eth_getBlockByNumber","#,
                 &format!(r#""params":["{:#X}", false],"#, block),
                 r#""id": 1"#,
             ].concat(),
-        })?;
+        })?)
+    }
 
-        Ok(client.post(&api).json(&map).send()?.json()?)
+    /// Get `EthHeader` by number
+    pub fn get(client: &Client, block: u64) -> Result<EthHeaderRPCResp, Error> {
+        Ok(client
+            .post(&env::var("ETHEREUM_RPC").unwrap_or(crate::conf::DEFAULT_ETHEREUM_RPC.into()))
+            .json(&EthHeaderRPCResp::get_block_api(block)?)
+            .send()?
+            .json()?)
+    }
+
+    /// Async get block
+    pub async fn async_get(client: &AsyncClient, block: u64) -> Result<EthHeaderRPCResp, Error> {
+        Ok(client
+            .post(&env::var("ETHEREUM_RPC").unwrap_or(crate::conf::DEFAULT_ETHEREUM_RPC.into()))
+            .json(&EthHeaderRPCResp::get_block_api(block)?)
+            .send()
+            .await?
+            .json()
+            .await?)
     }
 }
 
@@ -113,6 +130,14 @@ impl EthHeader {
     /// Get header
     pub fn get(client: &Client, block: u64) -> Result<EthHeader, Error> {
         Ok(EthHeaderRPCResp::get(client, block)?.result.into())
+    }
+
+    /// Async Get header
+    pub async fn async_get(client: &AsyncClient, block: u64) -> Result<EthHeader, Error> {
+        Ok(EthHeaderRPCResp::async_get(client, block)
+            .await?
+            .result
+            .into())
     }
 }
 

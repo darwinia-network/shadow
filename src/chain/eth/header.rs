@@ -7,7 +7,7 @@ use reqwest::{blocking::Client, Client as AsyncClient};
 use scale::{Decode, Encode};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use std::{env, fmt::Debug};
+use std::{env, fmt::Debug, str::FromStr};
 
 /// Ethereum JSON rpc response
 #[derive(Serialize, Deserialize, Debug)]
@@ -92,9 +92,9 @@ impl Into<EthHeader> for RawEthHeader {
             state_root: bytes!(self.state_root.as_str(), 32),
             receipts_root: bytes!(self.receipts_root.as_str(), 32),
             log_bloom: H1024(bytes!(self.logs_bloom.as_str(), 256)),
-            gas_used: U256::from_dec_str(&self.gas_used.as_str()).unwrap_or_default(),
-            gas_limit: U256::from_dec_str(&self.gas_limit.as_str()).unwrap_or_default(),
-            difficulty: U256::from_dec_str(&self.difficulty.as_str()).unwrap_or_default(),
+            gas_used: U256::from_str(&self.gas_used[2..]).unwrap_or_default(),
+            gas_limit: U256::from_str(&self.gas_limit[2..]).unwrap_or_default(),
+            difficulty: U256::from_str(&self.difficulty[2..]).unwrap_or_default(),
             seal: match self.mix_hash.is_empty() && self.nonce.is_empty() {
                 true => vec![],
                 false => vec![bytes!(self.mix_hash.as_str()), bytes!(self.nonce.as_str())],
@@ -155,9 +155,9 @@ pub struct EthHeaderJson {
     state_root: String,
     receipts_root: String,
     log_bloom: String,
-    gas_used: String,
-    gas_limit: String,
-    difficulty: String,
+    gas_used: u128,
+    gas_limit: u128,
+    difficulty: u128,
     seal: Vec<String>,
     hash: String,
 }
@@ -175,9 +175,9 @@ impl From<EthHeader> for EthHeaderJson {
             state_root: format!("0x{}", hex!(e.state_root.to_vec())),
             receipts_root: format!("0x{}", hex!(e.receipts_root.to_vec())),
             log_bloom: format!("0x{}", hex!(e.log_bloom.0.to_vec())),
-            gas_used: format!("0x{}", hex!(e.gas_used.0.to_vec())),
-            gas_limit: format!("0x{}", hex!(e.gas_limit.0.to_vec())),
-            difficulty: format!("0x{}", hex!(e.difficulty.0.to_vec())),
+            gas_used: e.gas_used.as_u128(),
+            gas_limit: e.gas_limit.as_u128(),
+            difficulty: e.difficulty.as_u128(),
             seal: e
                 .seal
                 .iter()

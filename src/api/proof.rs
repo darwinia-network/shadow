@@ -1,6 +1,6 @@
 use crate::{
     bytes,
-    chain::eth::{DoubleNodeWithMerkleProof, EthHeader},
+    chain::eth::{EthHeader, EthHeaderJson, EthashProof, EthashProofJson},
     hash::{MergeHash, H256},
     pool,
     store::Store,
@@ -20,27 +20,31 @@ pub struct ProposalReq {
 
 impl ProposalReq {
     /// Get `EthHeader`
-    async fn eth_header(client: &Client, block: u64) -> EthHeader {
+    async fn eth_header(client: &Client, block: u64) -> EthHeaderJson {
         EthHeader::async_get(&client, block)
             .await
             .unwrap_or_default()
+            .into()
     }
 
     /// Get `EtHashProof`
-    fn ethash_proof(block: u64) -> Vec<DoubleNodeWithMerkleProof> {
+    fn ethash_proof(block: u64) -> Vec<EthashProofJson> {
         unsafe {
             let proof = CStr::from_ptr(Proof(block as u32))
                 .to_string_lossy()
                 .to_string();
-            <Vec<DoubleNodeWithMerkleProof>>::decode(&mut bytes!(proof.as_str()).as_ref())
+            <Vec<EthashProof>>::decode(&mut bytes!(proof.as_str()).as_ref())
                 .unwrap_or_default()
+                .iter()
+                .map(|p| Into::<EthashProofJson>::into(p))
+                .collect()
         }
     }
 
     // Get mmr root
     fn mmr_root(store: &Store, leaf: u64) -> String {
         let mmr = MMR::<_, MergeHash, _>::new(cmmr::leaf_index_to_mmr_size(leaf), store);
-        H256::hex(&mmr.get_root().unwrap_or_default())
+        format!("0x{}", H256::hex(&mmr.get_root().unwrap_or_default()))
     }
 
     /// Generate mmr proof
@@ -57,7 +61,7 @@ impl ProposalReq {
             Ok(proof) => proof
                 .proof_items()
                 .iter()
-                .map(|item| H256::hex(item))
+                .map(|item| format!("0x{}", H256::hex(item)))
                 .collect::<Vec<String>>(),
         }
     }
@@ -88,8 +92,8 @@ impl ProposalReq {
 /// Proposal Headers
 #[derive(Serialize)]
 pub struct ProposalHeader {
-    eth_header: EthHeader,
-    ethash_proof: Vec<DoubleNodeWithMerkleProof>,
+    eth_header: EthHeaderJson,
+    ethash_proof: Vec<EthashProofJson>,
     mmr_root: String,
     mmr_proof: Vec<String>,
 }

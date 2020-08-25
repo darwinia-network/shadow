@@ -1,20 +1,23 @@
 #![allow(dead_code)]
-use crate::chain::array::{H128, H512};
+use crate::{
+    chain::array::{H128, H512},
+    hex,
+};
 use scale::{Decode, Encode};
 
 /// Ethash proof
-#[derive(Encode, Decode, Debug, PartialEq, Eq, Deserialize, Serialize)]
-pub struct DoubleNodeWithMerkleProof {
+#[derive(Encode, Decode, Debug, PartialEq, Eq, Deserialize, Serialize, Default)]
+pub struct EthashProof {
     /// Dag nodes
     pub dag_nodes: [H512; 2],
     /// Merkle Proofs
     pub proof: Vec<H128>,
 }
 
-impl DoubleNodeWithMerkleProof {
-    /// Generate DoubleNodeWithMerkleProof from hex array
-    pub fn from_tuple(dag_nodes: [&str; 2], proof: [&str; 23]) -> DoubleNodeWithMerkleProof {
-        DoubleNodeWithMerkleProof {
+impl EthashProof {
+    /// Generate EthashProof from hex array
+    pub fn from_tuple(dag_nodes: [&str; 2], proof: [&str; 23]) -> EthashProof {
+        EthashProof {
             dag_nodes: [
                 H512(bytes!(dag_nodes[0], 64)),
                 H512(bytes!(dag_nodes[1], 64)),
@@ -27,11 +30,27 @@ impl DoubleNodeWithMerkleProof {
     }
 }
 
-impl Default for DoubleNodeWithMerkleProof {
-    fn default() -> DoubleNodeWithMerkleProof {
-        DoubleNodeWithMerkleProof {
-            dag_nodes: <[H512; 2]>::default(),
-            proof: Vec::new(),
+/// Json string format of `EthashProof`
+#[derive(Serialize)]
+pub struct EthashProofJson {
+    dag_nodes: Vec<String>,
+    proof: Vec<String>,
+}
+
+impl From<&EthashProof> for EthashProofJson {
+    fn from(e: &EthashProof) -> EthashProofJson {
+        EthashProofJson {
+            dag_nodes: e
+                .dag_nodes
+                .as_ref()
+                .iter()
+                .map(|n| format!("0x{}", hex!(n.0.to_vec())))
+                .collect(),
+            proof: e
+                .proof
+                .iter()
+                .map(|p| format!("0x{}", hex!(p.0.to_vec())))
+                .collect(),
         }
     }
 }

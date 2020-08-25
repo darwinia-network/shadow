@@ -1,12 +1,13 @@
 use crate::{
     chain::array::{H1024, U256},
+    hex,
     result::Error,
 };
 use reqwest::{blocking::Client, Client as AsyncClient};
 use scale::{Decode, Encode};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use std::{env, fmt::Debug};
+use std::{env, fmt::Debug, str::FromStr};
 
 /// Ethereum JSON rpc response
 #[derive(Serialize, Deserialize, Debug)]
@@ -91,9 +92,9 @@ impl Into<EthHeader> for RawEthHeader {
             state_root: bytes!(self.state_root.as_str(), 32),
             receipts_root: bytes!(self.receipts_root.as_str(), 32),
             log_bloom: H1024(bytes!(self.logs_bloom.as_str(), 256)),
-            gas_used: U256::from_dec_str(&self.gas_used.as_str()).unwrap_or_default(),
-            gas_limit: U256::from_dec_str(&self.gas_limit.as_str()).unwrap_or_default(),
-            difficulty: U256::from_dec_str(&self.difficulty.as_str()).unwrap_or_default(),
+            gas_used: U256::from_str(&self.gas_used[2..]).unwrap_or_default(),
+            gas_limit: U256::from_str(&self.gas_limit[2..]).unwrap_or_default(),
+            difficulty: U256::from_str(&self.difficulty[2..]).unwrap_or_default(),
             seal: match self.mix_hash.is_empty() && self.nonce.is_empty() {
                 true => vec![],
                 false => vec![bytes!(self.mix_hash.as_str()), bytes!(self.nonce.as_str())],
@@ -107,7 +108,7 @@ impl Into<EthHeader> for RawEthHeader {
 }
 
 /// Darwinia Eth header
-#[derive(Decode, Encode, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Decode, Encode, Debug, PartialEq, Eq, Serialize, Deserialize, Default)]
 pub struct EthHeader {
     parent_hash: [u8; 32],
     timestamp: u64,
@@ -141,71 +142,48 @@ impl EthHeader {
     }
 }
 
-impl EthHeader {
-    /// New EthHeader from string array
-    pub fn from_go_ffi(
-        parent_hash: &str,
-        timestamp: u64,
-        number: u64,
-        author: &str,
-        transactions_root: &str,
-        uncles_hash: &str,
-        extra_data: &str,
-        state_root: &str,
-        receipts_root: &str,
-        log_bloom: &str,
-        gas_used: &str,
-        gas_limit: &str,
-        difficulty: &str,
-        mixh: &str,
-        nonce: &str,
-        hash: &str,
-    ) -> EthHeader {
-        EthHeader {
-            parent_hash: bytes!(parent_hash, 32),
-            timestamp,
-            number,
-            author: bytes!(author, 20),
-            transactions_root: bytes!(transactions_root, 32),
-            uncles_hash: bytes!(uncles_hash, 32),
-            extra_data: bytes!(extra_data),
-            state_root: bytes!(state_root, 32),
-            receipts_root: bytes!(receipts_root, 32),
-            log_bloom: H1024(bytes!(log_bloom, 256)),
-            gas_used: U256::from_dec_str(gas_used).unwrap_or_default(),
-            gas_limit: U256::from_dec_str(gas_limit).unwrap_or_default(),
-            difficulty: U256::from_dec_str(difficulty).unwrap_or_default(),
-            seal: match mixh.is_empty() && nonce.is_empty() {
-                true => vec![],
-                false => vec![bytes!(mixh), bytes!(nonce)],
-            },
-            hash: match hash.is_empty() {
-                true => None,
-                false => Some(bytes!(hash, 32)),
-            },
-        }
-    }
+/// Darwinia Eth header Json foramt
+#[derive(Debug, PartialEq, Eq, Serialize, Deserialize, Default)]
+pub struct EthHeaderJson {
+    parent_hash: String,
+    timestamp: u64,
+    number: u64,
+    author: String,
+    transactions_root: String,
+    uncles_hash: String,
+    extra_data: String,
+    state_root: String,
+    receipts_root: String,
+    log_bloom: String,
+    gas_used: u128,
+    gas_limit: u128,
+    difficulty: u128,
+    seal: Vec<String>,
+    hash: String,
 }
 
-impl Default for EthHeader {
-    fn default() -> EthHeader {
-        EthHeader::from_go_ffi(
-            "0x0000000000000000000000000000000000000000000000000000000000000000",
-            0,
-            0,
-            "0x0000000000000000000000000000000000000000",
-            "0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421",
-            "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
-            "",
-            "0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421",
-            "0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421",
-            "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
-            "0",
-            "0",
-            "0",
-            "",
-            "",
-            ""
-        )
+impl From<EthHeader> for EthHeaderJson {
+    fn from(e: EthHeader) -> EthHeaderJson {
+        EthHeaderJson {
+            parent_hash: format!("0x{}", hex!(e.parent_hash.to_vec())),
+            timestamp: e.timestamp,
+            number: e.number,
+            author: format!("0x{}", hex!(e.author.to_vec())),
+            transactions_root: format!("0x{}", hex!(e.transactions_root.to_vec())),
+            uncles_hash: format!("0x{}", hex!(e.uncles_hash.to_vec())),
+            extra_data: format!("0x{}", hex!(e.extra_data.to_vec())),
+            state_root: format!("0x{}", hex!(e.state_root.to_vec())),
+            receipts_root: format!("0x{}", hex!(e.receipts_root.to_vec())),
+            log_bloom: format!("0x{}", hex!(e.log_bloom.0.to_vec())),
+            gas_used: e.gas_used.as_u128(),
+            gas_limit: e.gas_limit.as_u128(),
+            difficulty: e.difficulty.as_u128(),
+            seal: e
+                .seal
+                .iter()
+                .map(|s| format!("0x{}", hex!(s.to_vec())))
+                .collect(),
+            hash: format!("0x{}", hex!(e.hash.unwrap_or_default().to_vec())),
+        }
     }
 }

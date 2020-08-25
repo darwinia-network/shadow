@@ -5,7 +5,7 @@ use crate::{
     helper,
     pool::{ConnPool, PooledConn},
     result::Error,
-    schema::{eth_header_with_proof_caches::dsl::*, mmr_store::dsl::*},
+    schema::mmr_store::dsl::*,
     store::Store,
 };
 use cmmr::{Error as StoreError, MMR};
@@ -106,7 +106,6 @@ impl Runner {
 
     /// Push new header hash into storage
     pub fn push(&mut self, pnumber: i64) -> Result<(), Error> {
-        let conn = self.conn()?;
         let mut mmr = MMR::<_, MergeHash, _>::new(
             cmmr::leaf_index_to_mmr_size((pnumber - 1) as u64),
             &self.store,
@@ -118,12 +117,6 @@ impl Runner {
         )) {
             return Err(Error::MMR(e));
         }
-
-        // eth_header_with_proof_caches
-        let proot = mmr.get_root()?;
-        diesel::update(eth_header_with_proof_caches.filter(number.eq(pnumber)))
-            .set(root.eq(Some(H256::hex(&proot))))
-            .execute(&conn)?;
 
         mmr.commit()?;
         Ok(())

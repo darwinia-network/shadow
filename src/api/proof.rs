@@ -1,6 +1,6 @@
 use crate::{
     bytes,
-    chain::eth::{DoubleNodeWithMerkleProof, EthHeader},
+    chain::eth::{EthHeader, EthashProof},
     hash::{MergeHash, H256},
     pool,
     store::Store,
@@ -27,13 +27,12 @@ impl ProposalReq {
     }
 
     /// Get `EtHashProof`
-    fn ethash_proof(block: u64) -> Vec<DoubleNodeWithMerkleProof> {
+    fn ethash_proof(block: u64) -> Vec<EthashProof> {
         unsafe {
             let proof = CStr::from_ptr(Proof(block as u32))
                 .to_string_lossy()
                 .to_string();
-            <Vec<DoubleNodeWithMerkleProof>>::decode(&mut bytes!(proof.as_str()).as_ref())
-                .unwrap_or_default()
+            <Vec<EthashProof>>::decode(&mut bytes!(proof.as_str()).as_ref()).unwrap_or_default()
         }
     }
 
@@ -89,7 +88,7 @@ impl ProposalReq {
 #[derive(Serialize)]
 pub struct ProposalHeader {
     eth_header: EthHeader,
-    ethash_proof: Vec<DoubleNodeWithMerkleProof>,
+    ethash_proof: Vec<EthashProof>,
     mmr_root: String,
     mmr_proof: Vec<String>,
 }

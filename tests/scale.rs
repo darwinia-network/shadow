@@ -4,7 +4,7 @@ use mock::{ha, header, proof, ETHASH_PROOF_CODEC, ETH_HEADER_THING, HEADER, MOCK
 use scale::{Decode, Encode};
 use shadow::{
     bytes,
-    chain::eth::{DoubleNodeWithMerkleProof, EthHeader, HeaderThing},
+    chain::eth::{EthHeader, EthashProof, HeaderThing},
     hex,
 };
 
@@ -63,8 +63,7 @@ fn decode_mmr_proof() {
 
 #[test]
 fn eth_hash_proof() {
-    let block =
-        <Vec<DoubleNodeWithMerkleProof>>::decode(&mut bytes!(ETHASH_PROOF_CODEC).as_ref()).unwrap();
+    let block = <Vec<EthashProof>>::decode(&mut bytes!(ETHASH_PROOF_CODEC).as_ref()).unwrap();
     assert_eq!(block[block.len() - 1], proof());
 }
 

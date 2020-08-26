@@ -1,8 +1,7 @@
 //! The API server of Shadow
 use actix_web::{middleware, web, App, HttpServer};
 
-mod proposal;
-mod receipt;
+mod eth;
 
 /// Run HTTP Server
 pub async fn serve(port: u16) -> std::io::Result<()> {
@@ -10,8 +9,8 @@ pub async fn serve(port: u16) -> std::io::Result<()> {
         App::new()
             .wrap(middleware::Compress::default())
             .wrap(middleware::Logger::default())
-            .service(web::resource("/receipt/{tx}").to(receipt::handle))
-            .service(web::resource("/proposal").to(proposal::handle))
+            .service(web::resource("/eth/receipt/{tx}").to(eth::receipt))
+            .service(web::resource("/eth/proposal").to(eth::proposal))
     })
     .disable_signals()
     .bind(format!("0.0.0.0:{}", port))?

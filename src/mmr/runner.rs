@@ -75,7 +75,10 @@ impl Runner {
             thread::sleep(time::Duration::from_secs(10));
             self.check_push(cur)
         } else {
-            trace!("push mmr of eth block {} into db succeed.", cur);
+            if cur % 10000 == 0 {
+                trace!("current mmr height: {}", cur);
+            }
+
             cur + 1
         }
     }

@@ -7,52 +7,21 @@ The shadow service for relayers and verify workers to retrieve header data and g
 ## Usage
 
 ```sh
-$ shadow
-The way to Go
+shadow 0.1.0
 
-Usage:
-  shadow [command]
+USAGE:
+    shadow <SUBCOMMAND>
 
-Available Commands:
-  epoch       Calculate epoch cache
-  header      Get eth block by number
-  help        Help about any command
-  proof       Proof the block by number
-  receipt     Get receipt by tx hash
-  run         Start shadow service
-  version     Print the version number of dargo
+FLAGS:
+    -h, --help       Prints help information
+    -V, --version    Prints version information
 
-Flags:
-  -h, --help   help for shadow
-
-Use "shadow [command] --help" for more information about a command.
+SUBCOMMANDS:
+    count    Current block height in mmr store
+    help     Prints this message or the help of the given subcommand(s)
+    run      Start shadow service
+    trim     Trim mmr from target leaf
 ```
-
-You can find shadow's API docs [here][api].
-
-
-## Getting start with docker
-
-Downloads the docker compose file of shadow
-
-```
-$ wget https://raw.githubusercontent.com/darwinia-network/go1/docker-compose/docker-compose.yml
-```
-
-Swarm the `docker-compose.yml` file
-
-```
-$ docker-compose up
-```
-
-This will start:
-
-+ A geth node
-+ A fetcher service
-+ A MMR generating service
-
-
-More detail please check the [docker-compose.yml](./docker-compose.yml)
 
 ## Contribute and Build
 
@@ -62,17 +31,14 @@ Downloads shadow service
 git clone https://github.com/darwinia-network/shadow.git
 ```
 
-Builds shadow service
-
-```
-cd shadow && make
-```
-
 Starts shadow service:
 
 ```
-# Start shadow service at port 3000
-./target/shadow run -v --http 3000
+# Starts shadow serives at port 3000
+$ cargo run -p 3000
+
+# If you have fast eth node:
+$ ETHEREUM_RPC=<your-api> cargo run -p 3000
 ```
 
 ## Trouble Shooting

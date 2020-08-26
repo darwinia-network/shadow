@@ -1,5 +1,5 @@
 //! `shadow` command
-use crate::{api, pool, Runner};
+use crate::{api, mmr::helper, pool, result::Error, Runner};
 use std::thread;
 use structopt::{clap::AppSettings, StructOpt};
 
@@ -15,17 +15,22 @@ enum Opt {
         #[structopt(short, long)]
         verbose: bool,
     },
-    /// Cut mmr from target leaf
-    Cut {
+    /// Current block height in mmr store
+    Count,
+    /// Trim mmr from target leaf
+    Trim {
         /// The target leaf
         #[structopt(short, long)]
-        _leaf: u64,
+        leaf: u64,
     },
 }
 
 /// Exec `shadow` binary
-pub async fn exec() -> std::io::Result<()> {
+pub fn exec() -> Result<(), Error> {
     let opt = Opt::from_args();
+    let conn = pool::conn(None);
+    let mut runner = Runner::with(conn);
+
     match opt {
         Opt::Run { port, verbose } => {
             if let Err(_) = std::env::var("RUST_LOG") {
@@ -35,18 +40,31 @@ pub async fn exec() -> std::io::Result<()> {
                     std::env::set_var("RUST_LOG", "info");
                 }
             }
-
             env_logger::init();
-            thread::spawn(move || {
-                // Start mmr service
-                let conn = pool::conn(None);
-                let mut runner = Runner::with(conn);
-                runner.start().unwrap();
-            });
+
+            // Start mmr service
+            thread::spawn(move || runner.start().unwrap());
 
             // Start http server
-            api::serve(port).await
+            actix_rt::Runtime::new()
+                .unwrap()
+                .block_on(api::serve(port))?;
         }
-        Opt::Cut { _leaf: _ } => Ok(()),
-    }
+        Opt::Count => {
+            println!(
+                "Current best block: {}",
+                helper::mmr_size_to_last_leaf(runner.mmr_count().unwrap())
+            );
+        }
+        Opt::Trim { leaf } => {
+            runner.trim(leaf).unwrap();
+            println!("Trimed leaves greater and equal than {}", leaf);
+            println!(
+                "Current best block: {}",
+                helper::mmr_size_to_last_leaf(runner.mmr_count().unwrap())
+            );
+        }
+    };
+
+    Ok::<(), Error>(())
 }

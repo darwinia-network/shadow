@@ -16,9 +16,10 @@ actix-web = "2.0.0"
 actix-rt = "1.0"
 blake2-rfc = "0.2.18"
 cmmr = { version = "0.3.0", package = "ckb-merkle-mountain-range"}
+dirs = "2.0.2"
 env_logger = "0.7.1"
 etc = "0.1.7"
-dirs = "2.0.2"
+futures = "0.3"
 libc = "0.2.71"
 log = "0.4.0"
 reqwest = { version = "0.10", features = ["blocking", "json"] }

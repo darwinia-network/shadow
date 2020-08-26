@@ -30,7 +30,7 @@ pub fn conn(p: Option<PathBuf>) -> ConnPool {
         }
     }
 
-    info!("Connecting database {:?}...", &path);
+    // info!("Connecting database {:?}...", &path);
     Builder::new()
         .max_size(100)
         .build(ConnectionManager::<SqliteConnection>::new(

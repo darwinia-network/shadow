@@ -75,7 +75,10 @@ impl Runner {
             thread::sleep(time::Duration::from_secs(10));
             self.check_push(cur)
         } else {
-            trace!("push mmr of eth block {} into db succeed.", cur);
+            if cur % 10000 == 0 {
+                trace!("current mmr height: {}", cur);
+            }
+
             cur + 1
         }
     }
@@ -104,6 +107,14 @@ impl Runner {
             .hash)
     }
 
+    /// Trim mmr
+    pub fn trim(&mut self, leaf: u64) -> Result<(), Error> {
+        let mpos = cmmr::leaf_index_to_pos(leaf);
+        let conn = self.conn()?;
+        diesel::delete(mmr_store.filter(pos.ge(mpos as i64))).execute(&conn)?;
+        Ok(())
+    }
+
     /// Push new header hash into storage
     pub fn push(&mut self, pnumber: i64) -> Result<(), Error> {
         let mut mmr = MMR::<_, MergeHash, _>::new(
@@ -123,7 +134,7 @@ impl Runner {
     }
 
     /// Get the count of mmr store
-    fn mmr_count(&self) -> Result<i64, Error> {
+    pub fn mmr_count(&self) -> Result<i64, Error> {
         let conn = self.conn()?;
         let res = mmr_store.select(count(elem)).first::<i64>(&conn);
         if let Err(e) = res {

@@ -4,6 +4,10 @@ version = "0.1.0"
 authors = ["clearloop <udtrokia@gmail.com>"]
 edition = "2018"
 
+[[bin]]
+name = "shadow"
+path = "src/bin/shadow.rs"
+
 [lib]
 path = "src/lib.rs"
 
@@ -15,11 +19,13 @@ cmmr = { version = "0.3.0", package = "ckb-merkle-mountain-range"}
 dirs = "2.0.2"
 env_logger = "0.7.1"
 etc = "0.1.7"
+futures = "0.3"
 libc = "0.2.71"
 log = "0.4.0"
 reqwest = { version = "0.10", features = ["blocking", "json"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
+structopt = "0.3.17"
 uint = "0.8.3"
 
 [dependencies.scale]

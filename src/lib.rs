@@ -20,6 +20,7 @@ mod result;
 
 pub mod api;
 pub mod chain;
+pub mod cmd;
 pub use self::{
     db::{model, pool, schema, sql},
     mmr::{hash, helper, runner::Runner, store},

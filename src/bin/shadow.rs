@@ -1,3 +1,4 @@
-fn main() {
-    shadow::cmd::exec().unwrap();
+#[actix_rt::main]
+async fn main() {
+    shadow::cmd::exec().await.unwrap();
 }

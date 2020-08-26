@@ -21,7 +21,7 @@ pub struct ProposalReq {
 impl ProposalReq {
     /// Get `EthHeader`
     async fn eth_header(client: &Client, block: u64) -> EthHeaderJson {
-        EthHeader::async_get(&client, block)
+        EthHeader::get(&client, block)
             .await
             .unwrap_or_default()
             .into()

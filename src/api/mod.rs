@@ -13,6 +13,7 @@ pub async fn serve(port: u16) -> std::io::Result<()> {
             .service(web::resource("/receipt/{tx}").to(receipt::handle))
             .service(web::resource("/proposal").to(proof::handle))
     })
+    .disable_signals()
     .bind(format!("0.0.0.0:{}", port))?
     .run()
     .await

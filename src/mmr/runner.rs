@@ -8,10 +8,10 @@ use crate::{
     schema::mmr_store::dsl::*,
     store::Store,
 };
-use cmmr::{Error as StoreError, MMR};
-use diesel::{dsl::count, prelude::*, result::Error as DieselError};
-use reqwest::blocking::Client;
-use std::{thread, time};
+use cmmr::MMR;
+use diesel::{dsl::count, prelude::*};
+use reqwest::Client;
+use std::time;
 
 /// MMR Runner
 #[derive(Clone)]
@@ -42,49 +42,8 @@ impl Runner {
         }
     }
 
-    fn check_push(&mut self, cur: i64) -> i64 {
-        if let Err(e) = self.push(cur) {
-            let mut locked = |m: &str| {
-                if m.contains("database is locked") {
-                    warn!("Database if locked, retry after 100ms...");
-                    thread::sleep(time::Duration::from_millis(100));
-                    Some(self.check_push(cur))
-                } else {
-                    error!("{:?}", m);
-                    None
-                }
-            };
-            match e {
-                Error::Diesel(DieselError::NotFound) => {
-                    trace!("Could not find block {:?} in cache", cur)
-                }
-                Error::Diesel(DieselError::DatabaseError(_, e)) => {
-                    if let Some(r) = locked(e.message()) {
-                        return r;
-                    }
-                }
-                Error::MMR(StoreError::StoreError(e)) => {
-                    if let Some(r) = locked(&e) {
-                        return r;
-                    }
-                }
-                _ => error!("Push block to mmr_store failed: {:?}", e),
-            }
-
-            trace!("MMR service restarting after 10s...");
-            thread::sleep(time::Duration::from_secs(10));
-            self.check_push(cur)
-        } else {
-            if cur % 10000 == 0 {
-                trace!("current mmr height: {}", cur);
-            }
-
-            cur + 1
-        }
-    }
-
     /// Start the runner
-    pub fn start(&mut self) -> Result<(), Error> {
+    pub async fn start(&mut self) -> Result<(), Error> {
         let mut ptr = {
             let last_leaf = helper::mmr_size_to_last_leaf(self.mmr_count()?);
             if last_leaf == 0 {
@@ -95,14 +54,20 @@ impl Runner {
         };
 
         loop {
-            self.check_push(ptr);
-            ptr += 1;
+            if let Err(e) = self.push(ptr).await {
+                error!("Push block to mmr_store failed: {:?}", e);
+                trace!("MMR service restarting after 10s...");
+                async_std::task::sleep(time::Duration::from_secs(10)).await;
+            } else {
+                ptr += 1;
+            }
         }
     }
 
     /// Get block hash by number
-    pub fn get_hash(&mut self, block: i64) -> Result<String, Error> {
-        Ok(EthHeaderRPCResp::get(&self.client, block as u64)?
+    pub async fn get_hash(&mut self, block: i64) -> Result<String, Error> {
+        Ok(EthHeaderRPCResp::get(&self.client, block as u64)
+            .await?
             .result
             .hash)
     }
@@ -116,13 +81,14 @@ impl Runner {
     }
 
     /// Push new header hash into storage
-    pub fn push(&mut self, pnumber: i64) -> Result<(), Error> {
+    pub async fn push(&mut self, pnumber: i64) -> Result<(), Error> {
         let mut mmr = MMR::<_, MergeHash, _>::new(
             cmmr::leaf_index_to_mmr_size((pnumber - 1) as u64),
             &self.store,
         );
         if let Err(e) = mmr.push(H256::from(
-            &EthHeaderRPCResp::get(&self.client, pnumber as u64)?
+            &EthHeaderRPCResp::get(&self.client, pnumber as u64)
+                .await?
                 .result
                 .hash,
         )) {

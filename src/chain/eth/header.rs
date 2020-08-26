@@ -69,6 +69,10 @@ pub struct RawEthHeader {
 
 impl Into<EthHeader> for RawEthHeader {
     fn into(self) -> EthHeader {
+        let seal: Vec<Vec<u8>> = vec![
+            rlp::encode(&bytes!(self.mix_hash.as_str())),
+            rlp::encode(&bytes!(self.nonce.as_str())),
+        ];
         EthHeader {
             parent_hash: bytes!(self.parent_hash.as_str(), 32),
             timestamp: u64::from_str_radix(&self.timestamp.as_str()[2..], 16).unwrap_or_default(),
@@ -83,10 +87,7 @@ impl Into<EthHeader> for RawEthHeader {
             gas_used: U256::from_str(&self.gas_used[2..]).unwrap_or_default(),
             gas_limit: U256::from_str(&self.gas_limit[2..]).unwrap_or_default(),
             difficulty: U256::from_str(&self.difficulty[2..]).unwrap_or_default(),
-            seal: match self.mix_hash.is_empty() && self.nonce.is_empty() {
-                true => vec![],
-                false => vec![bytes!(self.mix_hash.as_str()), bytes!(self.nonce.as_str())],
-            },
+            seal: seal,
             hash: match self.hash.is_empty() {
                 true => None,
                 false => Some(bytes!(self.hash.as_str(), 32)),

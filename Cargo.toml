@@ -38,12 +38,3 @@ features = ["derive"]
 [dependencies.diesel]
 version = "1.4.4"
 features = ["r2d2", "sqlite"]
-
-[dependencies.eth]
-git = "https://github.com/darwinia-network/darwinia-common.git"
-package = "ethereum-primitives"
-optional = true
-
-[features]
-darwinia = [ "eth" ]
-default = []

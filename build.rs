@@ -1,6 +1,11 @@
-use std::process::Command;
+use std::{env, process::Command};
 
 fn main() {
+    // pre-check
+    println!("cargo:rerun-if-changed=build.rs");
+    println!("cargo:rerun-if-changed=path/to/Cargo.lock");
+
+    // main
     let os = Command::new("uname").output().unwrap();
     let ext = match String::from_utf8_lossy(os.stdout.as_slice())
         .into_owned()
@@ -11,12 +16,11 @@ fn main() {
         _ => "so",
     };
 
-    let profile = match std::env::var("PROFILE").unwrap().as_str() {
-        "release" => "release",
-        _ => "debug",
-    };
-
-    let lib = format!("target/{}/libeth.{}", profile, ext);
+    let out_dir = env::var_os("OUT_DIR")
+        .unwrap()
+        .to_string_lossy()
+        .to_string();
+    let lib = format!("{}/libeth.{}", out_dir, ext);
     Command::new("go")
         .args(&[
             "build",
@@ -28,5 +32,6 @@ fn main() {
         .status()
         .unwrap();
 
-    println!(r"cargo:rustc-link-search=target/debug");
+    // post-check
+    println!("cargo:rustc-link-search={}", out_dir);
 }

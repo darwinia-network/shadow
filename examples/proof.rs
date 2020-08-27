@@ -1,6 +1,6 @@
 use std::{ffi::CStr, os::raw::c_char};
 
-#[link(name = "eth")]
+#[link(name = "darwinia_shadow")]
 extern "C" {
     fn Proof(input: libc::c_uint) -> *const c_char;
 }

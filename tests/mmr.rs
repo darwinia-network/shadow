@@ -1,5 +1,5 @@
 use cmmr::{Merge, MMR};
-use shadow::{
+use darwinia_shadow::{
     hash::{MergeHash, H256},
     helper, pool,
     store::Store,

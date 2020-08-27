@@ -1,12 +1,12 @@
 mod mock;
 
-use mock::{ha, header, proof, ETHASH_PROOF_CODEC, ETH_HEADER_THING, HEADER, MOCK_HEADER_19};
-use scale::{Decode, Encode};
-use shadow::{
+use darwinia_shadow::{
     bytes,
     chain::eth::{EthHeader, EthashProof, HeaderThing},
     hex,
 };
+use mock::{ha, header, proof, ETHASH_PROOF_CODEC, ETH_HEADER_THING, HEADER, MOCK_HEADER_19};
+use scale::{Decode, Encode};
 
 /// the scale codec of hash is its hex string
 #[test]

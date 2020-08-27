@@ -1,6 +1,6 @@
 //! Mock the uncle block
 use cmmr::MMR;
-use shadow::{
+use darwinia_shadow::{
     hash::{MergeHash, H256},
     pool,
     store::Store,

@@ -5,22 +5,12 @@ fn main() {
     println!("cargo:rerun-if-changed=build.rs");
     println!("cargo:rerun-if-changed=path/to/Cargo.lock");
 
-    // main
-    let os = Command::new("uname").output().unwrap();
-    let ext = match String::from_utf8_lossy(os.stdout.as_slice())
-        .into_owned()
-        .trim_end()
-        .as_ref()
-    {
-        "Darwin" => "dylib",
-        _ => "so",
-    };
-
+    // build libeth.a
     let out_dir = env::var_os("OUT_DIR")
         .unwrap()
         .to_string_lossy()
         .to_string();
-    let lib = format!("{}/libeth.{}", out_dir, ext);
+    let lib = format!("{}/libeth.a", out_dir);
     Command::new("go")
         .args(&[
             "build",

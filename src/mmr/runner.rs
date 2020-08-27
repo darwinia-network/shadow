@@ -82,11 +82,12 @@ impl Runner {
 
     /// Push new header hash into storage
     pub async fn push(&mut self, pnumber: i64) -> Result<(), Error> {
-        let mut mmr = MMR::<_, MergeHash, _>::new(
-            cmmr::leaf_index_to_mmr_size((pnumber - 1) as u64),
-            &self.store,
-        );
-
+        let mmr_size = if pnumber == 0 {
+            0
+        } else {
+            cmmr::leaf_index_to_mmr_size((pnumber - 1) as u64)
+        } as u64;
+        let mut mmr = MMR::<_, MergeHash, _>::new(mmr_size, &self.store);
         mmr.push(H256::from(
             &EthHeaderRPCResp::get(&self.client, pnumber as u64)
                 .await?

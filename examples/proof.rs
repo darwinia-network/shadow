@@ -6,5 +6,7 @@ extern "C" {
 }
 
 fn main() {
-    println!("{:?}", unsafe { CStr::from_ptr(Proof(1)) });
+    println!("{:?}", unsafe {
+        CStr::from_ptr(Proof(1)).to_string_lossy().to_string()
+    });
 }

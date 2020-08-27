@@ -1,6 +1,6 @@
 //! Mock the uncle block
 use cmmr::MMR;
-use mmr::{
+use shadow::{
     hash::{MergeHash, H256},
     pool,
     store::Store,
@@ -37,7 +37,7 @@ fn main() {
     let db = env::temp_dir().join("test_mmr_proof.db");
     let conn = pool::conn(Some(db));
     let store = Store::with(conn);
-    let mut mmr = MMR::<_, MergeHash, _>::new(0, store);
+    let mut mmr = MMR::<_, MergeHash, _>::new(0, &store);
     let mut roots: Vec<String> = vec![];
     let pos: Vec<u64> = (0..20)
         .map(|h| {

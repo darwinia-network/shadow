@@ -9,10 +9,11 @@ import (
 )
 
 const (
-	ETHEREUM_RPC         = "ETHEREUM_RPC"
-	SHADOW_GENESIS       = "SHADOW_GENESIS"
-	GETH_DATADIR         = "GETH_DATADIR"
-	DEFAULT_ETHEREUM_RPC = "https://mainnet.infura.io/v3/0bfb9acbb13c426097aabb1d81a9d016"
+	ETHEREUM_ROPSTEN     string = "ETHEREUM_ROPSTEN"
+	ETHEREUM_RPC         string = "ETHEREUM_RPC"
+	SHADOW_GENESIS       string = "SHADOW_GENESIS"
+	GETH_DATADIR         string = "GETH_DATADIR"
+	DEFAULT_ETHEREUM_RPC string = "https://mainnet.infura.io/v3/0bfb9acbb13c426097aabb1d81a9d016"
 )
 
 type RawConfig struct {
@@ -48,7 +49,7 @@ func (c *Config) Load() error {
 
 	// Load api from env
 	c.Api = os.Getenv(ETHEREUM_RPC)
-	if c.Api == "" {
+	if c.Api == "" && os.Getenv(ETHEREUM_ROPSTEN) == "" {
 		c.Api = DEFAULT_ETHEREUM_RPC
 	}
 

@@ -31,7 +31,13 @@ impl EthHeaderRPCResp {
         })?;
 
         Ok(client
-            .post(&env::var("ETHEREUM_RPC").unwrap_or(crate::conf::DEFAULT_ETHEREUM_RPC.into()))
+            .post(&env::var("ETHEREUM_RPC").unwrap_or_else(|_| {
+                if env::var("ETHEREUM_ROPSTEN").is_ok() {
+                    crate::conf::DEFAULT_ETHEREUM_ROPSTEN_RPC.into()
+                } else {
+                    crate::conf::DEFAULT_ETHEREUM_RPC.into()
+                }
+            }))
             .json(&map)
             .send()
             .await?

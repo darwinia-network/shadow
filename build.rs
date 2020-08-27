@@ -26,7 +26,7 @@ fn main() {
             "build",
             "-o",
             &lib,
-            "-buildmode=c-shared",
+            "-buildmode=c-archive",
             "pkg/shadow/ffi/mod.go",
         ])
         .status()

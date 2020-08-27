@@ -86,14 +86,13 @@ impl Runner {
             cmmr::leaf_index_to_mmr_size((pnumber - 1) as u64),
             &self.store,
         );
-        if let Err(e) = mmr.push(H256::from(
+
+        mmr.push(H256::from(
             &EthHeaderRPCResp::get(&self.client, pnumber as u64)
                 .await?
                 .result
                 .hash,
-        )) {
-            return Err(Error::MMR(e));
-        }
+        ))?;
 
         mmr.commit()?;
         Ok(())

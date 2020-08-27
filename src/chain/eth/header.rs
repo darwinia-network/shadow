@@ -93,7 +93,7 @@ impl Into<EthHeader> for RawEthHeader {
             gas_used: U256::from_str(&self.gas_used[2..]).unwrap_or_default(),
             gas_limit: U256::from_str(&self.gas_limit[2..]).unwrap_or_default(),
             difficulty: U256::from_str(&self.difficulty[2..]).unwrap_or_default(),
-            seal: seal,
+            seal,
             hash: match self.hash.is_empty() {
                 true => None,
                 false => Some(bytes!(self.hash.as_str(), 32)),

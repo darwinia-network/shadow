@@ -36,7 +36,7 @@ impl ProposalReq {
             <Vec<EthashProof>>::decode(&mut bytes!(proof.as_str()).as_ref())
                 .unwrap_or_default()
                 .iter()
-                .map(|p| Into::<EthashProofJson>::into(p))
+                .map(Into::<EthashProofJson>::into)
                 .collect()
         }
     }

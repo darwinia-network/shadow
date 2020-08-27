@@ -1,4 +1,4 @@
-package internal
+package shadow
 
 import (
 	"io/ioutil"

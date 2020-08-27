@@ -1,11 +1,11 @@
-package internal
+package shadow
 
 import (
 	"os"
 	"path/filepath"
 	"strconv"
 
-	"github.com/darwinia-network/shadow/pkg/internal/util"
+	"github.com/darwinia-network/shadow/pkg/shadow/util"
 )
 
 const (

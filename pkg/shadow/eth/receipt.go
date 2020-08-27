@@ -8,8 +8,8 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/darwinia-network/shadow/pkg/internal"
-	"github.com/darwinia-network/shadow/pkg/internal/util"
+	"github.com/darwinia-network/shadow/pkg/shadow"
+	"github.com/darwinia-network/shadow/pkg/shadow/util"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
@@ -28,7 +28,7 @@ var (
 )
 
 func init() {
-	conf := new(internal.Config)
+	conf := new(shadow.Config)
 	_ = conf.Load()
 	API = conf.Api
 }

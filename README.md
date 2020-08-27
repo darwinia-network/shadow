@@ -1,6 +1,6 @@
 # Shadow
 
-[![Golang CI][workflow-badge]][github]
+[![Shadow][workflow-badge]][github]
 
 The shadow service for relayers and verify workers to retrieve header data and generate proof. Shadow will index the data it needs from blockchain nodes, such as Ethereum and Darwinia.
 
@@ -23,23 +23,17 @@ SUBCOMMANDS:
     trim     Trim mmr from target leaf
 ```
 
-## Contribute and Build
+## Download
 
-Downloads shadow service
-
-```
-git clone https://github.com/darwinia-network/shadow.git
+```sh
+$ cargo install darwinia-shadow
 ```
 
-Starts shadow service:
+### Note
 
-```
-# Starts shadow serives at port 3000
-$ cargo run -p 3000
++ Please make sure you have golang installed in your machine
++ Please make sure you have installed the sqlite3 library in your machine
 
-# If you have fast eth node:
-$ ETHEREUM_RPC=<your-api> cargo run -p 3000
-```
 
 ## Trouble Shooting
 
@@ -51,8 +45,5 @@ and retry.
 GPL-3.0
 
 
-[infura]: https://infura.io
 [github]: https://github.com/darwinia-network/shadow
-[spec]: https://github.com/darwinia-network/darwinia/wiki/Darwinia-offchain-worker-shadow-service-spec
-[workflow-badge]: https://github.com/darwinia-network/shadow/workflows/Golang%20CI/badge.svg
-[api]: https://darwinia-network.github.io/shadow
+[workflow-badge]: https://github.com/darwinia-network/shadow/workflows/shadow/badge.svg

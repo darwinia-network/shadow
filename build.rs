@@ -27,11 +27,12 @@ fn main() {
             "-o",
             &lib,
             "-buildmode=c-shared",
-            "pkg/internal/ffi/mod.go",
+            "pkg/shadow/ffi/mod.go",
         ])
         .status()
         .unwrap();
 
     // post-check
+    println!("cargo:rustc-link-lib=eth");
     println!("cargo:rustc-link-search={}", out_dir);
 }

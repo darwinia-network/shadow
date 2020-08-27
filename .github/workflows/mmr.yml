@@ -1,4 +1,4 @@
-name: Rust MMR
+name: shadow
 
 on:
   push:

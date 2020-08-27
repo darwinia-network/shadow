@@ -1,5 +1,5 @@
 //! Ethereum API
-pub mod ffi;
+mod ffi;
 mod proposal;
 mod receipt;
 

@@ -56,3 +56,18 @@ pub fn receipt(tx: String) -> (String, String) {
         )
     }
 }
+
+#[cfg(test)]
+mod test {
+    #[test]
+    fn test_proof() {
+        super::proof(1);
+    }
+
+    #[test]
+    fn test_receipt() {
+        super::receipt(
+            "0x3b82a55f5e752c23359d5c3c4c3360455ce0e485ed37e1faabe9ea10d5db3e7a".to_string(),
+        );
+    }
+}

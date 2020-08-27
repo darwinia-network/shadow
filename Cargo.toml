@@ -1,9 +1,9 @@
 [package]
 name = "darwinia-shadow"
-version = "0.0.1"
+version = "0.0.2"
 authors = ["clearloop <udtrokia@gmail.com>"]
 edition = "2018"
-description = "The shadow service for relayers and verify workers to retrieve header data and generate proof. Shadow will index the data it needs from blockchain nodes, such as Ethereum and Darwinia."
+description = "The shadow service for relayers and verify workers to retrieve header data and generate proof."
 repository = "https://github.com/darwinia-network/shadow"
 license = "GPL-3.0-or-later"
 documentation = "https://docs.rs/darwinia-shadow"
@@ -17,6 +17,7 @@ include = [
 ]
 keywords = ["darwinia", "substrate", "service"]
 readme = './README.md'
+links = "darwinia_shadow"
 
 [[bin]]
 name = "shadow"

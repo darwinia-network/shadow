@@ -10,7 +10,7 @@ fn main() {
         .unwrap()
         .to_string_lossy()
         .to_string();
-    let lib = format!("{}/libeth.a", out_dir);
+    let lib = format!("{}/libdarwinia_shadow.a", out_dir);
     Command::new("go")
         .args(&[
             "build",
@@ -23,6 +23,6 @@ fn main() {
         .unwrap();
 
     // post-check
-    println!("cargo:rustc-link-lib=eth");
+    println!("cargo:rustc-link-lib=static=darwinia_shadow");
     println!("cargo:rustc-link-search={}", out_dir);
 }

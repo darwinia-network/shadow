@@ -55,7 +55,7 @@ impl Runner {
 
         loop {
             if let Err(e) = self.push(ptr).await {
-                error!("Push block to mmr_store failed: {:?}", e);
+                trace!("Push block to mmr_store failed: {:?}", e);
                 trace!("MMR service restarting after 10s...");
                 async_std::task::sleep(time::Duration::from_secs(10)).await;
             } else {

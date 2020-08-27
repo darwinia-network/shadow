@@ -102,7 +102,7 @@ pub async fn handle(req: web::Json<ProposalReq>) -> impl Responder {
     web::Json(req.0.headers().await)
 }
 
-#[link(name = "eth")]
+#[link(name = "darwinia_shadow")]
 extern "C" {
     fn Proof(input: libc::c_uint) -> *const c_char;
 }

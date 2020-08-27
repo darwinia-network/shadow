@@ -20,7 +20,7 @@ pub async fn handle(tx: web::Path<String>) -> impl Responder {
 }
 
 // FFI
-#[link(name = "eth")]
+#[link(name = "darwinia_shadow")]
 extern "C" {
     fn Receipt(input: GoString) -> GoTuple;
 }

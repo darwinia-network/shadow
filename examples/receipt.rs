@@ -17,7 +17,7 @@ struct GoTuple {
     hash: *const c_char,
 }
 
-#[link(name = "eth")]
+#[link(name = "darwinia_shadow")]
 extern "C" {
     fn Receipt(input: GoString) -> GoTuple;
 }

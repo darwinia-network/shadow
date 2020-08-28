@@ -33,9 +33,13 @@ fn main() {
         .unwrap();
 
     // Load dynamic libdarwinia_shadow.so in common linux
-    if ext.contains("so") && Command::new("ldconfig").args(&[&out_dir]).status().is_err() {
+    if Command::new("cp")
+        .args(&[&out_dir, "/usr/local/lib/"])
+        .status()
+        .is_err()
+    {
         Command::new("sudo")
-            .args(&["ldconfig", &out_dir])
+            .args(&["cp", &out_dir, "/usr/local/lib/"])
             .status()
             .unwrap();
     }

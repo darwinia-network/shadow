@@ -13,7 +13,7 @@ fn main() {
 
     Command::new("go")
         .args(&[
-            "build",
+            "CGO_ENABLED=0 build",
             "-o",
             &format!("{}/libdarwinia_shadow.a", out_dir),
             "-buildmode=c-archive",

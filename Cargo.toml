@@ -1,6 +1,6 @@
 [package]
 name = "darwinia-shadow"
-version = "0.0.2"
+version = "0.0.3"
 authors = ["clearloop <udtrokia@gmail.com>"]
 edition = "2018"
 description = "The shadow service for relayers and verify workers to retrieve header data and generate proof."
@@ -9,13 +9,15 @@ license = "GPL-3.0-or-later"
 documentation = "https://docs.rs/darwinia-shadow"
 homepage = "https://github.com/darwinia-network/shadow"
 include = [
+  "go.mod",
+  "go.sum",
   "build.rs",
   "pkg/**/*",
   "src/**/*",
   "Cargo.toml",
   "./README.md",
 ]
-keywords = ["darwinia", "substrate", "service"]
+keywords = ["darwinia", "substrate", "ethereum", "service"]
 readme = './README.md'
 links = "darwinia_shadow"
 

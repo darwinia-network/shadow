@@ -15,7 +15,6 @@ fn main() {
             "Darwin" => "dylib",
             _ => "so",
         };
-
     let lib = format!("/usr/local/lib/libdarwinia_shadow.{}", ext);
     Command::new("go")
         .args(&[
@@ -29,6 +28,7 @@ fn main() {
         .status()
         .unwrap();
 
-    // link to dynamic library
+    // link libdarwinia_shadow
     println!("cargo:rustc-link-lib=darwinia_shadow");
+    println!("cargo:rustc-link-search=/usr/local/lib");
 }

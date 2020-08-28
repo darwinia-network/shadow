@@ -11,20 +11,21 @@ COPY . shadow
 # libcrypto.so.1.1 => /lib/libcrypto.so.1.1 (0x7fd26ac02000)
 # libsqlite3.so.0 => /usr/lib/libsqlite3.so.0 (0x7fd26ab1a000)
 # libc.musl-x86_64.so.1 => /lib/ld64.so.1 (0x7fd26bebb000)
-RUN apk add --no-cache openssl-dev sqlite-dev gcc go libc6-compat musl-dev\
+RUN apk add --no-cache openssl-dev sqlite-dev gcc go \
     && cd shadow \
     && cargo build --release -vv\
-    && mkdir /include \
-    && cp target/release/shadow /include/ \
-    && cp /lib/libssl.so.1.1 /include/ \
-    && cp /lib/libcrypto.so.1.1 /include/ \
-    && cp /usr/lib/libsqlite3.so.0 /include/libsqlite3.so.0 \
-    && cp /libc.musl-x86_64.so.1 /include/ld64.so.1
+    && mkdir /target \
+    && cp target/release/shadow /target/ \
+    && cp /usr/lib/libsqlite3.so.0 /target/libsqlite3.so.0 \
+    && cp /usr/local/lib/libdarwinia_shadow.so /target/libdarwinia_shadow.so
 
 # Pull Shadow into a second stage deploy alpine container
 FROM alpine:latest
-COPY --from=shadow /include /include
-RUN mv /include/shadow /usr/local/bin/shadow \
-    && mv /include/* /usr/local/lib/
+COPY --from=shadow /target /target
+RUN mv /target/shadow /usr/local/bin/shadow \
+    && mv /target/libsqlite3.so.0 /usr/lib/libsqlite3.so.0 \
+    && mv /target/libdarwinia_shadow.so /usr/local/lib/libdarwinia_shadow.so \
+    && cp /lib/libc.musl-x86_64.so.1 /lib/ld64.so.1 \
+    && rm -rf /target
 EXPOSE 3000
 ENTRYPOINT ["shadow"]

@@ -1,7 +1,6 @@
 # Build Shadow in a stock rust builder container
 FROM rust:alpine as shadow
 ARG DEBIAN_FRONTEND=noninteractive
-ENV DARWINIA_SHADOW_LIBRARY=/usr/local/lib
 ENV TZ=America/Los_Angeles
 COPY . shadow
 

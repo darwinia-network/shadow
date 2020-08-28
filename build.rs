@@ -6,8 +6,7 @@ fn main() {
     println!("cargo:rerun-if-changed=path/to/Cargo.lock");
 
     // Get build paths
-    let out_dir =
-        env::var("DARWINIA_SHADOW_LIBRARY").unwrap_or_else(|_| env::var("OUT_DIR").unwrap());
+    let out_dir = env::var("OUT_DIR").unwrap();
     let ext =
         match String::from_utf8_lossy(Command::new("uname").output().unwrap().stdout.as_slice())
             .into_owned()
@@ -33,18 +32,18 @@ fn main() {
         .unwrap();
 
     // Load dynamic libdarwinia_shadow.so in common linux
-    if Command::new("cp")
-        .args(&[&out_dir, "/usr/local/lib/"])
+    if Command::new("mv")
+        .args(&[&lib, "/usr/local/lib/"])
         .status()
         .is_err()
     {
         Command::new("sudo")
-            .args(&["cp", &out_dir, "/usr/local/lib/"])
+            .args(&["mv", &lib, "/usr/local/lib/"])
             .status()
             .unwrap();
     }
 
     // post-check
     println!("cargo:rustc-link-lib=darwinia_shadow");
-    println!("cargo:rustc-link-search={}", out_dir);
+    println!("cargo:rustc-link-search=/usr/local/lib");
 }

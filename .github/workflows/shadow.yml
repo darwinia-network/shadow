@@ -35,6 +35,6 @@ jobs:
       - name: Build
         run: cargo build --release -vv
       - name: Check Binary
-        run: ./target/release/shadow version
+        run: ./target/release/shadow --version
       - name: Run tests
         run: cargo test --release -vv

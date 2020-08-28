@@ -11,9 +11,10 @@ fn main() {
         .to_string_lossy()
         .to_string();
 
+    env::set_var("CGO_ENABLED", "0");
     Command::new("go")
         .args(&[
-            "CGO_ENABLED=0 build",
+            "build",
             "-o",
             &format!("{}/libdarwinia_shadow.a", out_dir),
             "-buildmode=c-archive",

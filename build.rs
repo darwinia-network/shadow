@@ -32,10 +32,11 @@ fn main() {
         .unwrap();
 
     // Load dynamic libdarwinia_shadow.so in common linux
-    if Command::new("mv")
+    if !Command::new("mv")
         .args(&[&lib, "/usr/local/lib/"])
         .status()
-        .is_err()
+        .unwrap()
+        .success()
     {
         Command::new("sudo")
             .args(&["mv", &lib, "/usr/local/lib/"])

@@ -23,6 +23,7 @@ jobs:
           else
               sudo apt-get update -y
               sudo apt-get install -y libsqlite3-dev libdbus-1-dev
+              export LD_LIBRARY_PATH=/lib:/usr/lib:/usr/local/lib
           fi
       # Cache MMR Library
       - name: Cache MMR Library

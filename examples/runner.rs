@@ -1,4 +1,4 @@
-use darwinia_shadow::{pool, Runner};
+use darwinia_shadow::{db::pool, mmr::Runner};
 
 fn main() {
     env_logger::init();

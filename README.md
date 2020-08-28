@@ -1,13 +1,16 @@
 # Shadow
 
 [![Shadow][workflow-badge]][github]
+[![crate](https://img.shields.io/crates/v/darwinia-shadow.svg)](https://crates.io/crates/elvis)
+[![doc](https://img.shields.io/badge/current-docs-brightgreen.svg)](https://docs.rs/darwinia_shadow/)
+[![LICENSE](https://img.shields.io/crates/l/darwinia-shadow.svg)](https://choosealicense.com/licenses/gpl-3.0/)
 
 The shadow service for relayers and verify workers to retrieve header data and generate proof. Shadow will index the data it needs from blockchain nodes, such as Ethereum and Darwinia.
 
 ## Usage
 
 ```sh
-shadow 0.1.0
+shadow 0.2.0
 
 USAGE:
     shadow <SUBCOMMAND>
@@ -31,8 +34,8 @@ $ cargo install darwinia-shadow
 
 ### Note
 
-+ Please make sure you have golang installed in your machine
-+ Please make sure you have installed the sqlite3 library in your machine
++ Please make sure you have `golang` installed in your machine
++ Please make sure you have `sqlite3` installed in your machine
 
 
 ## Trouble Shooting

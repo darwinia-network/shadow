@@ -3,5 +3,7 @@ mod ffi;
 mod proposal;
 mod receipt;
 
-pub use proposal::handle as proposal;
-pub use receipt::handle as receipt;
+pub use self::{
+    proposal::{handle as proposal, ProposalReq},
+    receipt::handle as receipt,
+};

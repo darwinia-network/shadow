@@ -1,12 +1,16 @@
 //! MMR Runner
 use crate::{
     chain::eth::EthHeaderRPCResp,
-    hash::{MergeHash, H256},
-    helper,
-    pool::{ConnPool, PooledConn},
+    db::{
+        pool::{ConnPool, PooledConn},
+        schema::mmr_store::dsl::*,
+    },
+    mmr::{
+        hash::{MergeHash, H256},
+        helper,
+        store::Store,
+    },
     result::Error,
-    schema::mmr_store::dsl::*,
-    store::Store,
 };
 use cmmr::MMR;
 use diesel::{dsl::count, prelude::*};

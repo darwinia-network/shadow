@@ -16,7 +16,7 @@ use scale::Decode;
 use darwinia_shadow::{
     bytes,
     chain::eth::{EthHeader, EthashProof},
-    hash::H256,
+    mmr::H256,
 };
 
 /// Hash array for tests

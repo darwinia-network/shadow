@@ -1,5 +1,10 @@
 //! `shadow` command
-use crate::{api, mmr::helper, pool, result::Error, Runner};
+use crate::{
+    api,
+    db::pool,
+    mmr::{helper, Runner},
+    result::Error,
+};
 use structopt::{clap::AppSettings, StructOpt};
 
 #[derive(StructOpt)]

@@ -1,7 +1,7 @@
 //! The API server of Shadow
 use actix_web::{middleware, web, App, HttpServer};
 
-mod eth;
+pub mod eth;
 
 /// Run HTTP Server
 pub async fn serve(port: u16) -> std::io::Result<()> {

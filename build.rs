@@ -11,13 +11,15 @@ fn main() {
         .to_string_lossy()
         .to_string();
 
-    env::set_var("CGO_ENABLED", "0");
+    // env::set_var("CGO_ENABLED", "0");
+    // env::set_var("GO111MODULE", "on");
     Command::new("go")
         .args(&[
             "build",
             "-o",
             &format!("{}/libdarwinia_shadow.a", out_dir),
             "-buildmode=c-archive",
+            "-v",
             "pkg/shadow/ffi/mod.go",
         ])
         .status()

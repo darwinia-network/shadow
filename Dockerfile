@@ -3,7 +3,7 @@ FROM rust:alpine as shadow
 ARG DEBIAN_FRONTEND=noninteractive
 ENV TZ=America/Los_Angeles
 COPY . shadow
-RUN apk add --no-cache openssl-dev sqlite-dev gcc go musl-dev\
+RUN apk add --no-cache openssl-dev sqlite-dev gcc go libc6-compat musl-dev\
     && cd shadow \
     && cargo build --release
 

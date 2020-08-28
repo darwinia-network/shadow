@@ -11,9 +11,9 @@ COPY . shadow
 # libcrypto.so.1.1 => /lib/libcrypto.so.1.1 (0x7fd26ac02000)
 # libsqlite3.so.0 => /usr/lib/libsqlite3.so.0 (0x7fd26ab1a000)
 # libc.musl-x86_64.so.1 => /lib/ld64.so.1 (0x7fd26bebb000)
-RUN apk add --no-cache openssl-dev sqlite-dev gcc go \
+RUN apk add --no-cache gcc go openssl-dev sqlite-dev\
     && cd shadow \
-    && cargo build --release -vv\
+    && OUT_DIR=/usr/local/lib cargo build --release -vv\
     && mkdir /target \
     && cp target/release/shadow /target/ \
     && cp /usr/lib/libsqlite3.so.0 /target/libsqlite3.so.0 \

@@ -1,4 +1,4 @@
-use std::process::Command;
+use std::{env, process::Command};
 
 fn main() {
     // pre-check
@@ -6,6 +6,7 @@ fn main() {
     println!("cargo:rerun-if-changed=path/to/Cargo.lock");
 
     // build libdarwinia_shadow
+    let out_dir = env::var("OUT_DIR").unwrap();
     let ext =
         match String::from_utf8_lossy(Command::new("uname").output().unwrap().stdout.as_slice())
             .into_owned()
@@ -15,7 +16,7 @@ fn main() {
             "Darwin" => "dylib",
             _ => "so",
         };
-    let lib = format!("/usr/local/lib/libdarwinia_shadow.{}", ext);
+    let lib = format!("{}/libdarwinia_shadow.{}", out_dir, ext);
     Command::new("go")
         .args(&[
             "build",
@@ -30,5 +31,5 @@ fn main() {
 
     // link libdarwinia_shadow
     println!("cargo:rustc-link-lib=darwinia_shadow");
-    println!("cargo:rustc-link-search=/usr/local/lib");
+    println!("cargo:rustc-link-search={}", out_dir);
 }

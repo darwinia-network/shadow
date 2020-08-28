@@ -5,8 +5,9 @@ fn main() {
     println!("cargo:rerun-if-changed=build.rs");
     println!("cargo:rerun-if-changed=path/to/Cargo.lock");
 
-    // build libdarwinia_shadow
-    let out_dir = env::var("OUT_DIR").unwrap();
+    // Get build paths
+    let out_dir =
+        env::var("DARWINIA_SHADOW_LIBRARY").unwrap_or_else(|_| env::var("OUT_DIR").unwrap());
     let ext =
         match String::from_utf8_lossy(Command::new("uname").output().unwrap().stdout.as_slice())
             .into_owned()
@@ -17,6 +18,8 @@ fn main() {
             _ => "so",
         };
     let lib = format!("{}/libdarwinia_shadow.{}", out_dir, ext);
+
+    // Build the dynamic library
     Command::new("go")
         .args(&[
             "build",
@@ -29,7 +32,15 @@ fn main() {
         .status()
         .unwrap();
 
-    // link libdarwinia_shadow
+    // Load dynamic libdarwinia_shadow.so in common linux
+    if ext.contains("so") && Command::new("ldconfig").args(&[&out_dir]).status().is_err() {
+        Command::new("sudo")
+            .args(&["ldconfig", &out_dir])
+            .status()
+            .unwrap();
+    }
+
+    // post-check
     println!("cargo:rustc-link-lib=darwinia_shadow");
     println!("cargo:rustc-link-search={}", out_dir);
 }

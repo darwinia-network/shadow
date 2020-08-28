@@ -1,6 +1,7 @@
 # Build Shadow in a stock rust builder container
 FROM rust:alpine as shadow
 ARG DEBIAN_FRONTEND=noninteractive
+ENV DARWINIA_SHADOW_LIBRARY=/usr/local/lib
 ENV TZ=America/Los_Angeles
 COPY . shadow
 
@@ -13,7 +14,7 @@ COPY . shadow
 # libc.musl-x86_64.so.1 => /lib/ld64.so.1 (0x7fd26bebb000)
 RUN apk add --no-cache gcc go openssl-dev sqlite-dev\
     && cd shadow \
-    && OUT_DIR=/usr/local/lib cargo build --release -vv\
+    && cargo build --release -vv --out-dir /usr/local/lib/\
     && mkdir /target \
     && cp target/release/shadow /target/ \
     && cp /usr/lib/libsqlite3.so.0 /target/libsqlite3.so.0 \

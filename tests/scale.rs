@@ -1,11 +1,12 @@
 mod mock;
 
-use mmr::{
-    bridge::{DoubleNodeWithMerkleProof, EthHeader, HeaderThing},
-    bytes, hex,
-};
 use mock::{ha, header, proof, ETHASH_PROOF_CODEC, ETH_HEADER_THING, HEADER, MOCK_HEADER_19};
 use scale::{Decode, Encode};
+use shadow::{
+    bytes,
+    chain::eth::{EthHeader, EthashProof, HeaderThing},
+    hex,
+};
 
 /// the scale codec of hash is its hex string
 #[test]
@@ -62,8 +63,7 @@ fn decode_mmr_proof() {
 
 #[test]
 fn eth_hash_proof() {
-    let block =
-        <Vec<DoubleNodeWithMerkleProof>>::decode(&mut bytes!(ETHASH_PROOF_CODEC).as_ref()).unwrap();
+    let block = <Vec<EthashProof>>::decode(&mut bytes!(ETHASH_PROOF_CODEC).as_ref()).unwrap();
     assert_eq!(block[block.len() - 1], proof());
 }
 

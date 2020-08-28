@@ -33,6 +33,8 @@ jobs:
           path: ./target
           key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('./Cargo.lock') }}
       - name: Build
-        run: cargo build -vv
+        run: cargo build --release -vv
+      - name: Check Binary
+        run: ./target/release/shadow version
       - name: Run tests
-        run: cargo test -vv
+        run: cargo test --release -vv

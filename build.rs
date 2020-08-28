@@ -1,4 +1,4 @@
-use std::{env, process::Command};
+use std::process::Command;
 
 fn main() {
     // pre-check
@@ -6,26 +6,29 @@ fn main() {
     println!("cargo:rerun-if-changed=path/to/Cargo.lock");
 
     // build libdarwinia_shadow
-    let out_dir = env::var_os("OUT_DIR")
-        .unwrap()
-        .to_string_lossy()
-        .to_string();
+    let ext =
+        match String::from_utf8_lossy(Command::new("uname").output().unwrap().stdout.as_slice())
+            .into_owned()
+            .trim_end()
+            .as_ref()
+        {
+            "Darwin" => "dylib",
+            _ => "so",
+        };
 
-    // env::set_var("CGO_ENABLED", "0");
-    // env::set_var("GO111MODULE", "on");
+    let lib = format!("/usr/local/lib/libdarwinia_shadow.{}", ext);
     Command::new("go")
         .args(&[
             "build",
             "-o",
-            &format!("{}/libdarwinia_shadow.a", out_dir),
-            "-buildmode=c-archive",
+            &lib,
+            "-buildmode=c-shared",
             "-v",
             "pkg/shadow/ffi/mod.go",
         ])
         .status()
         .unwrap();
 
-    // post-check
-    println!("cargo:rustc-link-lib=static=darwinia_shadow");
-    println!("cargo:rustc-link-search={}", out_dir);
+    // link to dynamic library
+    println!("cargo:rustc-link-lib=darwinia_shadow");
 }

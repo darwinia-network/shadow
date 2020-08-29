@@ -7,6 +7,7 @@
 
 The shadow service for relayers and verify workers to retrieve header data and generate proof. Shadow will index the data it needs from blockchain nodes, such as Ethereum and Darwinia.
 
+
 ## Usage
 
 ```sh
@@ -26,11 +27,13 @@ SUBCOMMANDS:
     trim     Trim mmr from target leaf
 ```
 
+
 ## Download
 
 ```sh
 $ cargo install darwinia-shadow
 ```
+
 
 ### Note
 
@@ -39,13 +42,13 @@ $ cargo install darwinia-shadow
 + If error like `No such file or directory` occurs when you launch your `shadow`
   + Run `sudo update_dyld_shared_cache` in OSX
   + Run `sudo ldconfig` in Linux
-  + Or set `LIBRARY_DARWINIA_SHADOW` as an avaiable path while compiling
 
 
 ## Trouble Shooting
 
 Everytime you run `proof` in error, please delete `~/.ethashproof` and `~/.ethash` 
 and retry.
+
 
 ## LICENSE
 

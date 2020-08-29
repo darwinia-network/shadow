@@ -2,10 +2,7 @@ package eth
 
 import (
 	"fmt"
-	"io/ioutil"
 	"math/big"
-	"os"
-	"path/filepath"
 
 	"github.com/darwinia-network/shadow/pkg/ethashproof"
 	"github.com/darwinia-network/shadow/pkg/ethashproof/ethash"
@@ -64,64 +61,21 @@ func (o *ProofOutput) Format() []DoubleNodeWithMerkleProof {
 	return dnmps
 }
 
-// Epoch in background
-func bgEpoch(epoch uint64, config *shadow.Config) {
-	_, _ = ethashproof.CalculateDatasetMerkleRoot(epoch, true)
-	_ = config.RemoveLock(shadow.EPOCH_LOCK)
-}
-
-// Check if need epoch
-func epochGently(epoch uint64, config *shadow.Config) error {
-	// Check if is epoching
-	if config.CheckLock(shadow.EPOCH_LOCK) {
-		return nil
-	}
-
-	// Get home dir
-	home, err := os.UserHomeDir()
-	if err != nil {
-		return err
-	}
-
-	// Find ethashproof cache
-	cache := filepath.Join(home, ETHASHPROOF_CACHE)
-	fs, err := ioutil.ReadDir(cache)
-	if err != nil {
-		return err
-	}
-
-	// Check if has epoched
-	hasEpoched := false
-	for _, f := range fs {
-		if f.Name() == fmt.Sprintf("%v.json", epoch) {
-			hasEpoched = true
-		}
-	}
-
-	// Create epoch lock
-	err = config.CreateLock(shadow.EPOCH_LOCK)
-	if err != nil {
-		return err
-	}
-
-	// Run epoch
-	if !hasEpoched {
-		go bgEpoch(epoch, config)
-	}
-
-	return nil
-}
-
 // Proof eth blockheader
 func Proof(header *types.Header, config *shadow.Config) (ProofOutput, error) {
 	blockno := header.Number.Uint64()
 	epoch := blockno / 30000
 	output := &ProofOutput{}
 
+	// Handle lock
+	if config.CheckLock(shadow.PROOF_LOCK) {
+		return *output, fmt.Errorf("ethashproof process is busy now")
+	}
+
 	// Get proof from cache
 	cache, err := ethashproof.LoadCache(int(epoch))
 	if err != nil {
-		err = config.RemoveLock(shadow.EPOCH_LOCK)
+		err = config.CreateLock(shadow.PROOF_LOCK)
 		if err != nil {
 			return *output, err
 		}
@@ -132,6 +86,11 @@ func Proof(header *types.Header, config *shadow.Config) (ProofOutput, error) {
 		}
 
 		cache, err = ethashproof.LoadCache(int(epoch))
+		if err != nil {
+			return *output, err
+		}
+
+		err = config.RemoveLock(shadow.PROOF_LOCK)
 		if err != nil {
 			return *output, err
 		}
@@ -179,14 +138,6 @@ func Proof(header *types.Header, config *shadow.Config) (ProofOutput, error) {
 
 		for _, pr := range allProofs {
 			output.MerkleProofs = append(output.MerkleProofs, hexutil.EncodeBig(pr))
-		}
-	}
-
-	// Check if need pre-epoch
-	if blockno%30000 > 15000 {
-		err := epochGently(epoch, config)
-		if err != nil {
-			return *output, err
 		}
 	}
 

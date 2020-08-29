@@ -1,13 +1,11 @@
-use std::{env, process::Command};
+use std::process::Command;
 
 fn main() {
-    // pre-check
+    // Pre-check
     println!("cargo:rerun-if-changed=build.rs");
     println!("cargo:rerun-if-changed=path/to/Cargo.lock");
 
-    // Get build paths
-    let out_dir =
-        env::var("DARWINIA_SHADOW_LIBRARY").unwrap_or_else(|_| env::var("OUT_DIR").unwrap());
+    // Declare build args
     let ext =
         match String::from_utf8_lossy(Command::new("uname").output().unwrap().stdout.as_slice())
             .into_owned()
@@ -17,42 +15,46 @@ fn main() {
             "Darwin" => "dylib",
             _ => "so",
         };
-    let lib = format!("{}/libdarwinia_shadow.{}", out_dir, ext);
+    let lib = format!("/usr/local/lib/libdarwinia_shadow.{}", ext);
+    let args = vec![
+        "build",
+        "-o",
+        &lib,
+        "-buildmode=c-shared",
+        "-v",
+        "pkg/shadow/ffi/mod.go",
+    ];
 
     // Build the dynamic library
-    Command::new("go")
-        .args(&[
-            "build",
-            "-o",
-            &lib,
-            "-buildmode=c-shared",
-            "-v",
-            "pkg/shadow/ffi/mod.go",
-        ])
-        .status()
-        .unwrap();
-
-    // Load dynamic libdarwinia_shadow.so in common linux
-    if !Command::new("mv")
-        .args(&[&lib, "/usr/local/lib/"])
-        .status()
-        .unwrap()
-        .success()
+    if !Command::new("go").args(&args).status().unwrap().success()
         && !Command::new("sudo")
-            .args(&["mv", &lib, "/usr/local/lib/"])
+            .args(vec![vec!["go"], args].concat())
             .status()
             .unwrap()
             .success()
     {
         panic!(
-            "{}\n\n{}\n{}",
-            "It seems we don't have permission for moving our dynamic lib to `/usr/local/lib/`.",
-            "Please set `DARWINIA_SHADOW_LIBRARY` as an available link library path, and install",
-            "darwinia-shadow again~"
-        )
+            "{}{}",
+            "It seems we don't have permission to create our library at `/usr/local/lib`",
+            ", please get the permission and install darwinia-shadow again~"
+        );
     }
 
-    // post-check
+    if ext.contains("so")
+        && !Command::new("ldconfig")
+            .arg(&lib)
+            .status()
+            .unwrap()
+            .success()
+        && !Command::new("sudo")
+            .args(&["ldconfig", &lib])
+            .status()
+            .unwrap()
+            .success()
+    {
+        panic!("Could update LD_LIBRARY_PATH");
+    }
+
+    // Post-check
     println!("cargo:rustc-link-lib=darwinia_shadow");
-    println!("cargo:rustc-link-search=/usr/local/lib");
 }

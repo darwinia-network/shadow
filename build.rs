@@ -27,7 +27,7 @@ fn main() {
             if dynamic {
                 "-buildmode=c-shared"
             } else {
-                "-buildmode=c-archived"
+                "-buildmode=c-archive"
             },
             "-v",
             "pkg/shadow/ffi/mod.go",

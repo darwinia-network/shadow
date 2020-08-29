@@ -36,12 +36,6 @@ jobs:
       - name: Build
         run: cargo build --release -vv
       - name: Check Binary
-        run: |
-          if [[ "$(uname)" == 'Darwin' ]]; then
-              sudo update_dyld_shared_cache
-          else
-              sudo ldconfig
-          fi
-          ./target/release/shadow --version
+        run: ./target/release/shadow --version
       - name: Run tests
         run: cargo test --release -vv

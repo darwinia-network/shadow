@@ -39,9 +39,6 @@ $ cargo install darwinia-shadow
 
 + Please make sure you have `golang` installed in your machine
 + Please make sure you have `sqlite3` installed in your machine
-+ If error like `No such file or directory` occurs when you launch your `shadow`
-  + Run `sudo update_dyld_shared_cache` in OSX
-  + Run `sudo ldconfig` in Linux
 
 
 ## Trouble Shooting

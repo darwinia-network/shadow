@@ -1,4 +1,12 @@
-pub mod hash;
+//! Shdaow service mmr implementation
 pub mod helper;
-pub mod runner;
-pub mod store;
+
+mod hash;
+mod runner;
+mod store;
+
+pub use self::{
+    hash::{MergeHash, H256},
+    runner::Runner,
+    store::Store,
+};

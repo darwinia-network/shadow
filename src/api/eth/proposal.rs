@@ -1,21 +1,21 @@
 use crate::{
     bytes,
     chain::eth::{EthHeader, EthHeaderJson, EthashProof, EthashProofJson},
-    hash::{MergeHash, H256},
-    pool,
-    store::Store,
+    db::pool,
+    mmr::{MergeHash, Store, H256},
 };
 use actix_web::{web, Responder};
 use cmmr::MMR;
 use reqwest::Client;
 use scale::Decode;
-use std::{ffi::CStr, os::raw::c_char};
 
 /// Proposal post req
 #[derive(Deserialize)]
 pub struct ProposalReq {
-    members: Vec<u64>,
-    last_leaf: u64,
+    /// MMR members
+    pub members: Vec<u64>,
+    /// The last leaf of mmr proof
+    pub last_leaf: u64,
 }
 
 impl ProposalReq {
@@ -29,16 +29,12 @@ impl ProposalReq {
 
     /// Get `EtHashProof`
     fn ethash_proof(block: u64) -> Vec<EthashProofJson> {
-        unsafe {
-            let proof = CStr::from_ptr(Proof(block as u32))
-                .to_string_lossy()
-                .to_string();
-            <Vec<EthashProof>>::decode(&mut bytes!(proof.as_str()).as_ref())
-                .unwrap_or_default()
-                .iter()
-                .map(|p| Into::<EthashProofJson>::into(p))
-                .collect()
-        }
+        let proof = super::ffi::proof(block);
+        <Vec<EthashProof>>::decode(&mut bytes!(proof.as_str()).as_ref())
+            .unwrap_or_default()
+            .iter()
+            .map(Into::<EthashProofJson>::into)
+            .collect()
     }
 
     // Get mmr root
@@ -98,11 +94,18 @@ pub struct ProposalHeader {
     mmr_proof: Vec<String>,
 }
 
+/// Proposal Handler
+///
+/// ```
+/// use darwinia_shadow::api::eth;
+/// use actix_web::web;
+///
+/// // POST `/eth/proposal`
+/// eth::proposal(web::Json(eth::ProposalReq{
+///     members: vec![19],
+///     last_leaf: 19,
+/// }));
+/// ```
 pub async fn handle(req: web::Json<ProposalReq>) -> impl Responder {
     web::Json(req.0.headers().await)
-}
-
-#[link(name = "eth")]
-extern "C" {
-    fn Proof(input: libc::c_uint) -> *const c_char;
 }

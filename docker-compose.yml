@@ -16,13 +16,6 @@ services:
       - data:/root
     depends_on:
       - geth
-  mmr:
-    image: quay.io/darwinia-network/shadow:next
-    command: run -vm --no-fetch --no-api
-    volumes:
-      - data:/root
-    depends_on:
-      - fetcher
 
 volumes:
   data:

@@ -13,10 +13,10 @@ pub use header_thing::ETH_HEADER_THING;
 pub use mock_header_19::MOCK_HEADER_19;
 use scale::Decode;
 
-use shadow::{
+use darwinia_shadow::{
     bytes,
     chain::eth::{EthHeader, EthashProof},
-    hash::H256,
+    mmr::H256,
 };
 
 /// Hash array for tests

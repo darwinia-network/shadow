@@ -1,5 +1,10 @@
 //! `shadow` command
-use crate::{api, mmr::helper, pool, result::Error, Runner};
+use crate::{
+    api,
+    db::pool,
+    mmr::{helper, Runner},
+    result::Error,
+};
 use structopt::{clap::AppSettings, StructOpt};
 
 #[derive(StructOpt)]
@@ -31,7 +36,7 @@ pub async fn exec() -> Result<(), Error> {
 
     match Opt::from_args() {
         Opt::Run { port, verbose } => {
-            if let Err(_) = std::env::var("RUST_LOG") {
+            if std::env::var("RUST_LOG").is_err() {
                 if verbose {
                     std::env::set_var("RUST_LOG", "info,shadow");
                 } else {

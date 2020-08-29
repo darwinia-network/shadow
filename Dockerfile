@@ -1,25 +1,31 @@
-# Build MMR in a stock rust builder container
-FROM rust:alpine as mmr
+# Build Shadow in a stock rust builder container
+FROM rust:alpine as shadow
 ARG DEBIAN_FRONTEND=noninteractive
 ENV TZ=America/Los_Angeles
 COPY . shadow
-RUN apk add --no-cache sqlite-dev bash musl-dev \
-    && cd shadow \
-    && cargo build --release
 
-# Build Shadow in a stock Go builder container
-FROM golang:1.14-alpine as shadow
-ARG DEBIAN_FRONTEND=noninteractive
-ENV TZ=America/Los_Angeles
-COPY --from=mmr /shadow/target/release/libmmr.a /usr/local/lib/
-COPY . shadow
-RUN apk add --no-cache sqlite-dev sqlite-libs musl-dev gcc bash \
-    && mkdir /outputs \
+# Required dynamic libraries
+#
+# libdarwinia_shadow.so => /usr/local/lib/libdarwinia_shadow.so (0x7fd26af02000)
+# libssl.so.1.1 => /lib/libssl.so.1.1 (0x7fd26ae81000)
+# libcrypto.so.1.1 => /lib/libcrypto.so.1.1 (0x7fd26ac02000)
+# libsqlite3.so.0 => /usr/lib/libsqlite3.so.0 (0x7fd26ab1a000)
+# libc.musl-x86_64.so.1 => /lib/ld64.so.1 (0x7fd26bebb000)
+RUN apk add --no-cache gcc go openssl-dev sqlite-dev\
     && cd shadow \
-    && go build -o /usr/local/bin/shadow -v bin/main.go
+    && cargo build --release -vv \
+    && mkdir /target \
+    && cp target/release/shadow /target/ \
+    && cp /usr/lib/libsqlite3.so.0 /target/libsqlite3.so.0 \
+    && cp /usr/local/lib/libdarwinia_shadow.so /target/libdarwinia_shadow.so
 
-# Pull Geth and Shadow into a third stage deploy alpine container
+# Pull Shadow into a second stage deploy alpine container
 FROM alpine:latest
-COPY --from=shadow /usr/local/bin/shadow /usr/local/bin/shadow
+COPY --from=shadow /target /target
+RUN mv /target/shadow /usr/local/bin/shadow \
+    && mv /target/libsqlite3.so.0 /usr/lib/libsqlite3.so.0 \
+    && mv /target/libdarwinia_shadow.so /usr/local/lib/libdarwinia_shadow.so \
+    && cp /lib/libc.musl-x86_64.so.1 /lib/ld64.so.1 \
+    && rm -rf /target
 EXPOSE 3000
 ENTRYPOINT ["shadow"]

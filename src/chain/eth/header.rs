@@ -31,7 +31,13 @@ impl EthHeaderRPCResp {
         })?;
 
         Ok(client
-            .post(&env::var("ETHEREUM_RPC").unwrap_or(crate::conf::DEFAULT_ETHEREUM_RPC.into()))
+            .post(&env::var("ETHEREUM_RPC").unwrap_or_else(|_| {
+                if env::var("ETHEREUM_ROPSTEN").is_ok() {
+                    crate::conf::DEFAULT_ETHEREUM_ROPSTEN_RPC.into()
+                } else {
+                    crate::conf::DEFAULT_ETHEREUM_RPC.into()
+                }
+            }))
             .json(&map)
             .send()
             .await?
@@ -87,7 +93,7 @@ impl Into<EthHeader> for RawEthHeader {
             gas_used: U256::from_str(&self.gas_used[2..]).unwrap_or_default(),
             gas_limit: U256::from_str(&self.gas_limit[2..]).unwrap_or_default(),
             difficulty: U256::from_str(&self.difficulty[2..]).unwrap_or_default(),
-            seal: seal,
+            seal,
             hash: match self.hash.is_empty() {
                 true => None,
                 false => Some(bytes!(self.hash.as_str(), 32)),

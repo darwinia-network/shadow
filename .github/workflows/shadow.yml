@@ -1,4 +1,4 @@
-name: Rust MMR
+name: shadow
 
 on:
   push:
@@ -23,6 +23,7 @@ jobs:
           else
               sudo apt-get update -y
               sudo apt-get install -y libsqlite3-dev libdbus-1-dev
+              export LD_LIBRARY_PATH=/lib:/usr/lib:/usr/local/lib
           fi
       # Cache MMR Library
       - name: Cache MMR Library
@@ -33,6 +34,8 @@ jobs:
           path: ./target
           key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('./Cargo.lock') }}
       - name: Build
-        run: cargo build --verbose
+        run: cargo build --release -vv
+      - name: Check Binary
+        run: ./target/release/shadow --version
       - name: Run tests
-        run: cargo test --verbose
+        run: cargo test --release -vv

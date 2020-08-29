@@ -21,7 +21,7 @@ macro_rules! hex {
     }};
 }
 
-/// Convert hext to `Vec<u8>` or `[u8; n]`
+/// Convert hex string to `Vec<u8>` or `[u8; n]`
 #[macro_export]
 macro_rules! bytes {
     // Convert hex to Vec<u8>
@@ -46,9 +46,9 @@ macro_rules! bytes {
     }};
 }
 
-/// Serde for big array
+/// Implement serde for big array
 #[macro_export]
-macro_rules! array {
+macro_rules! serde_array {
     ($len:expr) => {
         impl<'de, T> BigArray<'de> for [T; $len]
         where
@@ -110,7 +110,7 @@ macro_rules! array {
 #[macro_export]
 macro_rules! construct_hash_bytes {
     ( $(#[$attr:meta])* $visibility:vis struct $name:ident ( $len:tt ); ) => {
-        array!($len);
+        serde_array!($len);
 
         doc_comment!{
             concat!("The ", stringify!($len), "-bit hash type."),

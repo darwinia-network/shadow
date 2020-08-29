@@ -1,4 +1,4 @@
-use shadow::chain::eth::{EthHeader, EthHeaderRPCResp};
+use darwinia_shadow::chain::eth::{EthHeader, EthHeaderRPCResp};
 
 fn main() {
     let client = reqwest::Client::new();

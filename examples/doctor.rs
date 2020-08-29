@@ -1,9 +1,8 @@
 //! Mock the uncle block
 use cmmr::{leaf_index_to_mmr_size, MMR};
-use shadow::{
-    hash::{MergeHash, H256},
-    pool,
-    store::Store,
+use darwinia_shadow::{
+    db::pool,
+    mmr::{MergeHash, Store, H256},
 };
 
 fn main() {

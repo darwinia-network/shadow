@@ -1,8 +1,7 @@
 use cmmr::{Merge, MMR};
-use shadow::{
-    hash::{MergeHash, H256},
-    helper, pool,
-    store::Store,
+use darwinia_shadow::{
+    db::pool,
+    mmr::{helper, MergeHash, Store, H256},
 };
 use std::{env, fs, path::PathBuf};
 

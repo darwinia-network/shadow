@@ -1,8 +1,25 @@
 [package]
-name = "shadow"
-version = "0.1.0"
+name = "darwinia-shadow"
+version = "0.2.0"
 authors = ["clearloop <udtrokia@gmail.com>"]
 edition = "2018"
+description = "The shadow service for relayers and verify workers to retrieve header data and generate proof."
+repository = "https://github.com/darwinia-network/shadow"
+license = "GPL-3.0-or-later"
+documentation = "https://docs.rs/darwinia-shadow"
+homepage = "https://github.com/darwinia-network/shadow"
+include = [
+  "go.mod",
+  "go.sum",
+  "build.rs",
+  "pkg/**/*",
+  "src/**/*",
+  "Cargo.toml",
+  "./README.md",
+]
+keywords = ["darwinia", "substrate", "ethereum", "service"]
+readme = './README.md'
+links = "darwinia_shadow"
 
 [[bin]]
 name = "shadow"
@@ -38,12 +55,3 @@ features = ["derive"]
 [dependencies.diesel]
 version = "1.4.4"
 features = ["r2d2", "sqlite"]
-
-[dependencies.eth]
-git = "https://github.com/darwinia-network/darwinia-common.git"
-package = "ethereum-primitives"
-optional = true
-
-[features]
-darwinia = [ "eth" ]
-default = []

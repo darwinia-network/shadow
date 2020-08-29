@@ -1,12 +1,12 @@
 mod mock;
 
-use mock::{ha, header, proof, ETHASH_PROOF_CODEC, ETH_HEADER_THING, HEADER, MOCK_HEADER_19};
-use scale::{Decode, Encode};
-use shadow::{
+use darwinia_shadow::{
     bytes,
     chain::eth::{EthHeader, EthashProof, HeaderThing},
     hex,
 };
+use mock::{ha, header, proof, ETHASH_PROOF_CODEC, ETH_HEADER_THING, HEADER, MOCK_HEADER_19};
+use scale::{Decode, Encode};
 
 /// the scale codec of hash is its hex string
 #[test]
@@ -65,33 +65,4 @@ fn decode_mmr_proof() {
 fn eth_hash_proof() {
     let block = <Vec<EthashProof>>::decode(&mut bytes!(ETHASH_PROOF_CODEC).as_ref()).unwrap();
     assert_eq!(block[block.len() - 1], proof());
-}
-
-#[test]
-#[cfg(feature = "darwinia")]
-fn darwinia_eth_header() {
-    use eth::header::EthHeader as DEthHeader;
-
-    let header = header();
-    let encoded = format!("0x{}", hex!(header.encode()));
-
-    assert_eq!(HEADER, encoded);
-    assert_eq!(
-        EthHeader::default().encode(),
-        DEthHeader::default().encode()
-    );
-
-    assert_eq!(
-        header,
-        EthHeader::decode(&mut bytes!(encoded.as_str()).as_ref()).unwrap()
-    );
-
-    assert_eq!(
-        EthHeader::decode(&mut bytes!(encoded.as_str()).as_ref())
-            .unwrap()
-            .encode(),
-        DEthHeader::decode(&mut bytes!(encoded.as_str()).as_ref())
-            .unwrap()
-            .encode()
-    );
 }

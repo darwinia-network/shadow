@@ -1,12 +1,16 @@
 //! MMR Runner
 use crate::{
     chain::eth::EthHeaderRPCResp,
-    hash::{MergeHash, H256},
-    helper,
-    pool::{ConnPool, PooledConn},
+    db::{
+        pool::{ConnPool, PooledConn},
+        schema::mmr_store::dsl::*,
+    },
+    mmr::{
+        hash::{MergeHash, H256},
+        helper,
+        store::Store,
+    },
     result::Error,
-    schema::mmr_store::dsl::*,
-    store::Store,
 };
 use cmmr::MMR;
 use diesel::{dsl::count, prelude::*};
@@ -55,7 +59,7 @@ impl Runner {
 
         loop {
             if let Err(e) = self.push(ptr).await {
-                error!("Push block to mmr_store failed: {:?}", e);
+                trace!("Push block to mmr_store failed: {:?}", e);
                 trace!("MMR service restarting after 10s...");
                 async_std::task::sleep(time::Duration::from_secs(10)).await;
             } else {
@@ -82,18 +86,18 @@ impl Runner {
 
     /// Push new header hash into storage
     pub async fn push(&mut self, pnumber: i64) -> Result<(), Error> {
-        let mut mmr = MMR::<_, MergeHash, _>::new(
-            cmmr::leaf_index_to_mmr_size((pnumber - 1) as u64),
-            &self.store,
-        );
-        if let Err(e) = mmr.push(H256::from(
+        let mmr_size = if pnumber == 0 {
+            0
+        } else {
+            cmmr::leaf_index_to_mmr_size((pnumber - 1) as u64)
+        } as u64;
+        let mut mmr = MMR::<_, MergeHash, _>::new(mmr_size, &self.store);
+        mmr.push(H256::from(
             &EthHeaderRPCResp::get(&self.client, pnumber as u64)
                 .await?
                 .result
                 .hash,
-        )) {
-            return Err(Error::MMR(e));
-        }
+        ))?;
 
         mmr.commit()?;
         Ok(())

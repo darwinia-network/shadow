@@ -15,7 +15,7 @@ pub struct ProposalReq {
     /// MMR members
     pub members: Vec<u64>,
     /// The last leaf of mmr proof
-    pub last_leaf: u64,
+    pub target: u64,
 }
 
 impl ProposalReq {
@@ -45,12 +45,14 @@ impl ProposalReq {
 
     /// Generate mmr proof
     fn mmr_proof(&self, store: &Store, member: u64) -> Vec<String> {
-        let mmr = MMR::<_, MergeHash, _>::new(cmmr::leaf_index_to_mmr_size(self.last_leaf), store);
+        let mmr = MMR::<_, MergeHash, _>::new(cmmr::leaf_index_to_mmr_size(self.target - 1), store);
         match mmr.gen_proof(vec![cmmr::leaf_index_to_pos(member)]) {
             Err(e) => {
                 error!(
                     "Generate proof failed {:?}, last_leaf: {:?}, member: {:?}",
-                    e, self.last_leaf, member
+                    e,
+                    self.target - 1,
+                    member
                 );
                 vec![]
             }

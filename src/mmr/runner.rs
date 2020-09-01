@@ -15,7 +15,7 @@ use crate::{
 use cmmr::MMR;
 use diesel::{dsl::count, prelude::*};
 use reqwest::Client;
-use std::time;
+use std::{env, time};
 
 /// MMR Runner
 #[derive(Clone)]
@@ -63,6 +63,16 @@ impl Runner {
                 trace!("MMR service restarting after 10s...");
                 async_std::task::sleep(time::Duration::from_secs(10)).await;
             } else {
+                if ptr
+                    % env::var("MMR_LOG")
+                        .unwrap_or("10000".to_string())
+                        .parse::<i64>()
+                        .unwrap_or(10000)
+                    == 0
+                {
+                    trace!("Pushed mmr {} into database", ptr);
+                }
+
                 ptr += 1;
             }
         }

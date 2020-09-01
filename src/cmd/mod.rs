@@ -38,7 +38,7 @@ pub async fn exec() -> Result<(), Error> {
         Opt::Run { port, verbose } => {
             if std::env::var("RUST_LOG").is_err() {
                 if verbose {
-                    std::env::set_var("RUST_LOG", "info,shadow");
+                    std::env::set_var("RUST_LOG", "info,darwinia_shadow");
                 } else {
                     std::env::set_var("RUST_LOG", "info");
                 }

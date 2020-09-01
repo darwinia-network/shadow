@@ -20,7 +20,7 @@ pub struct ProposalReq {
 
 impl ProposalReq {
     /// Get `EthHeader`
-    async fn eth_header(client: &Client, block: u64) -> EthHeaderJson {
+    async fn header(client: &Client, block: u64) -> EthHeaderJson {
         EthHeader::get(&client, block)
             .await
             .unwrap_or_default()
@@ -81,7 +81,7 @@ impl ProposalReq {
         let mut phs = vec![];
         for m in self.members.iter() {
             phs.push(ProposalHeader {
-                eth_header: ProposalReq::eth_header(&client, *m).await,
+                header: ProposalReq::header(&client, *m).await,
                 ethash_proof: ProposalReq::ethash_proof(*m),
                 mmr_root: ProposalReq::mmr_root(&store, *m),
                 mmr_proof: ProposalReq::mmr_proof(&self, &store, *m),
@@ -94,7 +94,7 @@ impl ProposalReq {
 /// Proposal Headers
 #[derive(Serialize)]
 pub struct ProposalHeader {
-    eth_header: EthHeaderJson,
+    header: EthHeaderJson,
     ethash_proof: Vec<EthashProofJson>,
     mmr_root: String,
     mmr_proof: Vec<String>,

@@ -12,7 +12,6 @@ use scale::Encode;
 #[derive(Serialize)]
 struct ProofResp {
     eth_header: String,
-    ethash_proof: String,
     mmr_root: String,
 }
 
@@ -38,7 +37,6 @@ pub async fn handle(block: web::Path<String>) -> impl Responder {
             .await
             .unwrap_or_default()
             .encode()),
-        ethash_proof: super::ffi::proof(num),
         mmr_root: format!("0x{}", H256::hex(&mmr.get_root().unwrap_or_default())),
     })
 }

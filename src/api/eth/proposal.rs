@@ -14,7 +14,7 @@ use scale::Decode;
 pub struct ProposalReq {
     /// MMR members
     pub members: Vec<u64>,
-    /// The last leaf of mmr proof
+    /// The target proposal block
     pub target: u64,
 }
 
@@ -38,15 +38,22 @@ impl ProposalReq {
     }
 
     // Get mmr root
-    fn mmr_root(store: &Store, leaf: u64) -> String {
-        let mmr = MMR::<_, MergeHash, _>::new(cmmr::leaf_index_to_mmr_size(leaf), store);
+    fn mmr_root(store: &Store, block: u64) -> String {
+        if block == 0 {
+            return "0x00000000000000000000000000000000".into();
+        }
+        let mmr = MMR::<_, MergeHash, _>::new(cmmr::leaf_index_to_mmr_size(block - 1), store);
         format!("0x{}", H256::hex(&mmr.get_root().unwrap_or_default()))
     }
 
     /// Generate mmr proof
     fn mmr_proof(&self, store: &Store, mut member: u64) -> Vec<String> {
+        if self.target < 1 {
+            return vec![];
+        }
+
         if member == self.target {
-            member = self.target - 1;
+            member -= 1;
         }
 
         let mmr = MMR::<_, MergeHash, _>::new(cmmr::leaf_index_to_mmr_size(self.target - 1), store);
@@ -54,9 +61,7 @@ impl ProposalReq {
             Err(e) => {
                 error!(
                     "Generate proof failed {:?}, target: {:?}, member: {:?}",
-                    e,
-                    self.target - 1,
-                    member
+                    e, self.target, member
                 );
                 vec![]
             }

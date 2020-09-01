@@ -61,7 +61,7 @@ pub struct RawEthHeader {
     mix_hash: String,
     nonce: String,
     number: String,
-    parent_hash: String,
+    pub parent_hash: String,
     receipts_root: String,
     sha3_uncles: String,
     size: String,

@@ -106,7 +106,7 @@ impl Runner {
             &EthHeaderRPCResp::get(&self.client, pnumber as u64)
                 .await?
                 .result
-                .hash,
+                .parent_hash,
         ))?;
 
         mmr.commit()?;

@@ -44,12 +44,16 @@ impl ProposalReq {
     }
 
     /// Generate mmr proof
-    fn mmr_proof(&self, store: &Store, member: u64) -> Vec<String> {
+    fn mmr_proof(&self, store: &Store, mut member: u64) -> Vec<String> {
+        if member == self.target {
+            member = self.target - 1;
+        }
+
         let mmr = MMR::<_, MergeHash, _>::new(cmmr::leaf_index_to_mmr_size(self.target - 1), store);
         match mmr.gen_proof(vec![cmmr::leaf_index_to_pos(member)]) {
             Err(e) => {
                 error!(
-                    "Generate proof failed {:?}, last_leaf: {:?}, member: {:?}",
+                    "Generate proof failed {:?}, target: {:?}, member: {:?}",
                     e,
                     self.target - 1,
                     member

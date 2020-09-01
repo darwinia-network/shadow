@@ -109,7 +109,7 @@ pub struct ProposalHeader {
 /// // POST `/eth/proposal`
 /// eth::proposal(web::Json(eth::ProposalReq{
 ///     members: vec![19],
-///     last_leaf: 19,
+///     target: 19,
 /// }));
 /// ```
 pub async fn handle(req: web::Json<ProposalReq>) -> impl Responder {

@@ -41,6 +41,13 @@ $ cargo install darwinia-shadow
 + Please make sure you have `sqlite3` installed in your machine
 
 
+## Environment
+
+| ENV            | Desc                     | Example                            |
+|----------------|--------------------------|------------------------------------|
+| `ETHEREUM_RPC` | The rpc of ethereum node | ETHEREUM_RPC=http://localhost:8545 |
+| `MMR_LOG`      | The gap of mmr logs      | MMR_LOG=10000                      |
+
 ## Trouble Shooting
 
 Everytime you run `proof` in error, please delete `~/.ethashproof` and `~/.ethash` 

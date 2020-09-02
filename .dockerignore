@@ -1,3 +1,10 @@
-target
-examples
-tests
+**/*.DS_Store
+**/*target
+**/*Cargo.lock
+.idea
+
+/examples
+/tests
+
+/Dockerfile
+/.git

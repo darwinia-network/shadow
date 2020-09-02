@@ -1,7 +1,7 @@
 use crate::{
+    api::ShadowShared,
     bytes,
     chain::eth::{EthHeader, EthHeaderJson, EthashProof, EthashProofJson},
-    db::pool,
     mmr::{MergeHash, Store, H256},
 };
 use actix_web::{web, Responder};
@@ -90,20 +90,12 @@ impl ProposalReq {
     }
 
     /// To headers
-    pub async fn gen(&self) -> ProposalHeader {
-        // TODO: optimzie the `clients` below
-        //
-        // Move them out of this handler
-        let conn = pool::conn(None);
-        let store = Store::with(conn);
-        let client = Client::new();
-
-        // Proposal Header
+    pub async fn gen(&self, shared: web::Data<ShadowShared>) -> ProposalHeader {
         ProposalHeader {
-            header: self.header(&client).await,
+            header: self.header(&shared.client).await,
             ethash_proof: self.ethash_proof(),
-            mmr_root: self.mmr_root(&store),
-            mmr_proof: self.mmr_proof(&store).await,
+            mmr_root: self.mmr_root(&shared.store),
+            mmr_proof: self.mmr_proof(&shared.store).await,
         }
     }
 }
@@ -130,6 +122,6 @@ pub struct ProposalHeader {
 ///     last_leaf: 18
 /// }));
 /// ```
-pub async fn handle(req: web::Json<ProposalReq>) -> impl Responder {
-    web::Json(req.0.gen().await)
+pub async fn handle(req: web::Json<ProposalReq>, share: web::Data<ShadowShared>) -> impl Responder {
+    web::Json(req.0.gen(share).await)
 }

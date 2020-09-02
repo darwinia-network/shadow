@@ -1,7 +1,7 @@
-name: Staging
+name: Production
 on:
   push:
-    branches: ["next", "feature/github-actions-*"]
+    branches: ["next"]
 
 jobs:
   build-and-deploy:
@@ -28,6 +28,6 @@ jobs:
 
       - uses: ./.github/actions/trigger-deployment
         with:
-          deploy_phase: staging
+          deploy_phase: production
           trigger_token: ${{ secrets.ITERING_DEPLOYMENT_TRIGGER_TOKEN }}
           trigger_endpoint: ${{ secrets.ITERING_DEPLOYMENT_TRIGGER_ENDPOINT }}

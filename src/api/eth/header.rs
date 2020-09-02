@@ -19,8 +19,8 @@ struct ProofResp {
 /// use darwinia_shadow::api::eth;
 /// use actix_web::web;
 ///
-/// // GET `/eth/proof/19`
-/// eth::proof(web::Path::from("19".to_string()));
+/// // GET `/eth/header/19`
+/// eth::header(web::Path::from("19".to_string()));
 /// ```
 pub async fn handle(block: web::Path<String>) -> impl Responder {
     let conn = pool::conn(None);

@@ -7,7 +7,7 @@ use actix_web::Responder;
 /// use darwinia_shadow::api::eth;
 /// use actix_web::web;
 ///
-/// // GET `/eth/proof/19`
+/// // GET `/eth/count`
 /// eth::count();
 /// ```
 pub async fn handle() -> impl Responder {

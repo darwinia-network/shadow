@@ -78,6 +78,28 @@ impl Runner {
         }
     }
 
+    /// Gen mmrs for tests
+    pub async fn stops_at(&mut self, count: i64) -> Result<(), Error> {
+        let mut ptr = {
+            let last_leaf = helper::mmr_size_to_last_leaf(self.mmr_count()?);
+            if last_leaf == 0 {
+                0
+            } else {
+                last_leaf + 1
+            }
+        };
+
+        loop {
+            if ptr >= count {
+                break;
+            }
+            self.push(ptr).await?;
+            ptr += 1;
+        }
+
+        Ok(())
+    }
+
     /// Get block hash by number
     pub async fn get_hash(&mut self, block: i64) -> Result<String, Error> {
         Ok(EthHeaderRPCResp::get(&self.client, block as u64)

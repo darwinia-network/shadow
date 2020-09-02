@@ -3,15 +3,18 @@ use darwinia_shadow::{
     api::eth::ProposalReq,
     chain::eth::EthHeader,
     db::pool,
-    mmr::{MergeHash, Store, H256},
+    mmr::{MergeHash, Store, H256, Runner},
 };
 use reqwest::Client;
 
 #[actix_rt::test]
 async fn test_proposal() {
     let conn = pool::conn(None);
-    let store = Store::with(conn);
+    let store = Store::with(conn.clone());
     let client = Client::new();
+
+    // Gen mmrs
+    assert!(Runner::with(conn).stops_at(30).await.is_ok());
 
     // Confirmed block on chain
     let confirmed = ProposalReq {

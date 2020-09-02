@@ -130,7 +130,7 @@ impl EthHeader {
 }
 
 /// Darwinia Eth header Json foramt
-#[derive(Debug, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[derive(Debug, PartialEq, Eq, Serialize, Deserialize, Default, Encode)]
 pub struct EthHeaderJson {
     parent_hash: String,
     timestamp: u64,

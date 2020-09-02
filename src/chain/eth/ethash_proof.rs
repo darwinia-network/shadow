@@ -31,7 +31,7 @@ impl EthashProof {
 }
 
 /// Json string format of `EthashProof`
-#[derive(Serialize)]
+#[derive(Serialize, Encode)]
 pub struct EthashProofJson {
     dag_nodes: Vec<String>,
     proof: Vec<String>,

@@ -11,6 +11,7 @@ pub async fn serve(port: u16) -> std::io::Result<()> {
             .wrap(middleware::Logger::default())
             .service(web::resource("/eth/count").route(web::get().to(eth::count)))
             .service(web::resource("/eth/proposal").to(eth::proposal))
+            .service(web::resource("/eth/proposal/codec").to(eth::proposal_codec))
             .service(web::resource("/eth/receipt/{tx}").to(eth::receipt))
             .service(web::resource("/eth/proof/{block}").to(eth::proof))
     })

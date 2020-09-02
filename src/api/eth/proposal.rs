@@ -2,15 +2,16 @@ use crate::{
     bytes,
     chain::eth::{EthHeader, EthHeaderJson, EthashProof, EthashProofJson},
     db::pool,
+    hex,
     mmr::{MergeHash, Store, H256},
 };
 use actix_web::{web, Responder};
 use cmmr::MMR;
 use reqwest::Client;
-use scale::Decode;
+use scale::{Decode, Encode};
 
 /// Proposal post req
-#[derive(Deserialize)]
+#[derive(Deserialize, Encode)]
 pub struct ProposalReq {
     /// MMR members
     pub members: Vec<u64>,
@@ -97,7 +98,7 @@ impl ProposalReq {
 }
 
 /// Proposal Headers
-#[derive(Serialize)]
+#[derive(Serialize, Encode)]
 pub struct ProposalHeader {
     header: EthHeaderJson,
     ethash_proof: Vec<EthashProofJson>,
@@ -119,4 +120,27 @@ pub struct ProposalHeader {
 /// ```
 pub async fn handle(req: web::Json<ProposalReq>) -> impl Responder {
     web::Json(req.0.headers().await)
+}
+
+/// Proposal Handler
+///
+/// ```
+/// use darwinia_shadow::api::eth;
+/// use actix_web::web;
+///
+/// // POST `/eth/proposal`
+/// eth::proposal(web::Json(eth::ProposalReq{
+///     members: vec![19],
+///     target: 19,
+/// }));
+/// ```
+pub async fn codec(req: web::Json<ProposalReq>) -> impl Responder {
+    web::Json(
+        req.0
+            .headers()
+            .await
+            .iter()
+            .map(|e| hex!(e.encode()))
+            .collect::<Vec<String>>(),
+    )
 }

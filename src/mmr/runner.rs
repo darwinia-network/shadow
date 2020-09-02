@@ -65,7 +65,7 @@ impl Runner {
             } else {
                 if ptr
                     % env::var("MMR_LOG")
-                        .unwrap_or("10000".to_string())
+                        .unwrap_or_else(|_| "10000".to_string())
                         .parse::<i64>()
                         .unwrap_or(10000)
                     == 0

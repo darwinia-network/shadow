@@ -16,6 +16,8 @@ pub struct ProposalReq {
     pub leaves: Vec<u64>,
     /// The target proposal block
     pub target: u64,
+    /// The last leaf of mmr
+    pub last_leaf: u64,
 }
 
 impl ProposalReq {
@@ -37,9 +39,9 @@ impl ProposalReq {
             .collect()
     }
 
-    // Get mmr root
-    fn mmr_root(&self, store: &Store) -> String {
-        if self.target == 0 {
+    /// Get mmr root
+    pub fn mmr_root(&self, store: &Store) -> String {
+        if self.target < 1 {
             "0x0000000000000000000000000000000000000000000000000000000000000000".into()
         } else {
             format!(
@@ -57,18 +59,18 @@ impl ProposalReq {
     }
 
     /// Generate mmr proof
-    fn mmr_proof(&self, store: &Store) -> Vec<String> {
-        let last_leaf = *self.leaves.iter().max().unwrap_or(&self.target);
-        if last_leaf < 1 {
+    pub async fn mmr_proof(&self, store: &Store) -> Vec<String> {
+        if self.last_leaf < 1 || self.leaves.is_empty() {
             return vec![];
         }
 
-        match MMR::<_, MergeHash, _>::new(cmmr::leaf_index_to_mmr_size(last_leaf), store).gen_proof(
-            self.leaves
-                .iter()
-                .map(|l| cmmr::leaf_index_to_pos(*l))
-                .collect(),
-        ) {
+        match MMR::<_, MergeHash, _>::new(cmmr::leaf_index_to_mmr_size(self.last_leaf), store)
+            .gen_proof(
+                self.leaves
+                    .iter()
+                    .map(|l| cmmr::leaf_index_to_pos(*l))
+                    .collect(),
+            ) {
             Err(e) => {
                 error!(
                     "Generate proof failed {:?}, target: {:?}, leaves: {:?}",
@@ -76,11 +78,14 @@ impl ProposalReq {
                 );
                 vec![]
             }
-            Ok(proof) => proof
-                .proof_items()
-                .iter()
-                .map(|item| format!("0x{}", H256::hex(item)))
-                .collect::<Vec<String>>(),
+            Ok(proof) => {
+                let res = proof
+                    .proof_items()
+                    .iter()
+                    .map(|item| format!("0x{}", H256::hex(item)))
+                    .collect::<Vec<String>>();
+                res
+            }
         }
     }
 
@@ -98,7 +103,7 @@ impl ProposalReq {
             header: self.header(&client).await,
             ethash_proof: self.ethash_proof(),
             mmr_root: self.mmr_root(&store),
-            mmr_proof: self.mmr_proof(&store),
+            mmr_proof: self.mmr_proof(&store).await,
         }
     }
 }

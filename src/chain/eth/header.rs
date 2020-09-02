@@ -119,7 +119,8 @@ pub struct EthHeader {
     gas_limit: U256,
     difficulty: U256,
     seal: Vec<Vec<u8>>,
-    hash: Option<[u8; 32]>,
+    /// Ethereum header hash
+    pub hash: Option<[u8; 32]>,
 }
 
 impl EthHeader {

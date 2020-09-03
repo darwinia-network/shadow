@@ -22,20 +22,17 @@ pub struct Runner {
     client: Client,
 }
 
-impl Runner {
-    /// Start with shared data
-    ///
-    /// TODO:
-    ///
-    /// Merge `Runner` and `ShadowShared`
-    pub fn with(shared: ShadowShared) -> Runner {
-        Runner {
-            store: shared.store,
-            db: shared.db,
-            client: shared.client,
+impl From<ShadowShared> for Runner {
+    fn from(s: ShadowShared) -> Self {
+        Self {
+            store: s.store,
+            db: s.db,
+            client: s.client,
         }
     }
+}
 
+impl Runner {
     /// Start the runner
     pub async fn start(&mut self) -> Result<(), Error> {
         let mut ptr = {
@@ -51,7 +48,7 @@ impl Runner {
             if let Err(e) = self.push(ptr).await {
                 trace!("Push block to mmr_store failed: {:?}", e);
                 trace!("MMR service restarting after 10s...");
-                async_std::task::sleep(time::Duration::from_secs(10)).await;
+                actix_rt::time::delay_for(time::Duration::from_secs(10)).await;
             } else {
                 if ptr
                     % env::var("MMR_LOG")
@@ -66,6 +63,38 @@ impl Runner {
                 ptr += 1;
             }
         }
+    }
+
+    /// Get block hash by number
+    pub async fn get_hash(&mut self, block: i64) -> Result<String, Error> {
+        Ok(EthHeaderRPCResp::get(&self.client, block as u64)
+            .await?
+            .result
+            .hash)
+    }
+
+    /// Push new header hash into storage
+    pub async fn push(&mut self, number: i64) -> Result<(), Error> {
+        let mmr_size = if number == 0 {
+            0
+        } else {
+            cmmr::leaf_index_to_mmr_size((number - 1) as u64)
+        } as u64;
+        let mut mmr = MMR::<_, MergeHash, _>::new(mmr_size, &self.store);
+        mmr.push(H256::from(
+            &EthHeaderRPCResp::get(&self.client, number as u64)
+                .await?
+                .result
+                .hash,
+        ))?;
+
+        mmr.commit()?;
+        Ok(())
+    }
+
+    /// Get the count of mmr store
+    pub fn mmr_count(&self) -> usize {
+        self.db.iterator(IteratorMode::Start).count()
     }
 
     /// Gen mmrs for tests
@@ -90,42 +119,10 @@ impl Runner {
         Ok(())
     }
 
-    /// Get block hash by number
-    pub async fn get_hash(&mut self, block: i64) -> Result<String, Error> {
-        Ok(EthHeaderRPCResp::get(&self.client, block as u64)
-            .await?
-            .result
-            .hash)
-    }
-
     /// Trim mmr
     pub fn trim(&mut self, leaf: u64) -> Result<(), Error> {
         Ok(self
-            .db
-            .delete_file_in_range(leaf.to_le_bytes(), self.mmr_count().to_le_bytes())?)
-    }
-
-    /// Push new header hash into storage
-    pub async fn push(&mut self, pnumber: i64) -> Result<(), Error> {
-        let mmr_size = if pnumber == 0 {
-            0
-        } else {
-            cmmr::leaf_index_to_mmr_size((pnumber - 1) as u64)
-        } as u64;
-        let mut mmr = MMR::<_, MergeHash, _>::new(mmr_size, &self.store);
-        mmr.push(H256::from(
-            &EthHeaderRPCResp::get(&self.client, pnumber as u64)
-                .await?
-                .result
-                .hash,
-        ))?;
-
-        mmr.commit()?;
-        Ok(())
-    }
-
-    /// Get the count of mmr store
-    pub fn mmr_count(&self) -> usize {
-        self.db.iterator(IteratorMode::Start).count()
+           .db
+           .delete_file_in_range(leaf.to_le_bytes(), self.mmr_count().to_le_bytes())?)
     }
 }

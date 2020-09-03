@@ -57,8 +57,6 @@
 #![allow(clippy::too_many_arguments)]
 
 #[macro_use]
-extern crate diesel;
-#[macro_use]
 extern crate log;
 #[macro_use]
 extern crate serde;
@@ -70,7 +68,6 @@ mod shared;
 pub mod api;
 pub mod chain;
 pub mod cmd;
-pub mod db;
 pub mod mmr;
 
-use shared::ShadowShared;
+pub use shared::ShadowShared;

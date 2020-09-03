@@ -31,8 +31,8 @@ enum Opt {
 
 /// Exec `shadow` binary
 pub async fn exec() -> Result<(), Error> {
-    let shared = ShadowShared::new();
-    let mut runner = Runner::with(shared.clone());
+    let shared = ShadowShared::new(None);
+    let mut runner = Runner::from(shared.clone());
 
     match Opt::from_args() {
         Opt::Run { port, verbose } => {
@@ -44,10 +44,9 @@ pub async fn exec() -> Result<(), Error> {
                 }
             }
             env_logger::init();
-            runner.start().await?;
-            // let (mr, ar) = futures::join!(runner.start(), api::serve(port, shared));
-            // mr?;
-            // ar?;
+            let (mr, ar) = futures::join!(runner.start(), api::serve(port, shared));
+            mr?;
+            ar?;
         }
         Opt::Count => {
             println!(

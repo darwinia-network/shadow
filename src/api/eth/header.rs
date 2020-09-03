@@ -15,11 +15,11 @@ struct ProofResp {
 /// Proof target header
 ///
 /// ```
-/// use darwinia_shadow::api::eth;
 /// use actix_web::web;
+/// use darwinia_shadow::{api::eth, ShadowShared};
 ///
 /// // GET `/eth/header/19`
-/// eth::header(web::Path::from("19".to_string()));
+/// eth::header(web::Path::from("19".to_string()), web::Data::new(ShadowShared::new(None)));
 /// ```
 pub async fn handle(block: web::Path<String>, shared: web::Data<ShadowShared>) -> impl Responder {
     let num: u64 = block.to_string().parse().unwrap_or(0);

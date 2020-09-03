@@ -5,11 +5,11 @@ use rocksdb::IteratorMode;
 /// Count the mmr of ethereum headers
 ///
 /// ```
-/// use darwinia_shadow::api::eth;
 /// use actix_web::web;
+/// use darwinia_shadow::{api::eth, ShadowShared};
 ///
 /// // GET `/eth/count`
-/// eth::count();
+/// eth::count(web::Data::new(ShadowShared::new(None)));
 /// ```
 pub async fn handle(shared: web::Data<ShadowShared>) -> impl Responder {
     format!(

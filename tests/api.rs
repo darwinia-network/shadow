@@ -2,19 +2,17 @@ use cmmr::MerkleProof;
 use darwinia_shadow::{
     api::eth::ProposalReq,
     chain::eth::EthHeader,
-    db::pool,
-    mmr::{MergeHash, Store, H256, Runner},
+    mmr::{MergeHash, Runner, H256},
+    ShadowShared,
 };
-use reqwest::Client;
 
 #[actix_rt::test]
 async fn test_proposal() {
-    let conn = pool::conn(None);
-    let store = Store::with(conn.clone());
-    let client = Client::new();
+    let shared = ShadowShared::new(None);
+    let mut runner = Runner::from(shared.clone());
 
     // Gen mmrs
-    assert!(Runner::with(conn).stops_at(30).await.is_ok());
+    assert!(runner.stops_at(30).await.is_ok());
 
     // Confirmed block on chain
     let confirmed = ProposalReq {
@@ -23,7 +21,7 @@ async fn test_proposal() {
         last_leaf: 0,
     };
 
-    // New relay call
+    // New relay call - Round 0
     let req = ProposalReq {
         leaves: vec![confirmed.target],
         target: 10,
@@ -33,7 +31,7 @@ async fn test_proposal() {
     // Verify MMR
     let p = MerkleProof::<[u8; 32], MergeHash>::new(
         cmmr::leaf_index_to_mmr_size(req.last_leaf),
-        req.mmr_proof(&store)
+        req.mmr_proof(&shared.store)
             .await
             .into_iter()
             .map(|h| H256::from(&h))
@@ -45,12 +43,23 @@ async fn test_proposal() {
     for l in &req.leaves {
         leaves.push((
             cmmr::leaf_index_to_pos(*l),
-            EthHeader::get(&client, *l).await.unwrap().hash.unwrap(),
+            EthHeader::get(&shared.client, *l)
+                .await
+                .unwrap()
+                .hash
+                .unwrap(),
         ));
     }
 
     // Should pass verification
     assert!(p
-        .verify(H256::from(&req.mmr_root(&store)), leaves)
+        .verify(H256::from(&req.mmr_root(&shared.store)), leaves)
         .unwrap_or(false));
+
+    // New Round 1
+    let req_r1 = ProposalReq {
+        leaves: vec![confirmed.target],
+        target: 9,
+        last_leaf: 9,
+    };
 }

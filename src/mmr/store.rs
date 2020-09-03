@@ -36,10 +36,11 @@ where
             return Err(Error::InconsistentStore);
         }
 
+        // Insert into database
         for (i, elem) in elems.into_iter().enumerate() {
-            if let Err(e) = self.db.put(pos.to_le_bytes(), elem) {
+            if let Err(e) = self.db.put((pos as usize + i).to_le_bytes(), elem) {
                 return Err(Error::StoreError(format!(
-                    "Insert mmr of pos {} into sqlite3 failed, {:?}",
+                    "Insert mmr of pos {} into database failed, {:?}",
                     pos as i64 + i as i64,
                     e,
                 )));

@@ -64,6 +64,8 @@ impl ProposalReq {
             return vec![];
         }
 
+        println!("leaves: {:?}", self.leaves);
+        println!("last leaf: {:?}", self.last_leaf);
         match MMR::<_, MergeHash, _>::new(cmmr::leaf_index_to_mmr_size(self.last_leaf), store)
             .gen_proof(
                 self.leaves
@@ -112,15 +114,15 @@ pub struct ProposalHeader {
 /// Proposal Handler
 ///
 /// ```
-/// use darwinia_shadow::api::eth;
 /// use actix_web::web;
+/// use darwinia_shadow::{api::eth, ShadowShared};
 ///
 /// // POST `/eth/proposal`
 /// eth::proposal(web::Json(eth::ProposalReq{
 ///     leaves: vec![10],
 ///     target: 19,
 ///     last_leaf: 18
-/// }));
+/// }), web::Data::new(ShadowShared::new(None)));
 /// ```
 pub async fn handle(req: web::Json<ProposalReq>, share: web::Data<ShadowShared>) -> impl Responder {
     web::Json(req.0.gen(share).await)

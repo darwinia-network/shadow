@@ -1,6 +1,5 @@
 //! MMR Errors
 use cmmr::Error as MMRError;
-use diesel::result::Error as DieselError;
 use reqwest::Error as ReqwestError;
 use rocksdb::Error as RocksdbError;
 use serde_json::Error as SerdeJSONError;
@@ -9,8 +8,6 @@ use std::io::Error as IoError;
 /// MMR Errors
 #[derive(Debug)]
 pub enum Error {
-    /// Diesel Error
-    Diesel(DieselError),
     /// Io Error
     Io(IoError),
     /// MMR Error
@@ -34,12 +31,6 @@ impl From<MMRError> for Error {
 impl From<IoError> for Error {
     fn from(e: IoError) -> Error {
         Error::Io(e)
-    }
-}
-
-impl From<DieselError> for Error {
-    fn from(e: DieselError) -> Error {
-        Error::Diesel(e)
     }
 }
 

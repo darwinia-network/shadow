@@ -1,7 +1,7 @@
 use crate::mmr::Store;
 use reqwest::Client;
 use rocksdb::DB;
-use std::sync::Arc;
+use std::{path::PathBuf, sync::Arc};
 
 /// Constants
 const DEFAULT_RELATIVE_MMR_DB: &str = ".darwinia/cache/mmr";
@@ -19,8 +19,8 @@ pub struct ShadowShared {
 
 impl ShadowShared {
     /// New shared data
-    pub fn new() -> ShadowShared {
-        let path = dirs::home_dir().unwrap().join(DEFAULT_RELATIVE_MMR_DB);
+    pub fn new(p: Option<PathBuf>) -> ShadowShared {
+        let path = p.unwrap_or_else(|| dirs::home_dir().unwrap().join(DEFAULT_RELATIVE_MMR_DB));
         let op_dir = path.parent();
         if op_dir.is_none() {
             panic!("Wrong db path: {:?}", &path);
@@ -39,7 +39,7 @@ impl ShadowShared {
             panic!("Could not open dir {:?}", &path);
         }
 
-        let db = Arc::new(DB::open_default(path).unwrap());
+        let db = Arc::new(res.unwrap());
         ShadowShared {
             db: db.clone(),
             store: Store::with(db),

@@ -2,15 +2,17 @@ use actix_web::{web, Responder};
 
 #[derive(Serialize)]
 struct ReceiptResp {
+    index: String,
     proof: String,
-    hash: String,
+    header_hash: String,
 }
 
-impl From<(String, String)> for ReceiptResp {
-    fn from(t: (String, String)) -> ReceiptResp {
+impl From<(String, String, String)> for ReceiptResp {
+    fn from(t: (String, String, String)) -> ReceiptResp {
         ReceiptResp {
-            proof: t.0,
-            hash: t.1,
+            index: t.0,
+            proof: t.1,
+            header_hash: t.2,
         }
     }
 }

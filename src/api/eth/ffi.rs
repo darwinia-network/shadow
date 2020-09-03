@@ -22,8 +22,9 @@ impl From<String> for GoString {
 
 #[repr(C)]
 struct GoTuple {
+    index: *const c_char,
     proof: *const c_char,
-    hash: *const c_char,
+    header_hash: *const c_char,
 }
 
 #[link(name = "darwinia_shadow")]
@@ -42,7 +43,7 @@ pub fn proof(block: u64) -> String {
 }
 
 /// Get receipt by tx hash
-pub fn receipt(tx: String) -> (String, String) {
+pub fn receipt(tx: String) -> (String, String, String) {
     unsafe {
         let c_tx = CString::new(tx).expect("CString::new failed");
         let receipt = Receipt(GoString {
@@ -51,8 +52,11 @@ pub fn receipt(tx: String) -> (String, String) {
         });
 
         (
+            CStr::from_ptr(receipt.index).to_string_lossy().to_string(),
             CStr::from_ptr(receipt.proof).to_string_lossy().to_string(),
-            CStr::from_ptr(receipt.hash).to_string_lossy().to_string(),
+            CStr::from_ptr(receipt.header_hash)
+                .to_string_lossy()
+                .to_string(),
         )
     }
 }

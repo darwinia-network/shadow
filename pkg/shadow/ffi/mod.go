@@ -30,14 +30,14 @@ func Proof(number uint64) *C.char {
 }
 
 //export Receipt
-func Receipt(tx string) (*C.char, *C.char) {
+func Receipt(tx string) (*C.char, *C.char, *C.char) {
 	tx = "0x" + tx[2:]
-	proof, hash, err := eth.GetReceipt(tx)
+	proof, _, err := eth.GetReceipt(tx)
 	if err != nil {
-		return C.CString(""), C.CString("")
+		return C.CString(""), C.CString(""), C.CString("")
 	}
 
-	return C.CString(proof.Proof), C.CString(hash)
+	return C.CString(proof.Index), C.CString(proof.Proof), C.CString(proof.HeaderHash)
 }
 
 func main() {}

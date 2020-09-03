@@ -65,9 +65,12 @@ extern crate serde;
 
 mod conf;
 mod result;
+mod shared;
 
 pub mod api;
 pub mod chain;
 pub mod cmd;
 pub mod db;
 pub mod mmr;
+
+use shared::ShadowShared;

@@ -1,55 +1,45 @@
 //! MMR Runner
 use crate::{
     chain::eth::EthHeaderRPCResp,
-    db::{
-        pool::{ConnPool, PooledConn},
-        schema::mmr_store::dsl::*,
-    },
     mmr::{
         hash::{MergeHash, H256},
         helper,
         store::Store,
     },
     result::Error,
+    ShadowShared,
 };
 use cmmr::MMR;
-use diesel::{dsl::count, prelude::*};
 use reqwest::Client;
-use std::{env, time};
+use rocksdb::{IteratorMode, DB};
+use std::{env, sync::Arc, time};
 
 /// MMR Runner
 #[derive(Clone)]
 pub struct Runner {
     store: Store,
-    pool: ConnPool,
+    db: Arc<DB>,
     client: Client,
 }
 
 impl Runner {
-    /// Get Pooled connection
-    pub fn conn(&self) -> Result<PooledConn, Error> {
-        let cfp = self.pool.get();
-        if cfp.is_err() {
-            return Err(Error::Custom("Connect to database failed".into()));
-        }
-
-        Ok(cfp.unwrap())
-    }
-
-    /// Start with sqlite3 conn
-    pub fn with(pool: ConnPool) -> Runner {
-        let store = Store::with(pool.clone());
+    /// Start with shared data
+    ///
+    /// TODO:
+    ///
+    /// Merge `Runner` and `ShadowShared`
+    pub fn with(shared: ShadowShared) -> Runner {
         Runner {
-            store,
-            pool,
-            client: Client::new(),
+            store: shared.store,
+            db: shared.db,
+            client: shared.client,
         }
     }
 
     /// Start the runner
     pub async fn start(&mut self) -> Result<(), Error> {
         let mut ptr = {
-            let last_leaf = helper::mmr_size_to_last_leaf(self.mmr_count()?);
+            let last_leaf = helper::mmr_size_to_last_leaf(self.mmr_count() as i64);
             if last_leaf == 0 {
                 0
             } else {
@@ -81,7 +71,7 @@ impl Runner {
     /// Gen mmrs for tests
     pub async fn stops_at(&mut self, count: i64) -> Result<(), Error> {
         let mut ptr = {
-            let last_leaf = helper::mmr_size_to_last_leaf(self.mmr_count()?);
+            let last_leaf = helper::mmr_size_to_last_leaf(self.mmr_count() as i64);
             if last_leaf == 0 {
                 0
             } else {
@@ -110,10 +100,9 @@ impl Runner {
 
     /// Trim mmr
     pub fn trim(&mut self, leaf: u64) -> Result<(), Error> {
-        let mpos = cmmr::leaf_index_to_pos(leaf);
-        let conn = self.conn()?;
-        diesel::delete(mmr_store.filter(pos.ge(mpos as i64))).execute(&conn)?;
-        Ok(())
+        Ok(self
+            .db
+            .delete_file_in_range(leaf.to_le_bytes(), self.mmr_count().to_le_bytes())?)
     }
 
     /// Push new header hash into storage
@@ -136,13 +125,7 @@ impl Runner {
     }
 
     /// Get the count of mmr store
-    pub fn mmr_count(&self) -> Result<i64, Error> {
-        let conn = self.conn()?;
-        let res = mmr_store.select(count(elem)).first::<i64>(&conn);
-        if let Err(e) = res {
-            Err(Error::Diesel(e))
-        } else {
-            Ok(res?)
-        }
+    pub fn mmr_count(&self) -> usize {
+        self.db.iterator(IteratorMode::Start).count()
     }
 }

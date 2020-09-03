@@ -2,6 +2,7 @@
 use cmmr::Error as MMRError;
 use diesel::result::Error as DieselError;
 use reqwest::Error as ReqwestError;
+use rocksdb::Error as RocksdbError;
 use serde_json::Error as SerdeJSONError;
 use std::io::Error as IoError;
 
@@ -18,6 +19,8 @@ pub enum Error {
     Reqwest(ReqwestError),
     /// Reqwest Error
     SerdeJSON(SerdeJSONError),
+    /// Reqwest Error
+    RocksdbError(RocksdbError),
     /// Custom
     Custom(String),
 }
@@ -49,5 +52,11 @@ impl From<ReqwestError> for Error {
 impl From<SerdeJSONError> for Error {
     fn from(e: SerdeJSONError) -> Error {
         Error::SerdeJSON(e)
+    }
+}
+
+impl From<RocksdbError> for Error {
+    fn from(e: RocksdbError) -> Error {
+        Error::RocksdbError(e)
     }
 }

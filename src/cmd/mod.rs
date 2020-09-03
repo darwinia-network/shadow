@@ -1,9 +1,9 @@
 //! `shadow` command
 use crate::{
     api,
-    db::pool,
     mmr::{helper, Runner},
     result::Error,
+    ShadowShared,
 };
 use structopt::{clap::AppSettings, StructOpt};
 
@@ -31,8 +31,8 @@ enum Opt {
 
 /// Exec `shadow` binary
 pub async fn exec() -> Result<(), Error> {
-    let conn = pool::conn(None);
-    let mut runner = Runner::with(conn);
+    let shared = ShadowShared::new();
+    let mut runner = Runner::with(shared.clone());
 
     match Opt::from_args() {
         Opt::Run { port, verbose } => {
@@ -44,14 +44,15 @@ pub async fn exec() -> Result<(), Error> {
                 }
             }
             env_logger::init();
-            let (mr, ar) = futures::join!(runner.start(), api::serve(port));
-            mr?;
-            ar?;
+            runner.start().await?;
+            // let (mr, ar) = futures::join!(runner.start(), api::serve(port, shared));
+            // mr?;
+            // ar?;
         }
         Opt::Count => {
             println!(
                 "Current best block: {}",
-                helper::mmr_size_to_last_leaf(runner.mmr_count()?)
+                helper::mmr_size_to_last_leaf(runner.mmr_count() as i64)
             );
         }
         Opt::Trim { leaf } => {
@@ -59,7 +60,7 @@ pub async fn exec() -> Result<(), Error> {
             println!("Trimed leaves greater and equal than {}", leaf);
             println!(
                 "Current best block: {}",
-                helper::mmr_size_to_last_leaf(runner.mmr_count()?)
+                helper::mmr_size_to_last_leaf(runner.mmr_count() as i64)
             );
         }
     };

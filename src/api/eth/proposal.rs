@@ -64,8 +64,6 @@ impl ProposalReq {
             return vec![];
         }
 
-        println!("leaves: {:?}", self.leaves);
-        println!("last leaf: {:?}", self.last_leaf);
         match MMR::<_, MergeHash, _>::new(cmmr::leaf_index_to_mmr_size(self.last_leaf), store)
             .gen_proof(
                 self.leaves

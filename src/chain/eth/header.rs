@@ -61,7 +61,7 @@ pub struct RawEthHeader {
     mix_hash: String,
     nonce: String,
     number: String,
-    parent_hash: String,
+    pub parent_hash: String,
     receipts_root: String,
     sha3_uncles: String,
     size: String,
@@ -119,7 +119,8 @@ pub struct EthHeader {
     gas_limit: U256,
     difficulty: U256,
     seal: Vec<Vec<u8>>,
-    hash: Option<[u8; 32]>,
+    /// Ethereum header hash
+    pub hash: Option<[u8; 32]>,
 }
 
 impl EthHeader {
@@ -130,7 +131,7 @@ impl EthHeader {
 }
 
 /// Darwinia Eth header Json foramt
-#[derive(Debug, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[derive(Debug, PartialEq, Eq, Serialize, Deserialize, Default, Encode)]
 pub struct EthHeaderJson {
     parent_hash: String,
     timestamp: u64,

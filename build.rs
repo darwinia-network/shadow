@@ -3,7 +3,6 @@ use std::{env, process::Command};
 fn main() {
     // Pre-check
     println!("cargo:rerun-if-changed=build.rs");
-    println!("cargo:rerun-if-changed=path/to/Cargo.lock");
 
     // Declare build args
     let mut dynamic = true;

@@ -82,16 +82,26 @@ fn test_mmr_proof() {
             .gen_proof((0..10).map(|e| pos[e]).collect())
             .expect("gen proof");
 
-        let result = proof
+        (0..10).for_each(|e| {
+            assert!(
+                (proof
+                    .verify(
+                        root,
+                        vec![(pos[e], <[u8; 32] as H256>::from(HEADERS_N_ROOTS[e].0))]
+                    )
+                    .is_err())
+            );
+        });
+
+        assert!(proof
             .verify(
                 root,
                 (0..10)
                     .map(|e| (pos[e], <[u8; 32] as H256>::from(HEADERS_N_ROOTS[e].0)))
                     .collect(),
             )
-            .unwrap();
+            .is_ok());
 
-        assert!(result);
         assert!(fs::remove_file(&db).is_ok());
     });
 }

@@ -7,29 +7,31 @@ use crate::{
 use actix_web::{web, Responder};
 use cmmr::MMR;
 use reqwest::Client;
-use scale::Decode;
+use scale::{Decode, Encode};
 
 /// Proposal post req
-#[derive(Deserialize)]
+#[derive(Deserialize, Encode)]
 pub struct ProposalReq {
-    /// MMR members
-    pub members: Vec<u64>,
-    /// The last leaf of mmr proof
+    /// MMR leaves
+    pub leaves: Vec<u64>,
+    /// The target proposal block
+    pub target: u64,
+    /// The last leaf of mmr
     pub last_leaf: u64,
 }
 
 impl ProposalReq {
     /// Get `EthHeader`
-    async fn eth_header(client: &Client, block: u64) -> EthHeaderJson {
-        EthHeader::get(&client, block)
+    async fn header(&self, client: &Client) -> EthHeaderJson {
+        EthHeader::get(&client, self.target)
             .await
             .unwrap_or_default()
             .into()
     }
 
     /// Get `EtHashProof`
-    fn ethash_proof(block: u64) -> Vec<EthashProofJson> {
-        let proof = super::ffi::proof(block);
+    fn ethash_proof(&self) -> Vec<EthashProofJson> {
+        let proof = super::ffi::proof(self.target);
         <Vec<EthashProof>>::decode(&mut bytes!(proof.as_str()).as_ref())
             .unwrap_or_default()
             .iter()
@@ -37,33 +39,58 @@ impl ProposalReq {
             .collect()
     }
 
-    // Get mmr root
-    fn mmr_root(store: &Store, leaf: u64) -> String {
-        let mmr = MMR::<_, MergeHash, _>::new(cmmr::leaf_index_to_mmr_size(leaf), store);
-        format!("0x{}", H256::hex(&mmr.get_root().unwrap_or_default()))
+    /// Get mmr root
+    pub fn mmr_root(&self, store: &Store) -> String {
+        if self.target < 1 {
+            "0x0000000000000000000000000000000000000000000000000000000000000000".into()
+        } else {
+            format!(
+                "0x{}",
+                H256::hex(
+                    &MMR::<_, MergeHash, _>::new(
+                        cmmr::leaf_index_to_mmr_size(self.target - 1),
+                        store
+                    )
+                    .get_root()
+                    .unwrap_or_default()
+                )
+            )
+        }
     }
 
     /// Generate mmr proof
-    fn mmr_proof(&self, store: &Store, member: u64) -> Vec<String> {
-        let mmr = MMR::<_, MergeHash, _>::new(cmmr::leaf_index_to_mmr_size(self.last_leaf), store);
-        match mmr.gen_proof(vec![cmmr::leaf_index_to_pos(member)]) {
+    pub async fn mmr_proof(&self, store: &Store) -> Vec<String> {
+        if self.last_leaf < 1 || self.leaves.is_empty() {
+            return vec![];
+        }
+
+        match MMR::<_, MergeHash, _>::new(cmmr::leaf_index_to_mmr_size(self.last_leaf), store)
+            .gen_proof(
+                self.leaves
+                    .iter()
+                    .map(|l| cmmr::leaf_index_to_pos(*l))
+                    .collect(),
+            ) {
             Err(e) => {
                 error!(
-                    "Generate proof failed {:?}, last_leaf: {:?}, member: {:?}",
-                    e, self.last_leaf, member
+                    "Generate proof failed {:?}, target: {:?}, leaves: {:?}",
+                    e, self.target, self.leaves
                 );
                 vec![]
             }
-            Ok(proof) => proof
-                .proof_items()
-                .iter()
-                .map(|item| format!("0x{}", H256::hex(item)))
-                .collect::<Vec<String>>(),
+            Ok(proof) => {
+                let res = proof
+                    .proof_items()
+                    .iter()
+                    .map(|item| format!("0x{}", H256::hex(item)))
+                    .collect::<Vec<String>>();
+                res
+            }
         }
     }
 
     /// To headers
-    pub async fn headers(&self) -> Vec<ProposalHeader> {
+    pub async fn gen(&self) -> ProposalHeader {
         // TODO: optimzie the `clients` below
         //
         // Move them out of this handler
@@ -71,24 +98,20 @@ impl ProposalReq {
         let store = Store::with(conn);
         let client = Client::new();
 
-        // Proposal Headers
-        let mut phs = vec![];
-        for m in self.members.iter() {
-            phs.push(ProposalHeader {
-                eth_header: ProposalReq::eth_header(&client, *m).await,
-                ethash_proof: ProposalReq::ethash_proof(*m),
-                mmr_root: ProposalReq::mmr_root(&store, *m),
-                mmr_proof: ProposalReq::mmr_proof(&self, &store, *m),
-            });
+        // Proposal Header
+        ProposalHeader {
+            header: self.header(&client).await,
+            ethash_proof: self.ethash_proof(),
+            mmr_root: self.mmr_root(&store),
+            mmr_proof: self.mmr_proof(&store).await,
         }
-        phs
     }
 }
 
 /// Proposal Headers
-#[derive(Serialize)]
+#[derive(Serialize, Encode)]
 pub struct ProposalHeader {
-    eth_header: EthHeaderJson,
+    header: EthHeaderJson,
     ethash_proof: Vec<EthashProofJson>,
     mmr_root: String,
     mmr_proof: Vec<String>,
@@ -102,10 +125,11 @@ pub struct ProposalHeader {
 ///
 /// // POST `/eth/proposal`
 /// eth::proposal(web::Json(eth::ProposalReq{
-///     members: vec![19],
-///     last_leaf: 19,
+///     leaves: vec![10],
+///     target: 19,
+///     last_leaf: 18
 /// }));
 /// ```
 pub async fn handle(req: web::Json<ProposalReq>) -> impl Responder {
-    web::Json(req.0.headers().await)
+    web::Json(req.0.gen().await)
 }

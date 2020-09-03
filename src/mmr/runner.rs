@@ -15,7 +15,7 @@ use crate::{
 use cmmr::MMR;
 use diesel::{dsl::count, prelude::*};
 use reqwest::Client;
-use std::time;
+use std::{env, time};
 
 /// MMR Runner
 #[derive(Clone)]
@@ -63,9 +63,41 @@ impl Runner {
                 trace!("MMR service restarting after 10s...");
                 async_std::task::sleep(time::Duration::from_secs(10)).await;
             } else {
+                if ptr
+                    % env::var("MMR_LOG")
+                        .unwrap_or_else(|_| "10000".to_string())
+                        .parse::<i64>()
+                        .unwrap_or(10000)
+                    == 0
+                {
+                    trace!("Pushed mmr {} into database", ptr);
+                }
+
                 ptr += 1;
             }
         }
+    }
+
+    /// Gen mmrs for tests
+    pub async fn stops_at(&mut self, count: i64) -> Result<(), Error> {
+        let mut ptr = {
+            let last_leaf = helper::mmr_size_to_last_leaf(self.mmr_count()?);
+            if last_leaf == 0 {
+                0
+            } else {
+                last_leaf + 1
+            }
+        };
+
+        loop {
+            if ptr >= count {
+                break;
+            }
+            self.push(ptr).await?;
+            ptr += 1;
+        }
+
+        Ok(())
     }
 
     /// Get block hash by number

@@ -31,9 +31,11 @@ where
     }
 
     fn append(&mut self, pos: u64, elems: Vec<H>) -> MMRResult<()> {
-        let count = self.db.iterator(IteratorMode::Start).count();
-        if (pos as usize) != count {
-            return Err(Error::InconsistentStore);
+        if cfg!(debug_assertions) {
+            let count = self.db.iterator(IteratorMode::Start).count();
+            if (pos as usize) != count {
+                return Err(Error::InconsistentStore);
+            }
         }
 
         // Insert into database

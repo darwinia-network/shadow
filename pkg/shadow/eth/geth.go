@@ -23,7 +23,7 @@ func NewGeth(datadir string) (Geth, error) {
 		datadir,
 		768,
 		16,
-		path.Join(datadir, "ancient"),
+		path.Join(datadir, "chaindata/ancient"),
 		"",
 	)
 

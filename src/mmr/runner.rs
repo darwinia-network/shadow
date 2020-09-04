@@ -122,7 +122,7 @@ impl Runner {
     /// Trim mmr
     pub fn trim(&mut self, leaf: u64) -> Result<(), Error> {
         Ok(self
-           .db
-           .delete_file_in_range(leaf.to_le_bytes(), self.mmr_count().to_le_bytes())?)
+            .db
+            .delete_file_in_range(leaf.to_le_bytes(), self.mmr_count().to_le_bytes())?)
     }
 }

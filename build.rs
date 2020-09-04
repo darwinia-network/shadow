@@ -3,6 +3,7 @@ use std::{env, process::Command};
 fn main() {
     // Pre-check
     println!("cargo:rerun-if-changed=build.rs");
+    println!("cargo:rerun-if-changed=pkg/shadow/ffi/mod.go");
 
     // Declare build args
     let dynamic = match env::var("LIBRARY_TYPE") {

@@ -43,7 +43,7 @@ pub fn proof(block: u64) -> String {
 }
 
 /// Get receipt by tx hash
-pub fn receipt(tx: String) -> (String, String, String) {
+pub fn receipt(tx: &str) -> (String, String, String) {
     unsafe {
         let c_tx = CString::new(tx).expect("CString::new failed");
         let receipt = Receipt(GoString {
@@ -70,8 +70,6 @@ mod test {
 
     #[test]
     fn test_receipt() {
-        super::receipt(
-            "0x3b82a55f5e752c23359d5c3c4c3360455ce0e485ed37e1faabe9ea10d5db3e7a".to_string(),
-        );
+        super::receipt("0x3b82a55f5e752c23359d5c3c4c3360455ce0e485ed37e1faabe9ea10d5db3e7a");
     }
 }

@@ -51,3 +51,7 @@ uint = "0.8.3"
 package = "parity-scale-codec"
 version = "1.0.112"
 features = ["derive"]
+
+[dependencies.diesel]
+version = "1.4.5"
+features = ["sqlite"]

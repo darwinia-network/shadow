@@ -13,7 +13,7 @@ pub async fn serve(port: u16, shared: ShadowShared) -> std::io::Result<()> {
             .data(shared.clone())
             .service(web::resource("/eth/count").route(web::get().to(eth::count)))
             .service(web::resource("/eth/proposal").to(eth::proposal))
-            .service(web::resource("/eth/receipt/{tx}").to(eth::receipt))
+            .service(web::resource("/eth/receipt/{tx}/{last}").to(eth::receipt))
             .service(web::resource("/eth/header/{block}").to(eth::header))
     })
     .disable_signals()

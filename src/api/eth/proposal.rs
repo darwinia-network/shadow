@@ -59,7 +59,7 @@ impl ProposalReq {
     }
 
     /// Generate mmr proof
-    pub async fn mmr_proof(&self, store: &Store) -> Vec<String> {
+    pub fn mmr_proof(&self, store: &Store) -> Vec<String> {
         if self.last_leaf < 1 || self.leaves.is_empty() {
             return vec![];
         }
@@ -95,7 +95,7 @@ impl ProposalReq {
             header: self.header(&shared.client).await,
             ethash_proof: self.ethash_proof(),
             mmr_root: self.mmr_root(&shared.store),
-            mmr_proof: self.mmr_proof(&shared.store).await,
+            mmr_proof: self.mmr_proof(&shared.store),
         }
     }
 }

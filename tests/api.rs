@@ -33,7 +33,6 @@ async fn test_proposal() {
         cmmr::leaf_index_to_mmr_size(req_r0.last_leaf),
         req_r0
             .mmr_proof(&shared.store)
-            .await
             .into_iter()
             .map(|h| H256::from(&h))
             .collect(),
@@ -69,7 +68,6 @@ async fn test_proposal() {
         cmmr::leaf_index_to_mmr_size(req_r1.last_leaf),
         req_r1
             .mmr_proof(&shared.store)
-            .await
             .into_iter()
             .map(|h| H256::from(&h))
             .collect(),
@@ -89,7 +87,7 @@ async fn test_proposal() {
     }
 
     println!("last_leaf: {:?}", req_r1.last_leaf);
-    println!("mmr_proof: {:?}", req_r1.mmr_proof(&shared.store).await);
+    println!("mmr_proof: {:?}", req_r1.mmr_proof(&shared.store));
     println!("mmr_root: {:?}", req_r0.mmr_root(&shared.store));
     // Should pass verification
     //

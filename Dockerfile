@@ -1,5 +1,5 @@
 # Build Shadow in a stock rust builder container
-FROM rust:1.45.2-alpine as shadow
+FROM rust:1.46-slim as shadow
 ARG DEBIAN_FRONTEND=noninteractive
 ENV TZ=America/Los_Angeles
 COPY . shadow

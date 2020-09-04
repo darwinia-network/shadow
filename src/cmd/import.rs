@@ -17,6 +17,13 @@ pub fn exec(path: String, limit: i32) -> Result<(), Error> {
     let hashes = eth::import(&path, limit);
     let hashes_vec = hashes.split(',').collect::<Vec<&str>>();
 
+    // Check empty
+    info!("Imported {} hashes", hashes_vec.len());
+    if hashes_vec[0].is_empty() {
+        error!("Importing hashes from {} failed", path);
+        return Ok(());
+    }
+
     // Generate mmr store
     info!("Got {} header hashes", hashes_vec.len());
     let shared = ShadowShared::new(None);

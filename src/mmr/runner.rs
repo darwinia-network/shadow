@@ -36,7 +36,8 @@ impl Runner {
     /// Start the runner
     pub async fn start(&mut self) -> Result<(), Error> {
         let mut ptr = {
-            let last_leaf = helper::mmr_size_to_last_leaf(self.mmr_count() as i64);
+            let last_leaf =
+                helper::mmr_size_to_last_leaf(self.db.iterator(IteratorMode::Start).count() as i64);
             if last_leaf == 0 {
                 0
             } else {
@@ -92,15 +93,11 @@ impl Runner {
         Ok(())
     }
 
-    /// Get the count of mmr store
-    pub fn mmr_count(&self) -> usize {
-        self.db.iterator(IteratorMode::Start).count()
-    }
-
     /// Gen mmrs for tests
     pub async fn stops_at(&mut self, count: i64) -> Result<(), Error> {
+        let mmr_size = self.db.iterator(IteratorMode::Start).count() as i64;
         let mut ptr = {
-            let last_leaf = helper::mmr_size_to_last_leaf(self.mmr_count() as i64);
+            let last_leaf = helper::mmr_size_to_last_leaf(mmr_size);
             if last_leaf == 0 {
                 0
             } else {
@@ -117,12 +114,5 @@ impl Runner {
         }
 
         Ok(())
-    }
-
-    /// Trim mmr
-    pub fn trim(&mut self, leaf: u64) -> Result<(), Error> {
-        Ok(self
-            .db
-            .delete_file_in_range(leaf.to_le_bytes(), self.mmr_count().to_le_bytes())?)
     }
 }

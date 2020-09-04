@@ -1,12 +1,12 @@
-use crate::{mmr::Runner, result::Error, ShadowShared};
+use crate::{mmr::helper, result::Error, ShadowShared};
+use rocksdb::IteratorMode;
 
 /// Count mmr
 pub fn exec() -> Result<(), Error> {
     let shared = ShadowShared::new(None);
-    let runner = Runner::from(shared.clone());
     println!(
         "Current best block: {}",
-        crate::mmr::helper::mmr_size_to_last_leaf(runner.mmr_count() as i64)
+        helper::mmr_size_to_last_leaf(shared.db.iterator(IteratorMode::Start).count() as i64)
     );
 
     Ok(())

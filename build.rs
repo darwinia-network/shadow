@@ -6,7 +6,7 @@ fn main() {
     println!("cargo:rerun-if-changed=pkg/shadow/ffi/mod.go");
 
     // Declare build args
-    let dynamic = match env::var("LIBRARY_TYPE") {
+    let mut dynamic = match env::var("LIBRARY_TYPE") {
         Ok(ty) => {
             if ty.to_lowercase() == "static" {
                 false
@@ -17,7 +17,7 @@ fn main() {
         Err(_) => true,
     };
     let out_dir = env::var("OUT_DIR").unwrap();
-    go(dynamic, &out_dir);
+    go(&mut dynamic, &out_dir);
 
     // Post-check
     if dynamic {
@@ -30,15 +30,19 @@ fn main() {
 }
 
 /// Build golang library
-fn go(dynamic: bool, out_dir: &str) {
-    if dynamic
-        && !Command::new("go")
+fn go(dynamic: &mut bool, out_dir: &str) {
+    if *dynamic {
+        if !Command::new("go")
             .args(&gorgs(dynamic, out_dir))
             .status()
             .unwrap()
             .success()
-    {
-        go(false, out_dir);
+        {
+            *dynamic = false;
+            go(dynamic, out_dir);
+        } else {
+            return;
+        }
     } else {
         Command::new("go")
             .args(&gorgs(dynamic, out_dir))
@@ -48,7 +52,7 @@ fn go(dynamic: bool, out_dir: &str) {
     }
 }
 
-fn gorgs(dynamic: bool, out_dir: &str) -> Vec<String> {
+fn gorgs(dynamic: &mut bool, out_dir: &str) -> Vec<String> {
     let staticlib = format!("{}/libdarwinia_shadow.a", out_dir);
     let dylib = format!(
         "/usr/local/lib/libdarwinia_shadow.{}",
@@ -65,8 +69,8 @@ fn gorgs(dynamic: bool, out_dir: &str) -> Vec<String> {
     vec![
         "build",
         "-o",
-        if dynamic { &dylib } else { &staticlib },
-        if dynamic {
+        if *dynamic { &dylib } else { &staticlib },
+        if *dynamic {
             "-buildmode=c-shared"
         } else {
             "-buildmode=c-archive"

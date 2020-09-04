@@ -32,8 +32,8 @@ where
 
     fn append(&mut self, pos: u64, elems: Vec<H>) -> MMRResult<()> {
         if cfg!(debug_assertions) {
-            let count = self.db.iterator(IteratorMode::Start).count();
-            if (pos as usize) != count {
+            let mmr_size = self.db.iterator(IteratorMode::Start).count();
+            if (pos as usize) != mmr_size {
                 return Err(Error::InconsistentStore);
             }
         }

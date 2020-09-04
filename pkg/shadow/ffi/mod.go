@@ -47,10 +47,12 @@ func Import(datadir string, limit int) *C.char {
 	hashes := []string{}
 	for n := 0; n < limit; n++ {
 		header := geth.Header(uint64(n))
-		if header == nil || header.Time == 0 {
+		if header == nil || (header.Time == 0 && n != 0) {
 			return C.CString(strings.Join(hashes, ","))
 		}
 		hashes = append(hashes, header.Hash().String())
 	}
 	return C.CString(strings.Join(hashes, ","))
 }
+
+func main() {}

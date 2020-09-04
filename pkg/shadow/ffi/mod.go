@@ -4,6 +4,7 @@ import "C"
 import (
 	"github.com/darwinia-network/shadow/pkg/shadow"
 	"github.com/darwinia-network/shadow/pkg/shadow/eth"
+	"strings"
 )
 
 var (
@@ -38,6 +39,20 @@ func Receipt(tx string) (*C.char, *C.char, *C.char) {
 	}
 
 	return C.CString(proof.Index), C.CString(proof.Proof), C.CString(proof.HeaderHash)
+}
+
+//export Import
+func Import(datadir string, limit int) string {
+	geth, _ := eth.NewGeth(datadir)
+	hashes := []string{}
+	for n := 0; n < limit; n++ {
+		header := geth.Header(n)
+		if header == nil {
+			return strings.Join(hashes, ",")
+		}
+		hashes = append(hashes, header.Hash().String())
+	}
+	return strings.Join(hashes, ",")
 }
 
 func main() {}

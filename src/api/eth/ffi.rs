@@ -29,6 +29,7 @@ struct GoTuple {
 
 #[link(name = "darwinia_shadow")]
 extern "C" {
+    fn Import(path: GoString, limit: libc::c_int) -> *const c_char;
     fn Proof(input: libc::c_uint) -> *const c_char;
     fn Receipt(input: GoString) -> GoTuple;
 }
@@ -58,6 +59,22 @@ pub fn receipt(tx: &str) -> (String, String, String) {
                 .to_string_lossy()
                 .to_string(),
         )
+    }
+}
+
+/// Get receipt by tx hash
+pub fn import(path: &str, limit: i32) -> String {
+    unsafe {
+        let c_path = CString::new(path).expect("CString::new failed");
+        CStr::from_ptr(Import(
+            GoString {
+                a: c_path.as_ptr(),
+                b: c_path.as_bytes().len() as i64,
+            },
+            limit,
+        ))
+        .to_string_lossy()
+        .to_string()
     }
 }
 

@@ -1,7 +1,7 @@
 use crate::mmr::Store;
 use reqwest::Client;
 use rocksdb::DB;
-use std::{path::PathBuf, sync::Arc};
+use std::{path::PathBuf, sync::Arc, thread, time};
 
 /// Constants
 const DEFAULT_RELATIVE_MMR_DB: &str = ".darwinia/cache/mmr";
@@ -20,7 +20,9 @@ pub struct ShadowShared {
 impl ShadowShared {
     /// New shared data
     pub fn new(p: Option<PathBuf>) -> ShadowShared {
-        let path = p.unwrap_or_else(|| dirs::home_dir().unwrap().join(DEFAULT_RELATIVE_MMR_DB));
+        let path = p
+            .clone()
+            .unwrap_or_else(|| dirs::home_dir().unwrap().join(DEFAULT_RELATIVE_MMR_DB));
         let op_dir = path.parent();
         if op_dir.is_none() {
             panic!("Wrong db path: {:?}", &path);
@@ -34,16 +36,24 @@ impl ShadowShared {
             }
         }
 
-        let res = DB::open_default(path.to_owned());
-        if res.is_err() {
-            panic!("Could not open dir {:?}", &path);
-        }
-
-        let db = Arc::new(res.unwrap());
-        ShadowShared {
-            db: db.clone(),
-            store: Store::with(db),
-            client: Client::new(),
+        match DB::open_default(path.to_owned()) {
+            Err(e) => {
+                let msg = e.into_string();
+                if msg.contains("lock") {
+                    thread::sleep(time::Duration::from_secs(1));
+                    Self::new(p)
+                } else {
+                    panic!("Could not open dir {:?}, {:?}", &path, msg);
+                }
+            }
+            Ok(rocks) => {
+                let db = Arc::new(rocks);
+                ShadowShared {
+                    db: db.clone(),
+                    store: Store::with(db),
+                    client: Client::new(),
+                }
+            }
         }
     }
 }

@@ -26,9 +26,12 @@ enum Opt {
         /// Datadir of geth
         #[structopt(short, long)]
         path: String,
-        /// Header limits
+        /// From Ethereum block height
         #[structopt(short, long)]
-        limit: i32,
+        from: i32,
+        /// To Ethereum block height
+        #[structopt(short, long)]
+        to: i32,
     },
     /// Trim mmr from target leaf
     Trim {
@@ -43,7 +46,7 @@ pub async fn exec() -> Result<(), Error> {
     match Opt::from_args() {
         Opt::Count => count::exec(),
         Opt::Run { port, verbose } => run::exec(port, verbose).await,
-        Opt::Import { path, limit } => import::exec(path, limit),
+        Opt::Import { path, from, to } => import::exec(path, from, to),
         Opt::Trim { leaf } => trim::exec(leaf),
     }?;
 

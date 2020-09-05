@@ -4,6 +4,7 @@ import "C"
 import (
 	"github.com/darwinia-network/shadow/pkg/shadow"
 	"github.com/darwinia-network/shadow/pkg/shadow/eth"
+	"github.com/darwinia-network/shadow/pkg/shadow/log"
 	"strings"
 )
 
@@ -42,14 +43,15 @@ func Receipt(tx string) (*C.char, *C.char, *C.char) {
 }
 
 //export Import
-func Import(datadir string, limit int) *C.char {
+func Import(datadir string, from int, to int) *C.char {
 	geth, _ := eth.NewGeth(datadir)
 	hashes := []string{}
-	for n := 0; n < limit; n++ {
+	for n := from; n < to; n++ {
 		header := geth.Header(uint64(n))
 		if header == nil || (header.Time == 0 && n != 0) {
 			return C.CString(strings.Join(hashes, ","))
 		}
+		log.Info("Imported hashes %d/%d", n, to)
 		hashes = append(hashes, header.Hash().String())
 	}
 	return C.CString(strings.Join(hashes, ","))

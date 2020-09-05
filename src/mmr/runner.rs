@@ -13,6 +13,22 @@ use cmmr::MMR;
 use reqwest::Client;
 use rocksdb::{IteratorMode, DB};
 use std::{env, sync::Arc, time};
+use std::time::{SystemTime, UNIX_EPOCH};
+
+fn now() -> u128 {
+    let start = SystemTime::now();
+    let since_the_epoch = start
+        .duration_since(UNIX_EPOCH)
+        .expect("Time went backwards");
+    since_the_epoch.as_millis()
+}
+
+fn print_passed(start: u128) -> u128 {
+    let now = now();
+    let d = now - start;
+    println!("{}", d);
+    now
+}
 
 /// MMR Runner
 #[derive(Clone)]
@@ -45,6 +61,8 @@ impl Runner {
             };
 
         loop {
+            println!("-{}-{}------------", ptr, mmr_size);
+            let a = now();
             match self.push(ptr, mmr_size).await {
                 Err(e) => {
                     trace!("Push block to mmr_store failed: {:?}", e);
@@ -66,6 +84,8 @@ impl Runner {
                     ptr += 1;
                 }
             }
+            print!("total: ");
+            print_passed(a);
         }
     }
 
@@ -79,16 +99,26 @@ impl Runner {
 
     /// Push new header hash into storage
     pub async fn push(&mut self, number: i64, mmr_size: u64) -> Result<u64, Error> {
+        let a = now();
         let mut mmr = MMR::<_, MergeHash, _>::new(mmr_size, &self.store);
-        mmr.push(H256::from(
-            &EthHeaderRPCResp::get(&self.client, number as u64)
-                .await?
-                .result
-                .hash,
-        ))?;
+        print!("mmr create  : ");
+        let b = print_passed(a);
+        let hash_from_ethereum = &EthHeaderRPCResp::get(&self.client, number as u64)
+            .await?
+            .result
+            .hash;
+        print!("rpc call    : ");
+        let c = print_passed(b);
+        mmr.push(H256::from(hash_from_ethereum))?;
+        print!("push to mmr : ");
+        let d = print_passed(c);
         let mmr_size_new = mmr.mmr_size();
+        print!("get new size: ");
+        let e = print_passed(d);
 
         mmr.commit()?;
+        print!("commit      : ");
+        print_passed(e);
         Ok(mmr_size_new)
     }
 

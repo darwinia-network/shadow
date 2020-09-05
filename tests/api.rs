@@ -2,9 +2,35 @@ use cmmr::MerkleProof;
 use darwinia_shadow::{
     api::eth::ProposalReq,
     chain::eth::EthHeader,
-    mmr::{MergeHash, Runner, H256},
+    mmr::{helper, MergeHash, Runner, H256},
+    result::Error,
     ShadowShared,
 };
+use rocksdb::{IteratorMode, DB};
+
+async fn stops_at(db: &DB, runner: &mut Runner, count: i64) -> Result<(), Error> {
+    let mut mmr_size = db.iterator(IteratorMode::Start).count() as u64;
+    let mut ptr = {
+        let last_leaf = helper::mmr_size_to_last_leaf(mmr_size as i64);
+        if last_leaf == 0 {
+            0
+        } else {
+            last_leaf + 1
+        }
+    };
+
+    loop {
+        if ptr >= count {
+            break;
+        }
+        if let Ok(mmr_size_new) = runner.push(ptr, mmr_size).await {
+            mmr_size = mmr_size_new;
+            ptr += 1;
+        }
+    }
+
+    Ok(())
+}
 
 #[actix_rt::test]
 async fn test_proposal() {
@@ -12,7 +38,7 @@ async fn test_proposal() {
     let mut runner = Runner::from(shared.clone());
 
     // Gen mmrs
-    assert!(runner.stops_at(30).await.is_ok());
+    assert!(stops_at(&shared.db, &mut runner, 30).await.is_ok());
 
     // Confirmed block on chain
     let confirmed = ProposalReq {

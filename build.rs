@@ -7,13 +7,7 @@ fn main() {
 
     // Declare build args
     let mut dynamic = match env::var("LIBRARY_TYPE") {
-        Ok(ty) => {
-            if ty.to_lowercase() == "static" {
-                false
-            } else {
-                true
-            }
-        }
+        Ok(ty) => ty.to_lowercase() != "static",
         Err(_) => true,
     };
     let out_dir = env::var("OUT_DIR").unwrap();
@@ -40,8 +34,6 @@ fn go(dynamic: &mut bool, out_dir: &str) {
         {
             *dynamic = false;
             go(dynamic, out_dir);
-        } else {
-            return;
         }
     } else {
         Command::new("go")

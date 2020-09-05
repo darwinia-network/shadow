@@ -78,14 +78,11 @@ impl ProposalReq {
                 );
                 vec![]
             }
-            Ok(proof) => {
-                let res = proof
-                    .proof_items()
-                    .iter()
-                    .map(|item| format!("0x{}", H256::hex(item)))
-                    .collect::<Vec<String>>();
-                res
-            }
+            Ok(proof) => proof
+                .proof_items()
+                .iter()
+                .map(|item| format!("0x{}", H256::hex(item)))
+                .collect::<Vec<String>>(),
         }
     }
 

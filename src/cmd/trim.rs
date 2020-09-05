@@ -12,10 +12,7 @@ pub fn exec(leaf: u64) -> Result<(), Error> {
         .db
         .delete_file_in_range(leaf.to_le_bytes(), (count(&shared.db) + 1).to_le_bytes())?;
     println!("Trimed leaves greater and equal than {}", leaf);
-    println!(
-        "Current best block: {}",
-        helper::mmr_size_to_last_leaf(count(&shared.db) as i64)
-    );
+    println!("Current best block: {}", count(&shared.db));
 
     Ok(())
 }

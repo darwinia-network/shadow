@@ -3,6 +3,7 @@ use crate::ShadowShared;
 use actix_web::{middleware, web, App, HttpServer};
 
 pub mod eth;
+mod root;
 
 /// Run HTTP Server
 pub async fn serve(port: u16, shared: ShadowShared) -> std::io::Result<()> {
@@ -11,6 +12,7 @@ pub async fn serve(port: u16, shared: ShadowShared) -> std::io::Result<()> {
             .wrap(middleware::Compress::default())
             .wrap(middleware::Logger::default())
             .data(shared.clone())
+            .service(web::resource("/version").to(root::version))
             .service(web::resource("/eth/count").route(web::get().to(eth::count)))
             .service(web::resource("/eth/proposal").to(eth::proposal))
             .service(web::resource("/eth/receipt/{tx}/{last}").to(eth::receipt))

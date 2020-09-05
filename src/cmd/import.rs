@@ -29,24 +29,26 @@ pub fn exec(path: String, from: i32, to: i32) -> Result<(), Error> {
     info!("Got {} header hashes", hashes_vec.len());
     let shared = ShadowShared::new(None);
     let mmr_size = shared.db.iterator(IteratorMode::Start).count() as u64;
-    let mut last_leaf = helper::mmr_size_to_last_leaf(mmr_size as i64) as usize;
+    let last_leaf = helper::mmr_size_to_last_leaf(mmr_size as i64) as usize;
     if last_leaf < from as usize {
         error!(
             "The last leaf of mmr is {}, can not import mmr from {}",
             last_leaf, from
         );
     }
-    last_leaf -= from as usize;
+    let rect = last_leaf - from as usize;
 
     // Build mmr
     info!("mmr_size: {}, last_leaf: {}", mmr_size, last_leaf);
     let mut mmr = MMR::<_, MergeHash, _>::new(mmr_size, &shared.store);
-    if hashes_vec.len() > last_leaf {
-        let mut ptr = last_leaf;
-        for i in &hashes_vec[last_leaf..] {
-            trace!("Calculating {:?}/{}", ptr + 1, to);
-            mmr.push(H256::from(i))?;
+    if hashes_vec.len() > rect {
+        let mut ptr = rect;
+        for i in &hashes_vec[ptr..] {
             ptr += 1;
+            if ptr % 1000 == 0 {
+                trace!("Calculating {:?}/{}", ptr + from as usize, to);
+            }
+            mmr.push(H256::from(i))?;
         }
     }
 

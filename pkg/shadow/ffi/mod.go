@@ -49,9 +49,12 @@ func Import(datadir string, from int, to int) *C.char {
 	for n := from; n < to; n++ {
 		header := geth.Header(uint64(n))
 		if header == nil || (header.Time == 0 && n != 0) {
+			log.Error("Import hash of header %d failed", n)
 			return C.CString(strings.Join(hashes, ","))
 		}
-		log.Info("Imported hashes %d/%d", n, to)
+		if n&1000 == 0 {
+			log.Info("Imported hash %d/%d", n, to)
+		}
 		hashes = append(hashes, header.Hash().String())
 	}
 	return C.CString(strings.Join(hashes, ","))

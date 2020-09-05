@@ -1,29 +1,33 @@
-# Build Shadow in a stock rust builder container
-FROM rust:1.46-slim as shadow
+FROM ubuntu:latest as builder
 ARG DEBIAN_FRONTEND=noninteractive
 ENV TZ=America/Los_Angeles
 COPY . shadow
-
-# Required dynamic libraries
-#
-# libdarwinia_shadow.so => /usr/local/lib/libdarwinia_shadow.so (0x7fd26af02000)
-# libssl.so.1.1 => /lib/libssl.so.1.1 (0x7fd26ae81000)
-# libcrypto.so.1.1 => /lib/libcrypto.so.1.1 (0x7fd26ac02000)
-# libsqlite3.so.0 => /usr/lib/libsqlite3.so.0 (0x7fd26ab1a000)
-# libc.musl-x86_64.so.1 => /lib/ld64.so.1 (0x7fd26bebb000)
-RUN apk add --no-cache gcc go openssl-dev llvm\
+RUN apt-get update && apt-get -y upgrade \
+    && apt-get -y install golang cargo libssl-dev clang-tools \
     && cd shadow \
     && cargo build --release -vv \
     && mkdir /target \
-    && cp target/release/shadow /target/ \
-    && cp /usr/local/lib/libdarwinia_shadow.so /target/libdarwinia_shadow.so
+    && cp /shadow/target/release/shadow /target \
+    && cp /usr/local/lib/libdarwinia_shadow.so /target \
+    && cp /lib/x86_64-linux-gnu/libssl.so.1.1 /target \
+    && cp /lib/x86_64-linux-gnu/libcrypto.so.1.1 /target
 
-# Pull Shadow into a second stage deploy alpine container
-FROM alpine:latest
-COPY --from=shadow /target /target
-RUN mv /target/shadow /usr/local/bin/shadow \
-    && mv /target/libdarwinia_shadow.so /usr/local/lib/libdarwinia_shadow.so \
-    && cp /lib/libc.musl-x86_64.so.1 /lib/ld64.so.1 \
-    && rm -rf /target
-EXPOSE 3000
+FROM debian:stretch-slim
+#    linux-vdso.so.1 (0x00007fffdafe6000)
+#    libstdc++.so.6 => /lib/x86_64-linux-gnu/libstdc++.so.6 (0x00007f5221f0d000)
+#    libssl.so.1.1 => /lib/x86_64-linux-gnu/libssl.so.1.1 (0x00007f5221e7a000)
+#    libcrypto.so.1.1 => /lib/x86_64-linux-gnu/libcrypto.so.1.1 (0x00007f5221ba4000)
+#    libdl.so.2 => /lib/x86_64-linux-gnu/libdl.so.2 (0x00007f5221b9e000)
+#    libpthread.so.0 => /lib/x86_64-linux-gnu/libpthread.so.0 (0x00007f5221b7b000)
+#    libgcc_s.so.1 => /lib/x86_64-linux-gnu/libgcc_s.so.1 (0x00007f5221b60000)
+#    libc.so.6 => /lib/x86_64-linux-gnu/libc.so.6 (0x00007f522196c000)
+#    /lib64/ld-linux-x86-64.so.2 (0x00007f5223cb4000)
+#    libm.so.6 => /lib/x86_64-linux-gnu/libm.so.6 (0x00007f522181d000)
+COPY --from=builder /target /target
+RUN mv /target/shadow /usr/bin \
+    && mv /target/* /usr/local/lib \
+    && rm -rf /target \
+    && ldconfig
+
 ENTRYPOINT ["shadow"]
+

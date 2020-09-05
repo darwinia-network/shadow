@@ -1,11 +1,10 @@
 use crate::{
     chain::eth::{EthHeader, EthHeaderJson},
-    db::pool,
-    mmr::{MergeHash, Store, H256},
+    mmr::{MergeHash, H256},
+    ShadowShared,
 };
 use actix_web::{web, Responder};
 use cmmr::MMR;
-use reqwest::Client;
 
 #[derive(Serialize)]
 struct ProofResp {
@@ -16,26 +15,26 @@ struct ProofResp {
 /// Proof target header
 ///
 /// ```
-/// use darwinia_shadow::api::eth;
 /// use actix_web::web;
+/// use darwinia_shadow::{api::eth, ShadowShared};
 ///
 /// // GET `/eth/header/19`
-/// eth::header(web::Path::from("19".to_string()));
+/// eth::header(web::Path::from("19".to_string()), web::Data::new(ShadowShared::new(None)));
 /// ```
-pub async fn handle(block: web::Path<String>) -> impl Responder {
-    let conn = pool::conn(None);
-    let store = Store::with(conn);
-    let client = Client::new();
-
+pub async fn handle(block: web::Path<String>, shared: web::Data<ShadowShared>) -> impl Responder {
     let num: u64 = block.to_string().parse().unwrap_or(0);
     let root = if num == 0 {
         "0000000000000000000000000000000000000000000000000000000000000000".to_string()
     } else {
-        H256::hex(&MMR::<_, MergeHash, _>::new(cmmr::leaf_index_to_mmr_size(num - 1), &store).get_root().unwrap_or_default())
+        H256::hex(
+            &MMR::<_, MergeHash, _>::new(cmmr::leaf_index_to_mmr_size(num - 1), &shared.store)
+                .get_root()
+                .unwrap_or_default(),
+        )
     };
 
     web::Json(ProofResp {
-        header: EthHeader::get(&client, num)
+        header: EthHeader::get(&shared.client, num)
             .await
             .unwrap_or_default()
             .into(),

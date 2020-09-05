@@ -4,6 +4,8 @@ import "C"
 import (
 	"github.com/darwinia-network/shadow/pkg/shadow"
 	"github.com/darwinia-network/shadow/pkg/shadow/eth"
+	"github.com/darwinia-network/shadow/pkg/shadow/log"
+	"strings"
 )
 
 var (
@@ -30,14 +32,32 @@ func Proof(number uint64) *C.char {
 }
 
 //export Receipt
-func Receipt(tx string) (*C.char, *C.char) {
+func Receipt(tx string) (*C.char, *C.char, *C.char) {
 	tx = "0x" + tx[2:]
-	proof, hash, err := eth.GetReceipt(tx)
+	proof, _, err := eth.GetReceipt(tx)
 	if err != nil {
-		return C.CString(""), C.CString("")
+		return C.CString(""), C.CString(""), C.CString("")
 	}
 
-	return C.CString(proof.Proof), C.CString(hash)
+	return C.CString(proof.Index), C.CString(proof.Proof), C.CString(proof.HeaderHash)
+}
+
+//export Import
+func Import(datadir string, from int, to int) *C.char {
+	geth, _ := eth.NewGeth(datadir)
+	hashes := []string{}
+	for n := from; n < to; n++ {
+		header := geth.Header(uint64(n))
+		if header == nil || (header.Time == 0 && n != 0) {
+			log.Error("Import hash of header %d failed", n)
+			return C.CString(strings.Join(hashes, ","))
+		}
+		if n&1000 == 0 {
+			log.Info("Imported hash %d/%d", n, to)
+		}
+		hashes = append(hashes, header.Hash().String())
+	}
+	return C.CString(strings.Join(hashes, ","))
 }
 
 func main() {}

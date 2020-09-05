@@ -1,8 +1,8 @@
 //! Mock the uncle block
 use cmmr::MMR;
 use darwinia_shadow::{
-    db::pool,
-    mmr::{MergeHash, Store, H256},
+    mmr::{MergeHash, H256},
+    ShadowShared,
 };
 use std::env;
 
@@ -34,8 +34,7 @@ const HASHES: [&str; 20] = [
 
 fn main() {
     let db = env::temp_dir().join("test_mmr_proof.db");
-    let conn = pool::conn(Some(db));
-    let store = Store::with(conn);
+    let store = ShadowShared::new(Some(db)).store;
     let mut mmr = MMR::<_, MergeHash, _>::new(0, &store);
     let mut roots: Vec<String> = vec![];
     let pos: Vec<u64> = (0..20)

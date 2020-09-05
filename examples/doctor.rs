@@ -1,14 +1,12 @@
 //! Mock the uncle block
 use cmmr::{leaf_index_to_mmr_size, leaf_index_to_pos, MMR};
 use darwinia_shadow::{
-    db::pool,
-    mmr::{MergeHash, Store, H256},
+    mmr::{MergeHash, H256},
+    ShadowShared,
 };
 
 fn main() {
-    let conn = pool::conn(None);
-    let store = Store::with(conn);
-
+    let store = ShadowShared::new(None).store;
     let mmr = MMR::<_, MergeHash, _>::new(leaf_index_to_mmr_size(9), &store);
     let root = mmr.get_root().expect("get root failed");
     // let root = H256::from("0xe28d7f650efb9cbaaca7f485d078c0f6b1104807a3a31f85fc1268b0673140ff");

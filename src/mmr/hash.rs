@@ -7,6 +7,8 @@ use cmmr::Merge;
 pub trait H256 {
     /// Generate `H256` from `&str`
     fn from(s: &str) -> Self;
+    /// Generate `H256` from `&[u8]`
+    fn from_bytes(b: &[u8]) -> Self;
     /// Convert `H256` bytes to hex string
     fn hex(&self) -> String;
 }
@@ -14,6 +16,12 @@ pub trait H256 {
 impl H256 for [u8; 32] {
     fn from(s: &str) -> Self {
         bytes!(s, 32)
+    }
+
+    fn from_bytes(b: &[u8]) -> Self {
+        let mut h = [0; 32];
+        h.copy_from_slice(b);
+        h
     }
 
     fn hex(&self) -> String {

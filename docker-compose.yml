@@ -5,7 +5,7 @@ services:
     command: --syncmode fast --http --http.addr 0.0.0.0 -http.vhosts *
     volumes:
       - data:/root
-  fetcher:
+  shadow:
     image: quay.io/darwinia-network/shadow:next
     command: run -v
     environment:

@@ -1,79 +1,50 @@
 //! MMR store
-use crate::{
-    db::{model::*, pool::ConnPool, schema::mmr_store::dsl::*, sql::*},
-    mmr::hash::H256,
-};
+use crate::mmr::hash::H256;
 use cmmr::{Error, MMRStore, Result as MMRResult};
-use diesel::{dsl::count, prelude::*};
+use rocksdb::{IteratorMode, DB};
+use std::sync::Arc;
 
 /// MMR Store
 #[derive(Clone)]
 pub struct Store {
     /// Connection Pool
-    pub pool: ConnPool,
+    pub db: Arc<DB>,
 }
 
 impl Store {
-    /// New store with path
-    ///
-    /// This is the very begining part of mmr service, panic when connect db failed.
-    pub fn with(pool: ConnPool) -> Store {
-        // Create store table
-        diesel::sql_query(CREATE_MMR_STORE_IF_NOT_EXISTS)
-            .execute(&pool.get().unwrap())
-            .unwrap_or_default();
-
-        Store { pool }
+    /// New store with database
+    pub fn with(db: Arc<DB>) -> Store {
+        Store { db }
     }
 }
 
 impl<H> MMRStore<H> for &Store
 where
-    H: H256,
+    H: H256 + AsRef<[u8]>,
 {
-    fn get_elem(&self, rpos: u64) -> MMRResult<Option<H>> {
-        let cfp = self.pool.get();
-        if cfp.is_err() {
-            return Err(Error::StoreError("Connect to database failed".into()));
-        }
-
-        let conn = cfp.unwrap();
-        let store = mmr_store.filter(pos.eq(rpos as i64)).first::<Header>(&conn);
-        if let Ok(store) = store {
-            Ok(Some(H::from(store.elem.as_str())))
+    fn get_elem(&self, pos: u64) -> MMRResult<Option<H>> {
+        if let Ok(Some(elem)) = self.db.get(pos.to_le_bytes()) {
+            Ok(Some(H::from_bytes(&elem)))
         } else {
             Ok(None)
         }
     }
 
-    fn append(&mut self, rpos: u64, elems: Vec<H>) -> MMRResult<()> {
-        let cfp = self.pool.get();
-        if cfp.is_err() {
-            return Err(Error::StoreError("Connect to database failed".into()));
+    fn append(&mut self, pos: u64, elems: Vec<H>) -> MMRResult<()> {
+        if cfg!(debug_assertions) {
+            let mmr_size = self.db.iterator(IteratorMode::Start).count();
+            if (pos as usize) != mmr_size {
+                return Err(Error::InconsistentStore);
+            }
         }
 
-        let conn = cfp.unwrap();
-        let mut the_count: u64 = 0;
-        let count_res = mmr_store.select(count(elem)).first::<i64>(&conn);
-        if let Ok(count) = count_res {
-            the_count = count as u64;
-        }
-
-        if rpos != the_count {
-            return Err(Error::InconsistentStore);
-        }
-
-        for (i, relem) in elems.into_iter().enumerate() {
-            let header = Header::new(relem.hex(), rpos as i64 + i as i64);
-            let res = diesel::insert_into(mmr_store)
-                .values(&vec![header])
-                .execute(&*conn);
-
-            if res.is_err() {
+        // Insert into database
+        for (i, elem) in elems.into_iter().enumerate() {
+            if let Err(e) = self.db.put((pos as usize + i).to_le_bytes(), elem) {
                 return Err(Error::StoreError(format!(
-                    "Insert mmr of pos {} into sqlite3 failed, {:?}",
-                    rpos as i64 + i as i64,
-                    res,
+                    "Insert mmr of pos {} into database failed, {:?}",
+                    pos as i64 + i as i64,
+                    e,
                 )));
             }
         }

@@ -1,15 +1,17 @@
-//! `shadow` command
-use crate::{
-    api,
-    db::pool,
-    mmr::{helper, Runner},
-    result::Error,
-};
+//! `shadow` commands
+use crate::result::Error;
 use structopt::{clap::AppSettings, StructOpt};
+
+mod count;
+mod import;
+mod run;
+mod trim;
 
 #[derive(StructOpt)]
 #[structopt(setting = AppSettings::InferSubcommands)]
 enum Opt {
+    /// Current block height in mmr store
+    Count,
     /// Start shadow service
     Run {
         /// Http server port
@@ -19,8 +21,18 @@ enum Opt {
         #[structopt(short, long)]
         verbose: bool,
     },
-    /// Current block height in mmr store
-    Count,
+    /// Imports mmr from geth
+    Import {
+        /// Datadir of geth
+        #[structopt(short, long)]
+        path: String,
+        /// From Ethereum block height
+        #[structopt(short, long)]
+        from: i32,
+        /// To Ethereum block height
+        #[structopt(short, long)]
+        to: i32,
+    },
     /// Trim mmr from target leaf
     Trim {
         /// The target leaf
@@ -31,38 +43,12 @@ enum Opt {
 
 /// Exec `shadow` binary
 pub async fn exec() -> Result<(), Error> {
-    let conn = pool::conn(None);
-    let mut runner = Runner::with(conn);
-
     match Opt::from_args() {
-        Opt::Run { port, verbose } => {
-            if std::env::var("RUST_LOG").is_err() {
-                if verbose {
-                    std::env::set_var("RUST_LOG", "info,darwinia_shadow");
-                } else {
-                    std::env::set_var("RUST_LOG", "info");
-                }
-            }
-            env_logger::init();
-            let (mr, ar) = futures::join!(runner.start(), api::serve(port));
-            mr?;
-            ar?;
-        }
-        Opt::Count => {
-            println!(
-                "Current best block: {}",
-                helper::mmr_size_to_last_leaf(runner.mmr_count()?)
-            );
-        }
-        Opt::Trim { leaf } => {
-            runner.trim(leaf).unwrap();
-            println!("Trimed leaves greater and equal than {}", leaf);
-            println!(
-                "Current best block: {}",
-                helper::mmr_size_to_last_leaf(runner.mmr_count()?)
-            );
-        }
-    };
+        Opt::Count => count::exec(),
+        Opt::Run { port, verbose } => run::exec(port, verbose).await,
+        Opt::Import { path, from, to } => import::exec(path, from, to),
+        Opt::Trim { leaf } => trim::exec(leaf),
+    }?;
 
     Ok::<(), Error>(())
 }

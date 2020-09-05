@@ -1,148 +1,81 @@
 //! MMR Runner
 use crate::{
     chain::eth::EthHeaderRPCResp,
-    db::{
-        pool::{ConnPool, PooledConn},
-        schema::mmr_store::dsl::*,
-    },
     mmr::{
         hash::{MergeHash, H256},
         helper,
         store::Store,
     },
     result::Error,
+    ShadowShared,
 };
 use cmmr::MMR;
-use diesel::{dsl::count, prelude::*};
 use reqwest::Client;
-use std::{env, time};
+use rocksdb::{IteratorMode, DB};
+use std::{env, sync::Arc, time};
 
 /// MMR Runner
 #[derive(Clone)]
 pub struct Runner {
     store: Store,
-    pool: ConnPool,
+    db: Arc<DB>,
     client: Client,
 }
 
+impl From<ShadowShared> for Runner {
+    fn from(s: ShadowShared) -> Self {
+        Self {
+            store: s.store,
+            db: s.db,
+            client: s.client,
+        }
+    }
+}
+
 impl Runner {
-    /// Get Pooled connection
-    pub fn conn(&self) -> Result<PooledConn, Error> {
-        let cfp = self.pool.get();
-        if cfp.is_err() {
-            return Err(Error::Custom("Connect to database failed".into()));
-        }
-
-        Ok(cfp.unwrap())
-    }
-
-    /// Start with sqlite3 conn
-    pub fn with(pool: ConnPool) -> Runner {
-        let store = Store::with(pool.clone());
-        Runner {
-            store,
-            pool,
-            client: Client::new(),
-        }
-    }
-
     /// Start the runner
     pub async fn start(&mut self) -> Result<(), Error> {
-        let mut ptr = {
-            let last_leaf = helper::mmr_size_to_last_leaf(self.mmr_count()?);
-            if last_leaf == 0 {
-                0
-            } else {
-                last_leaf + 1
-            }
-        };
+        let mut mmr_size = self.db.iterator(IteratorMode::Start).count() as u64;
+        let last_leaf = helper::mmr_size_to_last_leaf(mmr_size as i64);
+        let mut ptr = if last_leaf == 0 { 0 } else { last_leaf + 1 };
 
         loop {
-            if let Err(e) = self.push(ptr).await {
-                trace!("Push block to mmr_store failed: {:?}", e);
-                trace!("MMR service restarting after 10s...");
-                async_std::task::sleep(time::Duration::from_secs(10)).await;
-            } else {
-                if ptr
-                    % env::var("MMR_LOG")
-                        .unwrap_or_else(|_| "10000".to_string())
-                        .parse::<i64>()
-                        .unwrap_or(10000)
-                    == 0
-                {
-                    trace!("Pushed mmr {} into database", ptr);
+            match self.push(ptr, mmr_size).await {
+                Err(e) => {
+                    trace!("Push block to mmr_store failed: {:?}", e);
+                    trace!("MMR service restarting after 10s...");
+                    actix_rt::time::delay_for(time::Duration::from_secs(10)).await;
                 }
+                Ok(mmr_size_new) => {
+                    if ptr
+                        % env::var("MMR_LOG")
+                            .unwrap_or_else(|_| "10000".to_string())
+                            .parse::<i64>()
+                            .unwrap_or(10000)
+                        == 0
+                    {
+                        info!("Pushed mmr {} into database", ptr);
+                    }
 
-                ptr += 1;
+                    mmr_size = mmr_size_new;
+                    ptr += 1;
+                }
             }
         }
-    }
-
-    /// Gen mmrs for tests
-    pub async fn stops_at(&mut self, count: i64) -> Result<(), Error> {
-        let mut ptr = {
-            let last_leaf = helper::mmr_size_to_last_leaf(self.mmr_count()?);
-            if last_leaf == 0 {
-                0
-            } else {
-                last_leaf + 1
-            }
-        };
-
-        loop {
-            if ptr >= count {
-                break;
-            }
-            self.push(ptr).await?;
-            ptr += 1;
-        }
-
-        Ok(())
-    }
-
-    /// Get block hash by number
-    pub async fn get_hash(&mut self, block: i64) -> Result<String, Error> {
-        Ok(EthHeaderRPCResp::get(&self.client, block as u64)
-            .await?
-            .result
-            .hash)
-    }
-
-    /// Trim mmr
-    pub fn trim(&mut self, leaf: u64) -> Result<(), Error> {
-        let mpos = cmmr::leaf_index_to_pos(leaf);
-        let conn = self.conn()?;
-        diesel::delete(mmr_store.filter(pos.ge(mpos as i64))).execute(&conn)?;
-        Ok(())
     }
 
     /// Push new header hash into storage
-    pub async fn push(&mut self, pnumber: i64) -> Result<(), Error> {
-        let mmr_size = if pnumber == 0 {
-            0
-        } else {
-            cmmr::leaf_index_to_mmr_size((pnumber - 1) as u64)
-        } as u64;
+    pub async fn push(&mut self, number: i64, mmr_size: u64) -> Result<u64, Error> {
         let mut mmr = MMR::<_, MergeHash, _>::new(mmr_size, &self.store);
-        mmr.push(H256::from(
-            &EthHeaderRPCResp::get(&self.client, pnumber as u64)
-                .await?
-                .result
-                .hash,
-        ))?;
+        let hash_from_ethereum = &EthHeaderRPCResp::get(&self.client, number as u64)
+            .await?
+            .result
+            .hash;
+
+        mmr.push(H256::from(hash_from_ethereum))?;
+        let mmr_size_new = mmr.mmr_size();
 
         mmr.commit()?;
-        Ok(())
-    }
-
-    /// Get the count of mmr store
-    pub fn mmr_count(&self) -> Result<i64, Error> {
-        let conn = self.conn()?;
-        let res = mmr_store.select(count(elem)).first::<i64>(&conn);
-        if let Err(e) = res {
-            Err(Error::Diesel(e))
-        } else {
-            Ok(res?)
-        }
+        Ok(mmr_size_new)
     }
 }

@@ -1,7 +1,7 @@
 use crate::{
+    api::ShadowShared,
     bytes,
     chain::eth::{EthHeader, EthHeaderJson, EthashProof, EthashProofJson},
-    db::pool,
     mmr::{MergeHash, Store, H256},
 };
 use actix_web::{web, Responder};
@@ -59,7 +59,7 @@ impl ProposalReq {
     }
 
     /// Generate mmr proof
-    pub async fn mmr_proof(&self, store: &Store) -> Vec<String> {
+    pub fn mmr_proof(&self, store: &Store) -> Vec<String> {
         if self.last_leaf < 1 || self.leaves.is_empty() {
             return vec![];
         }
@@ -78,32 +78,21 @@ impl ProposalReq {
                 );
                 vec![]
             }
-            Ok(proof) => {
-                let res = proof
-                    .proof_items()
-                    .iter()
-                    .map(|item| format!("0x{}", H256::hex(item)))
-                    .collect::<Vec<String>>();
-                res
-            }
+            Ok(proof) => proof
+                .proof_items()
+                .iter()
+                .map(|item| format!("0x{}", H256::hex(item)))
+                .collect::<Vec<String>>(),
         }
     }
 
     /// To headers
-    pub async fn gen(&self) -> ProposalHeader {
-        // TODO: optimzie the `clients` below
-        //
-        // Move them out of this handler
-        let conn = pool::conn(None);
-        let store = Store::with(conn);
-        let client = Client::new();
-
-        // Proposal Header
+    pub async fn gen(&self, shared: web::Data<ShadowShared>) -> ProposalHeader {
         ProposalHeader {
-            header: self.header(&client).await,
+            header: self.header(&shared.client).await,
             ethash_proof: self.ethash_proof(),
-            mmr_root: self.mmr_root(&store),
-            mmr_proof: self.mmr_proof(&store).await,
+            mmr_root: self.mmr_root(&shared.store),
+            mmr_proof: self.mmr_proof(&shared.store),
         }
     }
 }
@@ -120,16 +109,16 @@ pub struct ProposalHeader {
 /// Proposal Handler
 ///
 /// ```
-/// use darwinia_shadow::api::eth;
 /// use actix_web::web;
+/// use darwinia_shadow::{api::eth, ShadowShared};
 ///
 /// // POST `/eth/proposal`
 /// eth::proposal(web::Json(eth::ProposalReq{
 ///     leaves: vec![10],
 ///     target: 19,
 ///     last_leaf: 18
-/// }));
+/// }), web::Data::new(ShadowShared::new(None)));
 /// ```
-pub async fn handle(req: web::Json<ProposalReq>) -> impl Responder {
-    web::Json(req.0.gen().await)
+pub async fn handle(req: web::Json<ProposalReq>, share: web::Data<ShadowShared>) -> impl Responder {
+    web::Json(req.0.gen(share).await)
 }

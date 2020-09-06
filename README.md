@@ -11,7 +11,7 @@ The shadow service for relayers and verify workers to retrieve header data and g
 ## Usage
 
 ```sh
-shadow 0.2.0
+shadow 0.2.2
 
 USAGE:
     shadow <SUBCOMMAND>
@@ -43,10 +43,11 @@ $ cargo install darwinia-shadow
 
 ## Environment
 
-| ENV            | Desc                     | Example                            |
-|----------------|--------------------------|------------------------------------|
-| `ETHEREUM_RPC` | The rpc of ethereum node | ETHEREUM_RPC=http://localhost:8545 |
-| `MMR_LOG`      | The gap of mmr logs      | MMR_LOG=10000                      |
+| ENV                | Desc                     | Example                            |
+|--------------------|--------------------------|------------------------------------|
+| `ETHEREUM_RPC`     | The rpc of ethereum node | ETHEREUM_RPC=http://localhost:8545 |
+| `ETHEREUM_ROPSTEN` | Enable ropsten source    | ETHEREUM_ROPSTEN=true              |
+| `MMR_LOG`          | The gap of mmr logs      | MMR_LOG=10000                      |
 
 ## Trouble Shooting
 

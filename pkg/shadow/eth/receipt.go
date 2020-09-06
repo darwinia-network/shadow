@@ -5,10 +5,12 @@ import (
 	"context"
 	"errors"
 	"math"
+	"os"
 	"strings"
 	"sync"
 
 	"github.com/darwinia-network/shadow/pkg/shadow"
+	"github.com/darwinia-network/shadow/pkg/shadow/log"
 	"github.com/darwinia-network/shadow/pkg/shadow/util"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
@@ -30,7 +32,15 @@ var (
 func init() {
 	conf := new(shadow.Config)
 	_ = conf.Load()
-	API = conf.Api
+	if strings.Contains(conf.Api, "infura") {
+		API = conf.Api
+	} else {
+		if os.Getenv(shadow.ETHEREUM_ROPSTEN) == "" {
+			API = shadow.DEFAULT_ETHEREUM_RPC
+		} else {
+			API = shadow.DEFAULT_ROPSTEN_RPC
+		}
+	}
 }
 
 func GetChainBlockInfo(blockNum int64) (*BlockResult, error) {
@@ -118,6 +128,7 @@ type RedeemFor struct {
 func GetReceipt(tx string) (ProofRecord, string, error) {
 	r, err := GetReceiptLog(tx)
 	if err != nil || r == nil {
+		log.Error("%s", err)
 		return ProofRecord{}, "", err
 	}
 

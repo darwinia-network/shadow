@@ -3,6 +3,8 @@ use std::{env, process::Command};
 fn main() {
     // Pre-check
     println!("cargo:rerun-if-changed=build.rs");
+    println!("cargo:rerun-if-changed=pkg/shadow/eth/receipt.go");
+    println!("cargo:rerun-if-changed=pkg/shadow/eth/proof.go");
     println!("cargo:rerun-if-changed=pkg/shadow/ffi/mod.go");
 
     // Declare build args

@@ -24,7 +24,7 @@ impl EthHeaderRPCResp {
         let map: Value = serde_json::from_str(&format! {
             "{{{}}}", vec![
                 r#""jsonrpc":"2.0","#,
-                r#""method":"eth_getBlockByNumber","#,
+                r#""method":"eth_getBlockByHash","#,
                 &format!(r#""params":["{}", false],"#, block),
                 r#""id": 1"#,
             ].concat(),

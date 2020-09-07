@@ -13,16 +13,6 @@ jobs:
       matrix:
         os: [macOS-latest, ubuntu-latest]
     steps:
-      - uses: actions/checkout@v1
-      - name: Environment
-        run: |
-          if [[ "$(uname)" == 'Darwin' ]]; then
-              brew update
-              brew install sqlite3
-          else
-              sudo apt-get update -y
-              sudo apt-get install -y libsqlite3-dev libdbus-1-dev
-          fi
       - uses: actions-rs/toolchain@v1
         with:
             toolchain: nightly

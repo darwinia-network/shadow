@@ -18,16 +18,6 @@ jobs:
     steps:
       - name: Checkout the source code
         uses: actions/checkout@master
-      - name: Environment
-        run: |
-          if [[ "$(uname)" == 'Darwin' ]]; then
-              brew update
-              brew install sqlite3
-          else
-              sudo apt-get update -y
-              sudo apt-get install -y libsqlite3-dev libdbus-1-dev
-              export LD_LIBRARY_PATH=/lib:/usr/lib:/usr/local/lib
-          fi
       # Cache MMR Library
       - name: Cache MMR Library
         uses: actions/cache@v1

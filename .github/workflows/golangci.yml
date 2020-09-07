@@ -5,9 +5,9 @@ name: Golang CI Lint
 
 on:
   push:
-    branches: [ master, next ]
+    branches: [ master ]
   pull_request:
-    branches: [ master, next ]
+    branches: [ master ]
 
 jobs:
   golangci-lint:

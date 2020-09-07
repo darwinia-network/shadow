@@ -2,9 +2,9 @@ name: Clippy Check
 
 on:
   push:
-    branches: [ master, next ]
+    branches: [ master ]
   pull_request:
-    branches: [ master, next ]
+    branches: [ master ]
 
 jobs:
   clippy:

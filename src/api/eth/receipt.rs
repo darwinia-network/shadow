@@ -1,10 +1,10 @@
 use crate::{
     chain::eth::{EthHeader, EthHeaderJson},
-    ShadowShared, mmr::{MergeHash, Store, H256},
+    mmr::{helper, Store},
+    ShadowShared,
 };
 use actix_web::{web, Responder};
 use reqwest::Client;
-use cmmr::MMR;
 
 /// Receipt proof
 #[derive(Serialize)]
@@ -46,40 +46,20 @@ impl ReceiptResp {
     }
 
     /// Get mmr proof
-    pub fn mmr_proof(store: &Store, member: u64, mmr_root_height: u64) -> Vec<String> {
-        if member >= mmr_root_height {
-            return vec![];
-        }
-
-        match MMR::<_, MergeHash, _>::new(cmmr::leaf_index_to_mmr_size(mmr_root_height - 1), store)
-            .gen_proof(
-                [member]
-                    .iter()
-                    .map(|l| cmmr::leaf_index_to_pos(*l))
-                    .collect(),
-            ) {
-            Err(e) => {
-                error!(
-                    "Generate proof failed {:?}, mmr_root_height: {:?}, member leaves: {:?}",
-                    e, mmr_root_height, member
-                );
-                vec![]
-            }
-            Ok(proof) => proof
-                .proof_items()
-                .iter()
-                .map(|item| format!("0x{}", H256::hex(item)))
-                .collect::<Vec<String>>(),
-        }
+    pub fn mmr_proof(store: &Store, member: u64, last_leaf: u64) -> Vec<String> {
+        helper::gen_proof(store, &vec![member], last_leaf)
     }
 
     /// Generate header
-    /// mmr_root_height should be last confirmed block in relay
+    /// mmr_root_height should be last confirmed block in relayt
     pub async fn new(shared: &ShadowShared, tx: &str, mmr_root_height: u64) -> ReceiptResp {
-        let client = Client::new();
         let receipt_proof = Self::receipt(tx);
-        let header = Self::header(&client, &receipt_proof.header_hash).await;
-        let mmr_proof = Self::mmr_proof(&shared.store, header.number, mmr_root_height);
+        let header = Self::header(&shared.client, &receipt_proof.header_hash).await;
+        let mmr_proof = if mmr_root_height > 1 {
+            Self::mmr_proof(&shared.store, header.number, mmr_root_height - 1)
+        } else {
+            vec![]
+        };
         ReceiptResp {
             header,
             receipt_proof,

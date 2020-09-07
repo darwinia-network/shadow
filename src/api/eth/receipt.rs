@@ -1,6 +1,6 @@
 use crate::{
     chain::eth::{EthHeader, EthHeaderJson},
-    mmr::Store,
+    mmr::{helper, Store},
     ShadowShared,
 };
 use actix_web::{web, Responder};
@@ -46,23 +46,24 @@ impl ReceiptResp {
     }
 
     /// Get mmr proof
-    pub fn mmr_proof(store: &Store, last_confirmed: u64, last_leaf: u64) -> Vec<String> {
-        super::proposal::ProposalReq {
-            leaves: vec![last_confirmed],
-            last_leaf,
-            target: last_leaf,
-        }
-        .mmr_proof(store)
+    pub fn mmr_proof(store: &Store, member: u64, last_leaf: u64) -> Vec<String> {
+        helper::gen_proof(store, &vec![member], last_leaf)
     }
 
     /// Generate header
-    pub async fn new(path: (&Store, &str, u64)) -> ReceiptResp {
-        let client = Client::new();
-        let receipt = Self::receipt(path.1);
+    /// mmr_root_height should be last confirmed block in relayt
+    pub async fn new(shared: &ShadowShared, tx: &str, mmr_root_height: u64) -> ReceiptResp {
+        let receipt_proof = Self::receipt(tx);
+        let header = Self::header(&shared.client, &receipt_proof.header_hash).await;
+        let mmr_proof = if mmr_root_height > 0 {
+            Self::mmr_proof(&shared.store, header.number, mmr_root_height - 1)
+        } else {
+            vec![]
+        };
         ReceiptResp {
-            header: Self::header(&client, &receipt.header_hash).await,
-            receipt_proof: Self::receipt(path.1),
-            mmr_proof: Self::mmr_proof(path.0, path.2, path.2),
+            header,
+            receipt_proof,
+            mmr_proof,
         }
     }
 }
@@ -83,5 +84,5 @@ pub async fn handle(
     tx: web::Path<(String, u64)>,
     shared: web::Data<ShadowShared>,
 ) -> impl Responder {
-    web::Json(ReceiptResp::new((&shared.store, tx.0.as_str(), tx.1)).await)
+    web::Json(ReceiptResp::new(&shared, tx.0.as_str(), tx.1).await)
 }

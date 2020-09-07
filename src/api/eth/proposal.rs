@@ -2,7 +2,7 @@ use crate::{
     api::ShadowShared,
     bytes,
     chain::eth::{EthHeader, EthHeaderJson, EthashProof, EthashProofJson},
-    mmr::{MergeHash, Store, H256},
+    mmr::{helper, MergeHash, Store, H256},
 };
 use actix_web::{web, Responder};
 use cmmr::MMR;
@@ -64,26 +64,7 @@ impl ProposalReq {
             return vec![];
         }
 
-        match MMR::<_, MergeHash, _>::new(cmmr::leaf_index_to_mmr_size(self.last_leaf), store)
-            .gen_proof(
-                self.leaves
-                    .iter()
-                    .map(|l| cmmr::leaf_index_to_pos(*l))
-                    .collect(),
-            ) {
-            Err(e) => {
-                error!(
-                    "Generate proof failed {:?}, target: {:?}, leaves: {:?}",
-                    e, self.target, self.leaves
-                );
-                vec![]
-            }
-            Ok(proof) => proof
-                .proof_items()
-                .iter()
-                .map(|item| format!("0x{}", H256::hex(item)))
-                .collect::<Vec<String>>(),
-        }
+        helper::gen_proof(store, &self.leaves, self.last_leaf)
     }
 
     /// To headers

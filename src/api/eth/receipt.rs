@@ -58,11 +58,13 @@ impl ReceiptResp {
     /// Generate header
     pub async fn new(path: (&Store, &str, u64)) -> ReceiptResp {
         let client = Client::new();
-        let receipt = Self::receipt(path.1);
+        let receipt_proof = Self::receipt(path.1);
+        let header = Self::header(&client, &receipt_proof.header_hash).await;
+        let mmr_proof = Self::mmr_proof(path.0, path.2, header.number);
         ReceiptResp {
-            header: Self::header(&client, &receipt.header_hash).await,
-            receipt_proof: Self::receipt(path.1),
-            mmr_proof: Self::mmr_proof(path.0, path.2, path.2),
+            header,
+            receipt_proof,
+            mmr_proof,
         }
     }
 }

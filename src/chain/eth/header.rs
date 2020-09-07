@@ -169,7 +169,8 @@ impl EthHeader {
 pub struct EthHeaderJson {
     parent_hash: String,
     timestamp: u64,
-    number: u64,
+    /// Block Number
+    pub number: u64,
     author: String,
     transactions_root: String,
     uncles_hash: String,

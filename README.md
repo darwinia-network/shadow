@@ -38,7 +38,6 @@ $ cargo install darwinia-shadow
 ### Note
 
 + Please make sure you have `golang` installed in your machine
-+ Please make sure you have `sqlite3` installed in your machine
 
 
 ## Environment

@@ -56,11 +56,11 @@ impl ReceiptResp {
     }
 
     /// Generate header
-    pub async fn new(path: (&Store, &str, u64)) -> ReceiptResp {
+    pub async fn new(shared: &ShadowShared, tx: &str, last_confirmed: u64) -> ReceiptResp {
         let client = Client::new();
-        let receipt_proof = Self::receipt(path.1);
+        let receipt_proof = Self::receipt(tx);
         let header = Self::header(&client, &receipt_proof.header_hash).await;
-        let mmr_proof = Self::mmr_proof(path.0, path.2, header.number);
+        let mmr_proof = Self::mmr_proof(&shared.store, last_confirmed, header.number);
         ReceiptResp {
             header,
             receipt_proof,
@@ -85,5 +85,5 @@ pub async fn handle(
     tx: web::Path<(String, u64)>,
     shared: web::Data<ShadowShared>,
 ) -> impl Responder {
-    web::Json(ReceiptResp::new((&shared.store, tx.0.as_str(), tx.1)).await)
+    web::Json(ReceiptResp::new(&shared, tx.0.as_str(), tx.1).await)
 }

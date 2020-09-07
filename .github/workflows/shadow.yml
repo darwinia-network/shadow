@@ -13,6 +13,9 @@ jobs:
       matrix:
         os: [macOS-latest, ubuntu-latest]
     steps:
+      - bash: echo "Check commit messages"
+        condition: not(contains(variables['Build.SourceVersionMessage'], '[skip ci]'))
+    steps:
       - name: Checkout the source code
         uses: actions/checkout@master
       - name: Environment

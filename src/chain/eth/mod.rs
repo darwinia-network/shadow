@@ -1,9 +1,9 @@
 //! ethereum
 use scale::{Decode, Encode};
 
+mod confirmations;
 mod ethash_proof;
 mod header;
-mod confirmations;
 
 /// Darwinia eth relay header thing
 #[derive(Decode, Encode, Default)]
@@ -15,7 +15,7 @@ pub struct HeaderThing {
 }
 
 pub use self::{
+    confirmations::get_confirmations,
     ethash_proof::{EthashProof, EthashProofJson},
     header::{EthHeader, EthHeaderJson, EthHeaderRPCResp},
-    confirmations::get_confirmations,
 };

@@ -31,18 +31,13 @@ pub async fn get_confirmations(client: &Client, block: u64) -> Result<u64, Error
         }
     });
 
-    let result = client
-        .post(&rpc_url)
-        .json(&map)
-        .send()
-        .await?;
+    let result = client.post(&rpc_url).json(&map).send().await?;
 
     println!("{:?}", result);
     let resp = result.json::<EthBlockNumberResp>().await?;
 
     // println!("{:?}", resp);
-    let raw
-        = resp.result.trim_start_matches("0x");
+    let raw = resp.result.trim_start_matches("0x");
     let current_height = i64::from_str_radix(&raw, 16).unwrap_or(0) as u64;
 
     Ok(current_height - block)

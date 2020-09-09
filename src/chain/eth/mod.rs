@@ -1,6 +1,7 @@
 //! ethereum
 use scale::{Decode, Encode};
 
+mod confirmation;
 mod ethash_proof;
 mod header;
 
@@ -14,6 +15,7 @@ pub struct HeaderThing {
 }
 
 pub use self::{
+    confirmation::get as confirmation,
     ethash_proof::{EthashProof, EthashProofJson},
     header::{EthHeader, EthHeaderJson, EthHeaderRPCResp},
 };

@@ -47,7 +47,7 @@ impl ReceiptResp {
 
     /// Get mmr proof
     pub fn mmr_proof(store: &Store, member: u64, last_leaf: u64) -> Vec<String> {
-        helper::gen_proof(store, &vec![member], last_leaf)
+        helper::gen_proof(store, &[member], last_leaf)
     }
 
     /// Generate header

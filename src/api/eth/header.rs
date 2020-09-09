@@ -1,5 +1,5 @@
 use crate::{
-    chain::eth::{EthHeader, EthHeaderJson},
+    chain::eth::{confirmation, EthHeader, EthHeaderJson},
     mmr::{MergeHash, H256},
     ShadowShared,
 };
@@ -7,9 +7,15 @@ use actix_web::{web, Responder};
 use cmmr::MMR;
 
 #[derive(Serialize)]
-struct ProofResp {
+struct HeaderThing {
     header: EthHeaderJson,
     mmr_root: String,
+}
+
+#[derive(Serialize)]
+pub struct HeaderResp {
+    header_thing: HeaderThing,
+    confirmation: u64,
 }
 
 /// Proof target header
@@ -21,6 +27,7 @@ struct ProofResp {
 /// // GET `/eth/header/19`
 /// eth::header(web::Path::from("19".to_string()), web::Data::new(ShadowShared::new(None)));
 /// ```
+#[allow(clippy::eval_order_dependence)]
 pub async fn handle(block: web::Path<String>, shared: web::Data<ShadowShared>) -> impl Responder {
     let num: u64 = block.to_string().parse().unwrap_or(0);
     let root = if num == 0 {
@@ -33,11 +40,14 @@ pub async fn handle(block: web::Path<String>, shared: web::Data<ShadowShared>) -
         )
     };
 
-    web::Json(ProofResp {
-        header: EthHeader::get(&shared.client, num)
-            .await
-            .unwrap_or_default()
-            .into(),
-        mmr_root: format!("0x{}", root),
+    web::Json(HeaderResp {
+        header_thing: HeaderThing {
+            header: EthHeader::get(&shared.client, num)
+                .await
+                .unwrap_or_default()
+                .into(),
+            mmr_root: format!("0x{}", root),
+        },
+        confirmation: confirmation(&shared.client, num).await.unwrap_or(0),
     })
 }

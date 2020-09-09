@@ -1,5 +1,5 @@
 use crate::{
-    chain::eth::{get_confirmations, EthHeader, EthHeaderJson},
+    chain::eth::{confirmation, EthHeader, EthHeaderJson},
     mmr::{MergeHash, H256},
     ShadowShared,
 };
@@ -13,9 +13,9 @@ struct HeaderThing {
 }
 
 #[derive(Serialize)]
-struct Resp {
+pub struct HeaderResp {
     header_thing: HeaderThing,
-    confirmations: u64,
+    confirmation: u64,
 }
 
 /// Proof target header
@@ -39,18 +39,14 @@ pub async fn handle(block: web::Path<String>, shared: web::Data<ShadowShared>) -
         )
     };
 
-    let header_thing = HeaderThing {
-        header: EthHeader::get(&shared.client, num)
-            .await
-            .unwrap_or_default()
-            .into(),
-        mmr_root: format!("0x{}", root),
-    };
-
-    let confirmations = get_confirmations(&shared.client, num).await.unwrap_or(0);
-
-    web::Json(Resp {
-        header_thing: header_thing,
-        confirmations: confirmations,
+    web::Json(HeaderResp {
+        header_thing: HeaderThing {
+            header: EthHeader::get(&shared.client, num)
+                .await
+                .unwrap_or_default()
+                .into(),
+            mmr_root: format!("0x{}", root),
+        },
+        confirmation: confirmation(&shared.client, num).await.unwrap_or(0),
     })
 }

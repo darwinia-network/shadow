@@ -27,6 +27,7 @@ pub struct HeaderResp {
 /// // GET `/eth/header/19`
 /// eth::header(web::Path::from("19".to_string()), web::Data::new(ShadowShared::new(None)));
 /// ```
+#[allow(clippy::eval_order_dependence)]
 pub async fn handle(block: web::Path<String>, shared: web::Data<ShadowShared>) -> impl Responder {
     let num: u64 = block.to_string().parse().unwrap_or(0);
     let root = if num == 0 {

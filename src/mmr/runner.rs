@@ -41,9 +41,9 @@ impl Runner {
 
         loop {
             match self.push(ptr, mmr_size).await {
-                Err(e) => {
-                    trace!("Push block to mmr_store failed: {:?}", e);
-                    trace!("MMR service restarting after 10s...");
+                Err(_e) => {
+                    // trace!("Push block to mmr_store failed: {:?}", e);
+                    // trace!("MMR service restarting after 10s...");
                     actix_rt::time::delay_for(time::Duration::from_secs(10)).await;
                 }
                 Ok(mmr_size_new) => {
@@ -54,7 +54,7 @@ impl Runner {
                             .unwrap_or(10000)
                         == 0
                     {
-                        info!("Pushed mmr {} into database", ptr);
+                        trace!("Pushed mmr {} into database", ptr);
                     }
 
                     mmr_size = mmr_size_new;

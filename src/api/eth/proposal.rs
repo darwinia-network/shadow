@@ -13,11 +13,11 @@ use scale::{Decode, Encode};
 #[derive(Deserialize, Encode)]
 pub struct ProposalReq {
     /// MMR leaves
-    pub leaves: Vec<u64>,
+    pub member: u64,
     /// The target proposal block
     pub target: u64,
     /// The last leaf of mmr
-    pub last_leaf: u64,
+    pub leaf: u64,
 }
 
 impl ProposalReq {
@@ -60,14 +60,14 @@ impl ProposalReq {
 
     /// Generate mmr proof
     pub fn mmr_proof(&self, store: &Store) -> Vec<String> {
-        if self.last_leaf < 1 || self.leaves.is_empty() {
+        if self.leaf < 1 {
             return vec![];
         }
 
-        helper::gen_proof(store, &self.leaves, self.last_leaf)
+        helper::gen_proof(store, self.member, self.leaf)
     }
 
-    /// To headers
+    /// Generate response
     pub async fn gen(&self, shared: web::Data<ShadowShared>) -> ProposalHeader {
         ProposalHeader {
             header: self.header(&shared.client).await,
@@ -95,9 +95,9 @@ pub struct ProposalHeader {
 ///
 /// // POST `/eth/proposal`
 /// eth::proposal(web::Json(eth::ProposalReq{
-///     leaves: vec![10],
+///     member: 10,
 ///     target: 19,
-///     last_leaf: 18
+///     leaf: 18
 /// }), web::Data::new(ShadowShared::new(None)));
 /// ```
 pub async fn handle(req: web::Json<ProposalReq>, share: web::Data<ShadowShared>) -> impl Responder {

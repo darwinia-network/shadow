@@ -2,10 +2,10 @@ mod mock;
 
 use darwinia_shadow::{
     bytes,
-    chain::eth::{EthHeader, EthashProof, HeaderThing},
+    chain::eth::{EthHeader, EthashProof},
     hex,
 };
-use mock::{ha, header, proof, ETHASH_PROOF_CODEC, ETH_HEADER_THING, HEADER, MOCK_HEADER_19};
+use mock::{ha, header, proof, ETHASH_PROOF_CODEC, HEADER};
 use scale::{Decode, Encode};
 
 /// the scale codec of hash is its hex string
@@ -44,16 +44,6 @@ fn eth_header() {
         header,
         EthHeader::decode(&mut bytes!(encoded.as_str()).as_ref()).unwrap()
     );
-}
-
-#[test]
-fn eth_header_thing() {
-    assert!(HeaderThing::decode(&mut bytes!(ETH_HEADER_THING).as_ref()).is_ok());
-}
-
-#[test]
-fn mock_header_thing() {
-    HeaderThing::decode(&mut bytes!(MOCK_HEADER_19).as_ref()).unwrap();
 }
 
 #[test]

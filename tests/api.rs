@@ -42,21 +42,21 @@ async fn test_proposal() {
 
     // Confirmed block on chain
     let confirmed = ProposalReq {
-        leaves: vec![],
+        member: 0,
         target: 0,
-        last_leaf: 0,
+        leaf: 0,
     };
 
     // New relay call - Round 0
     let req_r0 = ProposalReq {
-        leaves: vec![confirmed.target],
+        member: confirmed.target,
         target: 3,
-        last_leaf: 2,
+        leaf: 2,
     };
 
     // Verify MMR
     let p_r0 = MerkleProof::<[u8; 32], MergeHash>::new(
-        cmmr::leaf_index_to_mmr_size(req_r0.last_leaf),
+        cmmr::leaf_index_to_mmr_size(req_r0.leaf),
         req_r0
             .mmr_proof(&shared.store)
             .into_iter()
@@ -64,34 +64,31 @@ async fn test_proposal() {
             .collect(),
     );
 
-    // Expand leaves
-    let mut leaves = vec![];
-    for l in &req_r0.leaves {
-        leaves.push((
-            cmmr::leaf_index_to_pos(*l),
-            EthHeader::get(&shared.client, *l)
-                .await
-                .unwrap()
-                .hash
-                .unwrap(),
-        ));
-    }
-
     // Should pass verification
     assert!(p_r0
-        .verify(H256::from(&req_r0.mmr_root(&shared.store)), leaves)
+        .verify(
+            H256::from(&req_r0.mmr_root(&shared.store)),
+            vec![(
+                cmmr::leaf_index_to_pos(req_r0.member),
+                EthHeader::get(&shared.client, req_r0.member)
+                    .await
+                    .unwrap()
+                    .hash
+                    .unwrap(),
+            )]
+        )
         .unwrap_or(false));
 
     // New Round 1
     let req_r1 = ProposalReq {
-        leaves: vec![2],
+        member: 2,
         target: 2,
-        last_leaf: 2,
+        leaf: 2,
     };
 
     // Verify MMR
     let p_r1 = MerkleProof::<[u8; 32], MergeHash>::new(
-        cmmr::leaf_index_to_mmr_size(req_r1.last_leaf),
+        cmmr::leaf_index_to_mmr_size(req_r1.leaf),
         req_r1
             .mmr_proof(&shared.store)
             .into_iter()
@@ -99,26 +96,20 @@ async fn test_proposal() {
             .collect(),
     );
 
-    // Expand leaves
-    let mut leaves = vec![];
-    for l in &req_r1.leaves {
-        leaves.push((
-            cmmr::leaf_index_to_pos(*l),
-            EthHeader::get(&shared.client, *l)
-                .await
-                .unwrap()
-                .hash
-                .unwrap(),
-        ));
-    }
-
-    println!("last_leaf: {:?}", req_r1.last_leaf);
-    println!("mmr_proof: {:?}", req_r1.mmr_proof(&shared.store));
-    println!("mmr_root: {:?}", req_r0.mmr_root(&shared.store));
     // Should pass verification
     //
     // The the round 0's mmr_root to verify round 1's hash
     assert!(p_r1
-        .verify(H256::from(&req_r0.mmr_root(&shared.store)), leaves)
+        .verify(
+            H256::from(&req_r0.mmr_root(&shared.store)),
+            vec![(
+                cmmr::leaf_index_to_pos(req_r1.member),
+                EthHeader::get(&shared.client, req_r1.member)
+                    .await
+                    .unwrap()
+                    .hash
+                    .unwrap(),
+            )]
+        )
         .unwrap_or(false));
 }

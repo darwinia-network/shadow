@@ -44,19 +44,19 @@ async fn test_proposal() {
     let confirmed = ProposalReq {
         member: 0,
         target: 0,
-        leaf: 0,
+        last_leaf: 0,
     };
 
     // New relay call - Round 0
     let req_r0 = ProposalReq {
         member: confirmed.target,
         target: 3,
-        leaf: 2,
+        last_leaf: 2,
     };
 
     // Verify MMR
     let p_r0 = MerkleProof::<[u8; 32], MergeHash>::new(
-        cmmr::leaf_index_to_mmr_size(req_r0.leaf),
+        cmmr::leaf_index_to_mmr_size(req_r0.last_leaf),
         req_r0
             .mmr_proof(&shared.store)
             .into_iter()
@@ -83,12 +83,12 @@ async fn test_proposal() {
     let req_r1 = ProposalReq {
         member: 2,
         target: 2,
-        leaf: 2,
+        last_leaf: 2,
     };
 
     // Verify MMR
     let p_r1 = MerkleProof::<[u8; 32], MergeHash>::new(
-        cmmr::leaf_index_to_mmr_size(req_r1.leaf),
+        cmmr::leaf_index_to_mmr_size(req_r1.last_leaf),
         req_r1
             .mmr_proof(&shared.store)
             .into_iter()

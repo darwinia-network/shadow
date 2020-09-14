@@ -17,7 +17,7 @@ pub struct ProposalReq {
     /// The target proposal block
     pub target: u64,
     /// The last leaf of mmr
-    pub leaf: u64,
+    pub last_leaf: u64,
 }
 
 impl ProposalReq {
@@ -60,11 +60,11 @@ impl ProposalReq {
 
     /// Generate mmr proof
     pub fn mmr_proof(&self, store: &Store) -> Vec<String> {
-        if self.leaf < 1 {
+        if self.last_leaf < 1 {
             return vec![];
         }
 
-        helper::gen_proof(store, self.member, self.leaf)
+        helper::gen_proof(store, self.member, self.last_leaf)
     }
 
     /// Generate response
@@ -97,7 +97,7 @@ pub struct ProposalHeader {
 /// eth::proposal(web::Json(eth::ProposalReq{
 ///     member: 10,
 ///     target: 19,
-///     leaf: 18
+///     last_leaf: 18
 /// }), web::Data::new(ShadowShared::new(None)));
 /// ```
 pub async fn handle(req: web::Json<ProposalReq>, share: web::Data<ShadowShared>) -> impl Responder {

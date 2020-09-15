@@ -29,17 +29,14 @@ pub fn mmr_size_to_last_leaf(mmr_size: i64) -> i64 {
 }
 
 /// Generate proof by members and last_leaf
-pub fn gen_proof(store: &Store, members: &[u64], last_leaf: u64) -> Vec<String> {
-    match MMR::<_, MergeHash, _>::new(cmmr::leaf_index_to_mmr_size(last_leaf), store).gen_proof(
-        members
-            .iter()
-            .map(|l| cmmr::leaf_index_to_pos(*l))
-            .collect(),
-    ) {
+pub fn gen_proof(store: &Store, member: u64, last_leaf: u64) -> Vec<String> {
+    match MMR::<_, MergeHash, _>::new(cmmr::leaf_index_to_mmr_size(last_leaf), store)
+        .gen_proof(vec![cmmr::leaf_index_to_pos(member)])
+    {
         Err(e) => {
             error!(
                 "Generate proof failed {:?}, last_leaf: {:?}, leaves: {:?}",
-                e, last_leaf, members,
+                e, last_leaf, member,
             );
             vec![]
         }

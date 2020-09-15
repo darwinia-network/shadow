@@ -1,6 +1,5 @@
 use crate::{
-    chain::eth::{EthHeader, EthHeaderJson},
-    mmr::{helper, Store},
+    chain::eth::{EthHeader, EthHeaderJson, MMRProofJson},
     ShadowShared,
 };
 use actix_web::{web, Responder};
@@ -29,7 +28,7 @@ impl From<(String, String, String)> for ReceiptProof {
 pub struct ReceiptResp {
     header: EthHeaderJson,
     receipt_proof: ReceiptProof,
-    mmr_proof: Vec<String>,
+    mmr_proof: MMRProofJson,
 }
 
 impl ReceiptResp {
@@ -45,20 +44,15 @@ impl ReceiptResp {
             .into()
     }
 
-    /// Get mmr proof
-    pub fn mmr_proof(store: &Store, member: u64, last_leaf: u64) -> Vec<String> {
-        helper::gen_proof(store, &[member], last_leaf)
-    }
-
     /// Generate header
     /// mmr_root_height should be last confirmed block in relayt
     pub async fn new(shared: &ShadowShared, tx: &str, mmr_root_height: u64) -> ReceiptResp {
         let receipt_proof = Self::receipt(tx);
         let header = Self::header(&shared.client, &receipt_proof.header_hash).await;
         let mmr_proof = if mmr_root_height > 0 {
-            Self::mmr_proof(&shared.store, header.number, mmr_root_height - 1)
+            MMRProofJson::gen(&shared.store, header.number, mmr_root_height - 1)
         } else {
-            vec![]
+            MMRProofJson::default()
         };
         ReceiptResp {
             header,
@@ -74,7 +68,7 @@ impl ReceiptResp {
 /// use actix_web::web;
 /// use darwinia_shadow::{api::eth, ShadowShared};
 ///
-/// // GET `/eth/receipt/0x3b82a55f5e752c23359d5c3c4c3360455ce0e485ed37e1faabe9ea10d5db3e7a`
+/// // GET `/eth/receipt/0x3b82a55f5e752c23359d5c3c4c3360455ce0e485ed37e1faabe9ea10d5db3e7a/66666`
 /// eth::receipt(web::Path::from((
 ///     "0x3b82a55f5e752c23359d5c3c4c3360455ce0e485ed37e1faabe9ea10d5db3e7a".to_string(),
 ///      0 as u64,

@@ -11,7 +11,7 @@
 //! ## Usage
 //!
 //! ```sh
-//! shadow 0.2.2
+//! shadow 0.2.4
 //!
 //! USAGE:
 //!     shadow <SUBCOMMAND>

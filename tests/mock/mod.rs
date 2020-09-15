@@ -2,15 +2,15 @@ mod ethash_proof;
 mod ethash_proof_codec;
 mod hash;
 mod header;
-mod header_thing;
-mod mock_header_19;
+// mod header_thing;
+// mod mock_header_19;
 
 pub use ethash_proof::{DAG_NODES, PROOF};
 pub use ethash_proof_codec::ETHASH_PROOF_CODEC;
 pub use hash::HASHES;
 pub use header::HEADER;
-pub use header_thing::ETH_HEADER_THING;
-pub use mock_header_19::MOCK_HEADER_19;
+// pub use header_thing::ETH_HEADER_THING;
+// pub use mock_header_19::MOCK_HEADER_19;
 use scale::Decode;
 
 use darwinia_shadow::{

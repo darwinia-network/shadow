@@ -1,6 +1,7 @@
 package eth
 
 import (
+	"errors"
 	"fmt"
 	"math/big"
 
@@ -61,39 +62,43 @@ func (o *ProofOutput) Format() []DoubleNodeWithMerkleProof {
 	return dnmps
 }
 
-// Proof eth blockheader
-func Proof(header *types.Header, config *shadow.Config) (ProofOutput, error) {
-	blockno := header.Number.Uint64()
-	epoch := blockno / 30000
-	output := &ProofOutput{}
-
-	// Handle lock
-	if config.CheckLock(shadow.PROOF_LOCK) {
-		return *output, fmt.Errorf("ethashproof process is busy now")
-	}
-
-	// Get proof from cache
+func Epoch(block uint64, config *shadow.Config) (*ethashproof.DatasetMerkleTreeCache, error) {
+	epoch := block / 30000
 	cache, err := ethashproof.LoadCache(int(epoch))
 	if err != nil {
 		err = config.CreateLock(shadow.PROOF_LOCK)
 		if err != nil {
-			return *output, err
+			return nil, errors.New("Create epoch lock failed")
 		}
 
 		_, err = ethashproof.CalculateDatasetMerkleRoot(epoch, true)
 		if err != nil {
-			return *output, err
+			return nil, errors.New("Calculate merkle root failed")
 		}
 
 		cache, err = ethashproof.LoadCache(int(epoch))
 		if err != nil {
-			return *output, err
+			return nil, errors.New("Get ethash proof failed again, please retry")
 		}
 
 		err = config.RemoveLock(shadow.PROOF_LOCK)
 		if err != nil {
-			return *output, err
+			return nil, errors.New("Remove lock failed")
 		}
+	}
+
+	return cache, nil
+}
+
+// Proof eth blockheader
+func Proof(header *types.Header, config *shadow.Config) (ProofOutput, error) {
+	blockno := header.Number.Uint64()
+	output := &ProofOutput{}
+
+	// Get proof from cache
+	cache, err := Epoch(blockno, config)
+	if err != nil {
+		return *output, err
 	}
 
 	rlpheader, err := ethashproof.RLPHeader(header)

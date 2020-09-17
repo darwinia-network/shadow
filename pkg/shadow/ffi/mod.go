@@ -16,6 +16,12 @@ func init() {
 	_ = CONFIG.Load()
 }
 
+//export Epoch
+func Epoch(block uint64) bool {
+	_, err := eth.Epoch(block, &CONFIG)
+	return err == nil
+}
+
 //export Proof
 func Proof(number uint64) *C.char {
 	header, err := eth.Header(number, CONFIG.Api)

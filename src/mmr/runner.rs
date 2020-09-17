@@ -1,5 +1,6 @@
 //! MMR Runner
 use crate::{
+    api::eth::epoch,
     chain::eth::EthHeaderRPCResp,
     mmr::{
         hash::{MergeHash, H256},
@@ -40,10 +41,15 @@ impl Runner {
         let mut ptr = if last_leaf == 0 { 0 } else { last_leaf + 1 };
 
         loop {
+            /// Note:
+            ///
+            /// This trigger is ungly, need better solution in the future
+            if ptr % 30000 == 0 {
+                epoch(ptr as u64);
+            }
+
             match self.push(ptr, mmr_size).await {
                 Err(_e) => {
-                    // trace!("Push block to mmr_store failed: {:?}", e);
-                    // trace!("MMR service restarting after 10s...");
                     actix_rt::time::delay_for(time::Duration::from_secs(10)).await;
                 }
                 Ok(mmr_size_new) => {

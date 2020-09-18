@@ -13,7 +13,7 @@ use crate::{
 use cmmr::MMR;
 use reqwest::Client;
 use rocksdb::{IteratorMode, DB};
-use std::{env, sync::Arc, time};
+use std::{env, sync::Arc, thread, time};
 
 /// MMR Runner
 #[derive(Clone)]
@@ -34,6 +34,14 @@ impl From<ShadowShared> for Runner {
 }
 
 impl Runner {
+    /// Async epoch
+    pub fn epoch(block: u64) {
+        if !epoch(block) {
+            thread::sleep(time::Duration::from_secs(10));
+            Self::epoch(block);
+        }
+    }
+
     /// Start the runner
     pub async fn start(&mut self) -> Result<(), Error> {
         let mut mmr_size = self.db.iterator(IteratorMode::Start).count() as u64;
@@ -45,7 +53,10 @@ impl Runner {
             //
             // This trigger is ungly, need better solution in the future
             if ptr % 30000 == 0 {
-                epoch(ptr as u64);
+                let block = ptr.clone();
+                thread::spawn(move || Self::epoch(block as u64))
+                    .join()
+                    .unwrap_or_default();
             }
 
             match self.push(ptr, mmr_size).await {

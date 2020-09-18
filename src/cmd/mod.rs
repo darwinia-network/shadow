@@ -1,8 +1,10 @@
 //! `shadow` commands
 use crate::result::Error;
+use std::path::PathBuf;
 use structopt::{clap::AppSettings, StructOpt};
 
 mod count;
+mod export;
 mod import;
 mod run;
 mod trim;
@@ -33,6 +35,12 @@ enum Opt {
         #[structopt(short, long)]
         to: i32,
     },
+    /// Exports shadow's rocksdb
+    Export {
+        /// Target datadir
+        #[structopt(short, long)]
+        dist: PathBuf,
+    },
     /// Trim mmr from target leaf
     Trim {
         /// The target leaf
@@ -48,6 +56,7 @@ pub async fn exec() -> Result<(), Error> {
         Opt::Run { port, verbose } => run::exec(port, verbose).await,
         Opt::Import { path, from, to } => import::exec(path, from, to),
         Opt::Trim { leaf } => trim::exec(leaf),
+        Opt::Export { dist } => export::exec(dist),
     }?;
 
     Ok::<(), Error>(())

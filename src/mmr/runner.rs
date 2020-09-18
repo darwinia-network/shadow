@@ -41,9 +41,9 @@ impl Runner {
         let mut ptr = if last_leaf == 0 { 0 } else { last_leaf + 1 };
 
         loop {
-            /// Note:
-            ///
-            /// This trigger is ungly, need better solution in the future
+            // Note:
+            //
+            // This trigger is ungly, need better solution in the future
             if ptr % 30000 == 0 {
                 epoch(ptr as u64);
             }

@@ -13,7 +13,7 @@ pub fn exec(dist: Option<PathBuf>) -> Result<(), Error> {
     let tmp = env::temp_dir();
 
     // Create backup of rocksdb
-    let dir = if let Some(p) = dist { p } else { tmp.clone() };
+    let dir = if let Some(p) = dist { p } else { tmp };
     let mut rocks = dir.clone();
     rocks.push("shadow_mmr");
 
@@ -23,7 +23,7 @@ pub fn exec(dist: Option<PathBuf>) -> Result<(), Error> {
 
     // Tar backup
     if atty::is(atty::Stream::Stdout) {
-        let mut tar = dir.clone();
+        let mut tar = dir;
         tar.push("shadow_mmr.tar");
 
         let mut ar = Builder::new(File::create(tar)?);

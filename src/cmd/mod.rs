@@ -39,7 +39,7 @@ enum Opt {
     Export {
         /// Target datadir
         #[structopt(short, long)]
-        dist: PathBuf,
+        dist: Option<PathBuf>,
     },
     /// Trim mmr from target leaf
     Trim {

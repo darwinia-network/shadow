@@ -5,10 +5,36 @@ use crate::{
     ShadowShared,
 };
 use cmmr::MMR;
-use rocksdb::IteratorMode;
+use rocksdb::{
+    backup::{BackupEngine, BackupEngineOptions, RestoreOptions},
+    IteratorMode,
+};
+use std::{env, fs::File};
+
+/// Import headers from backup or geth
+pub fn exec(path: String, from: i32, to: i32) -> Result<(), Error> {
+    if path.ends_with("tar") {
+        backup(path)
+    } else {
+        geth(path, from, to)
+    }
+}
+
+/// Import headers from backup
+fn backup(path: String) -> Result<(), Error> {
+    let db_dir = dirs::home_dir().unwrap().join(".darwinia/cache/mmr");
+    let mut wal_dir = env::temp_dir();
+    wal_dir.push("shadow_mmr");
+
+    // extract tar file
+    tar::Archive::new(File::open(&path)?).unpack(&env::temp_dir())?;
+    let mut engine = BackupEngine::open(&BackupEngineOptions::default(), &wal_dir)?;
+    engine.restore_from_latest_backup(db_dir, wal_dir, &RestoreOptions::default())?;
+    Ok(())
+}
 
 /// Import headers from geth
-pub fn exec(path: String, from: i32, to: i32) -> Result<(), Error> {
+fn geth(path: String, from: i32, to: i32) -> Result<(), Error> {
     std::env::set_var("RUST_LOG", "info,darwinia_shadow");
     std::env::set_var("GO_LOG", "ALL");
     env_logger::init();

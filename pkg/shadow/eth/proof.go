@@ -66,7 +66,7 @@ func Epoch(block uint64, config *shadow.Config) (*ethashproof.DatasetMerkleTreeC
 	epoch := block / 30000
 	cache, err := ethashproof.LoadCache(int(epoch))
 	if err != nil {
-		err = config.CreateLock(shadow.PROOF_LOCK)
+		err = config.CreateLock(shadow.PROOF_LOCK, epoch)
 		if err != nil {
 			return nil, errors.New("Create epoch lock failed")
 		}
@@ -81,7 +81,7 @@ func Epoch(block uint64, config *shadow.Config) (*ethashproof.DatasetMerkleTreeC
 			return nil, errors.New("Get ethash proof failed again, please retry")
 		}
 
-		err = config.RemoveLock(shadow.PROOF_LOCK)
+		err = config.RemoveLock(shadow.PROOF_LOCK, epoch)
 		if err != nil {
 			return nil, errors.New("Remove lock failed")
 		}

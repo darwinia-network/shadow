@@ -13,7 +13,7 @@ pub async fn exec(port: u16, verbose: bool) -> Result<(), Error> {
         }
     }
     env_logger::init();
-    let (mr, ar) = futures::join!(runner.start(), api::serve(port, shared));
+    let (mr, ar) = futures::join!(api::serve(port, shared), runner.start());
     mr?;
     ar?;
     Ok(())

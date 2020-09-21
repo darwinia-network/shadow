@@ -53,8 +53,7 @@ impl Runner {
             //
             // This trigger is ungly, need better solution in the future
             if ptr % 30000 == 0 {
-                let block = ptr.clone();
-                thread::spawn(move || Self::epoch(block as u64))
+                thread::spawn(move || Self::epoch(ptr as u64))
                     .join()
                     .unwrap_or_default();
             }

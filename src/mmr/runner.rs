@@ -1,5 +1,6 @@
 //! MMR Runner
 use crate::{
+    api::eth::epoch,
     chain::eth::EthHeaderRPCResp,
     mmr::{
         hash::{MergeHash, H256},
@@ -12,7 +13,7 @@ use crate::{
 use cmmr::MMR;
 use reqwest::Client;
 use rocksdb::{IteratorMode, DB};
-use std::{env, sync::Arc, time};
+use std::{env, sync::Arc, thread, time};
 
 /// MMR Runner
 #[derive(Clone)]
@@ -33,6 +34,14 @@ impl From<ShadowShared> for Runner {
 }
 
 impl Runner {
+    /// Async epoch
+    pub fn epoch(block: u64) {
+        if !epoch(block) {
+            thread::sleep(time::Duration::from_secs(10));
+            Self::epoch(block);
+        }
+    }
+
     /// Start the runner
     pub async fn start(&mut self) -> Result<(), Error> {
         let mut mmr_size = self.db.iterator(IteratorMode::Start).count() as u64;
@@ -40,10 +49,17 @@ impl Runner {
         let mut ptr = if last_leaf == 0 { 0 } else { last_leaf + 1 };
 
         loop {
+            // Note:
+            //
+            // This trigger is ungly, need better solution in the future
+            if ptr % 30000 == 0 {
+                thread::spawn(move || Self::epoch(ptr as u64))
+                    .join()
+                    .unwrap_or_default();
+            }
+
             match self.push(ptr, mmr_size).await {
                 Err(_e) => {
-                    // trace!("Push block to mmr_store failed: {:?}", e);
-                    // trace!("MMR service restarting after 10s...");
                     actix_rt::time::delay_for(time::Duration::from_secs(10)).await;
                 }
                 Ok(mmr_size_new) => {

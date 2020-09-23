@@ -5,6 +5,7 @@ fn main() {
     println!("cargo:rerun-if-changed=build.rs");
     println!("cargo:rerun-if-changed=pkg/shadow/eth/receipt.go");
     println!("cargo:rerun-if-changed=pkg/shadow/eth/proof.go");
+    println!("cargo:rerun-if-changed=pkg/shadow/lock.go");
     println!("cargo:rerun-if-changed=pkg/shadow/ffi/mod.go");
 
     // Declare build args

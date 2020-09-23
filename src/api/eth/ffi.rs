@@ -32,6 +32,7 @@ extern "C" {
     fn Import(path: GoString, from: libc::c_int, to: libc::c_int) -> *const c_char;
     fn Proof(input: libc::c_uint) -> *const c_char;
     fn Receipt(input: GoString) -> GoTuple;
+    fn Epoch(input: libc::c_uint) -> bool;
 }
 
 /// Proof eth header by number
@@ -41,6 +42,11 @@ pub fn proof(block: u64) -> String {
             .to_string_lossy()
             .to_string()
     }
+}
+
+/// Proof eth header by number
+pub fn epoch(block: u64) -> bool {
+    unsafe { Epoch(block as u32) }
 }
 
 /// Get receipt by tx hash

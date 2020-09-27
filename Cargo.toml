@@ -1,6 +1,6 @@
 [package]
 name = "darwinia-shadow"
-version = "0.2.5"
+version = "0.2.6"
 authors = ["clearloop <udtrokia@gmail.com>"]
 edition = "2018"
 description = "The shadow service for relayers and verify workers to retrieve header data and generate proof."

@@ -1,11 +1,11 @@
 use cmmr::MerkleProof;
 use darwinia_shadow::{
     api::eth::ProposalReq,
-    chain::eth::EthHeader,
     mmr::{helper, MergeHash, Runner, H256},
     result::Error,
     ShadowShared,
 };
+use primitives::rpc::RPC;
 use rocksdb::{IteratorMode, DB};
 
 async fn stops_at(db: &DB, runner: &mut Runner, count: i64) -> Result<(), Error> {
@@ -36,6 +36,7 @@ async fn stops_at(db: &DB, runner: &mut Runner, count: i64) -> Result<(), Error>
 async fn test_proposal() {
     let shared = ShadowShared::new(None);
     let mut runner = Runner::from(shared.clone());
+    let rpc = shared.eth_rpc();
 
     // Gen mmrs
     assert!(stops_at(&shared.db, &mut runner, 30).await.is_ok());
@@ -70,7 +71,7 @@ async fn test_proposal() {
             H256::from(&req_r0.mmr_root(&shared.store)),
             vec![(
                 cmmr::leaf_index_to_pos(req_r0.member),
-                EthHeader::get(&shared.client, req_r0.member)
+                rpc.get_header_by_number(req_r0.member)
                     .await
                     .unwrap()
                     .hash
@@ -104,7 +105,7 @@ async fn test_proposal() {
             H256::from(&req_r0.mmr_root(&shared.store)),
             vec![(
                 cmmr::leaf_index_to_pos(req_r1.member),
-                EthHeader::get(&shared.client, req_r1.member)
+                rpc.get_header_by_number(req_r1.member)
                     .await
                     .unwrap()
                     .hash

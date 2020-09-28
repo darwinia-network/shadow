@@ -51,8 +51,7 @@ uint = "0.8.3"
 
 [dependencies.primitives]
 package = "darwinia-bridge-primitives"
-# version = "0.0.5"
-path = "../bridge-primitives"
+version = "0.0.6"
 features = ["rpc"]
 
 [dependencies.scale]

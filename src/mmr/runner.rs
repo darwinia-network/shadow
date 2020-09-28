@@ -1,35 +1,37 @@
 //! MMR Runner
 use crate::{
     api::eth::epoch,
-    chain::eth::EthHeaderRPCResp,
     mmr::{
         hash::{MergeHash, H256},
         helper,
-        store::Store,
     },
     result::Error,
     ShadowShared,
 };
 use cmmr::MMR;
-use reqwest::Client;
-use rocksdb::{IteratorMode, DB};
-use std::{env, sync::Arc, thread, time};
+use primitives::rpc::eth::EthHeaderRPCResp;
+use rocksdb::IteratorMode;
+use std::{env, thread, time};
 
 /// MMR Runner
 #[derive(Clone)]
-pub struct Runner {
-    store: Store,
-    db: Arc<DB>,
-    client: Client,
+pub struct Runner(ShadowShared);
+
+impl AsRef<ShadowShared> for Runner {
+    fn as_ref(&self) -> &ShadowShared {
+        &self.0
+    }
+}
+
+impl AsMut<ShadowShared> for Runner {
+    fn as_mut(&mut self) -> &mut ShadowShared {
+        &mut self.0
+    }
 }
 
 impl From<ShadowShared> for Runner {
     fn from(s: ShadowShared) -> Self {
-        Self {
-            store: s.store,
-            db: s.db,
-            client: s.client,
-        }
+        Self(s)
     }
 }
 
@@ -44,7 +46,7 @@ impl Runner {
 
     /// Start the runner
     pub async fn start(&mut self) -> Result<(), Error> {
-        let mut mmr_size = self.db.iterator(IteratorMode::Start).count() as u64;
+        let mut mmr_size = self.as_mut().db.iterator(IteratorMode::Start).count() as u64;
         let last_leaf = helper::mmr_size_to_last_leaf(mmr_size as i64);
         let mut ptr = if last_leaf == 0 { 0 } else { last_leaf + 1 };
 
@@ -82,8 +84,8 @@ impl Runner {
 
     /// Push new header hash into storage
     pub async fn push(&mut self, number: i64, mmr_size: u64) -> Result<u64, Error> {
-        let mut mmr = MMR::<_, MergeHash, _>::new(mmr_size, &self.store);
-        let hash_from_ethereum = &EthHeaderRPCResp::get(&self.client, number as u64)
+        let mut mmr = MMR::<_, MergeHash, _>::new(mmr_size, &self.as_ref().store);
+        let hash_from_ethereum = &EthHeaderRPCResp::get(&self.0.client, &self.0.eth, number as u64)
             .await?
             .result
             .hash;

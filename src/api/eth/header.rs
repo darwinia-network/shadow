@@ -1,10 +1,10 @@
 use crate::{
-    chain::eth::{confirmation, EthHeader, EthHeaderJson},
     mmr::{MergeHash, H256},
     ShadowShared,
 };
 use actix_web::{web, Responder};
 use cmmr::MMR;
+use primitives::{chain::eth::EthHeaderJson, rpc::RPC};
 
 #[derive(Serialize)]
 struct HeaderThing {
@@ -40,14 +40,16 @@ pub async fn handle(block: web::Path<String>, shared: web::Data<ShadowShared>) -
         )
     };
 
+    let rpc = shared.eth_rpc();
     web::Json(HeaderResp {
         header_thing: HeaderThing {
-            header: EthHeader::get(&shared.client, num)
+            header: rpc
+                .get_header_by_number(num)
                 .await
                 .unwrap_or_default()
                 .into(),
             mmr_root: format!("0x{}", root),
         },
-        confirmation: confirmation(&shared.client, num).await.unwrap_or(0),
+        confirmation: rpc.block_number().await.unwrap_or(num) - num,
     })
 }

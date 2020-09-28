@@ -1,53 +1,56 @@
 //! MMR Errors
-use cmmr::Error as MMRError;
-use reqwest::Error as ReqwestError;
-use rocksdb::Error as RocksdbError;
-use serde_json::Error as SerdeJSONError;
-use std::io::Error as IoError;
+use cmmr::Error as MMR;
+use primitives::result::Error as Primitive;
+use reqwest::Error as Reqwest;
+use rocksdb::Error as Rocksdb;
+use serde_json::Error as SerdeJson;
+use std::{
+    error::Error as ErrorTrait,
+    fmt::{Display, Formatter, Result as FmtResult},
+    io::Error as Io,
+    result::Result as StdResult,
+};
 
-/// MMR Errors
-#[derive(Debug)]
-pub enum Error {
-    /// Io Error
-    Io(IoError),
-    /// MMR Error
-    MMR(MMRError),
-    /// Reqwest Error
-    Reqwest(ReqwestError),
-    /// Reqwest Error
-    SerdeJSON(SerdeJSONError),
-    /// Reqwest Error
-    RocksdbError(RocksdbError),
-    /// Custom
-    Custom(String),
-}
+/// The custom shadow error
+pub struct Shadow(String);
 
-impl From<MMRError> for Error {
-    fn from(e: MMRError) -> Error {
-        Error::MMR(e)
+impl Display for Shadow {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        f.write_str(&self.0)
     }
 }
 
-impl From<IoError> for Error {
-    fn from(e: IoError) -> Error {
-        Error::Io(e)
-    }
+/// Error generator
+macro_rules! error {
+    ($($e:ident),*) => {
+        /// Bridger Error
+        #[derive(Debug)]
+        #[allow(missing_docs)]
+        pub enum Error {
+            $($e(String),)+
+        }
+
+        impl Display for Error {
+            fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+                match self {
+                    $(Error::$e(e) => e.fmt(f),)+
+                }
+            }
+        }
+
+        impl ErrorTrait for Error {}
+
+        $(
+            impl From<$e> for Error {
+                fn from(e: $e) -> Error {
+                    Error::$e(format!("{}", e))
+                }
+            }
+        )+
+    };
 }
 
-impl From<ReqwestError> for Error {
-    fn from(e: ReqwestError) -> Error {
-        Error::Reqwest(e)
-    }
-}
+error! {Io, MMR, Reqwest, SerdeJson, Rocksdb, Shadow, Primitive}
 
-impl From<SerdeJSONError> for Error {
-    fn from(e: SerdeJSONError) -> Error {
-        Error::SerdeJSON(e)
-    }
-}
-
-impl From<RocksdbError> for Error {
-    fn from(e: RocksdbError) -> Error {
-        Error::RocksdbError(e)
-    }
-}
+/// Sup Result
+pub type Result<T> = StdResult<T, Error>;

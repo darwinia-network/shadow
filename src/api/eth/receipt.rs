@@ -1,9 +1,9 @@
-use crate::{
-    chain::eth::{EthHeader, EthHeaderJson, MMRProofJson},
-    ShadowShared,
-};
+use crate::{mmr::helper, ShadowShared};
 use actix_web::{web, Responder};
-use reqwest::Client;
+use primitives::{
+    chain::eth::{EthHeaderJson, MMRProofJson},
+    rpc::RPC,
+};
 
 /// Receipt proof
 #[derive(Serialize)]
@@ -37,8 +37,10 @@ impl ReceiptResp {
         super::ffi::receipt(tx).into()
     }
     /// Get ethereum header json
-    pub async fn header(client: &Client, block: &str) -> EthHeaderJson {
-        EthHeader::get_by_hash(client, block)
+    pub async fn header(shared: &ShadowShared, block: &str) -> EthHeaderJson {
+        shared
+            .eth_rpc()
+            .get_header_by_hash(block)
             .await
             .unwrap_or_default()
             .into()
@@ -48,9 +50,14 @@ impl ReceiptResp {
     /// mmr_root_height should be last confirmed block in relayt
     pub async fn new(shared: &ShadowShared, tx: &str, mmr_root_height: u64) -> ReceiptResp {
         let receipt_proof = Self::receipt(tx);
-        let header = Self::header(&shared.client, &receipt_proof.header_hash).await;
+        let header = Self::header(&shared, &receipt_proof.header_hash).await;
         let mmr_proof = if mmr_root_height > 0 {
-            MMRProofJson::gen(&shared.store, header.number, mmr_root_height - 1)
+            let (member_leaf_index, last_leaf_index) = (header.number, mmr_root_height - 1);
+            MMRProofJson {
+                member_leaf_index,
+                last_leaf_index,
+                proof: helper::gen_proof(&shared.store, member_leaf_index, last_leaf_index),
+            }
         } else {
             MMRProofJson::default()
         };

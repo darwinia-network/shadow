@@ -1,12 +1,14 @@
 use crate::{
     api::ShadowShared,
-    bytes,
-    chain::eth::{EthHeader, EthHeaderJson, EthashProof, EthashProofJson},
     mmr::{helper, MergeHash, Store, H256},
 };
 use actix_web::{web, Responder};
 use cmmr::MMR;
-use reqwest::Client;
+use primitives::{
+    bytes,
+    chain::eth::{EthHeaderJson, EthashProof, EthashProofJson},
+    rpc::RPC,
+};
 use scale::{Decode, Encode};
 
 /// Proposal post req
@@ -22,8 +24,10 @@ pub struct ProposalReq {
 
 impl ProposalReq {
     /// Get `EthHeader`
-    async fn header(&self, client: &Client) -> EthHeaderJson {
-        EthHeader::get(&client, self.target)
+    async fn header(&self, shared: &ShadowShared) -> EthHeaderJson {
+        shared
+            .eth_rpc()
+            .get_header_by_number(self.target)
             .await
             .unwrap_or_default()
             .into()
@@ -70,7 +74,7 @@ impl ProposalReq {
     /// Generate response
     pub async fn gen(&self, shared: web::Data<ShadowShared>) -> ProposalHeader {
         ProposalHeader {
-            header: self.header(&shared.client).await,
+            header: self.header(&shared).await,
             ethash_proof: self.ethash_proof(),
             mmr_root: self.mmr_root(&shared.store),
             mmr_proof: self.mmr_proof(&shared.store),

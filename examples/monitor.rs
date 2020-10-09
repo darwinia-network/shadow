@@ -1,4 +1,5 @@
-use darwinia_shadow::{hex, mmr::H256, ShadowShared};
+use darwinia_shadow::{mmr::H256, ShadowShared};
+use primitives::hex;
 use rocksdb::IteratorMode;
 
 fn main() {

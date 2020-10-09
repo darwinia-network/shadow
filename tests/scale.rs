@@ -1,11 +1,11 @@
 mod mock;
 
-use darwinia_shadow::{
+use mock::{ha, header, proof, ETHASH_PROOF_CODEC, HEADER};
+use primitives::{
     bytes,
     chain::eth::{EthHeader, EthashProof},
     hex,
 };
-use mock::{ha, header, proof, ETHASH_PROOF_CODEC, HEADER};
 use scale::{Decode, Encode};
 
 /// the scale codec of hash is its hex string

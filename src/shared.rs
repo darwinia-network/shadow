@@ -1,7 +1,8 @@
 use crate::mmr::Store;
+use primitives::rpc::EthereumRPC;
 use reqwest::Client;
 use rocksdb::DB;
-use std::{path::PathBuf, sync::Arc, thread, time};
+use std::{env, path::PathBuf, sync::Arc, thread, time};
 
 /// Constants
 const DEFAULT_RELATIVE_MMR_DB: &str = ".darwinia/cache/mmr";
@@ -15,6 +16,18 @@ pub struct ShadowShared {
     pub client: Client,
     /// RocksDB
     pub db: Arc<DB>,
+    /// Ethereum host
+    pub eth: String,
+}
+
+fn ethereum_rpc() -> String {
+    env::var("ETHEREUM_RPC").unwrap_or_else(|_| {
+        if env::var("ETHEREUM_ROPSTEN").is_ok() {
+            crate::conf::DEFAULT_ETHEREUM_ROPSTEN_RPC.into()
+        } else {
+            crate::conf::DEFAULT_ETHEREUM_RPC.into()
+        }
+    })
 }
 
 impl ShadowShared {
@@ -52,8 +65,14 @@ impl ShadowShared {
                     db: db.clone(),
                     store: Store::with(db),
                     client: Client::new(),
+                    eth: ethereum_rpc(),
                 }
             }
         }
+    }
+
+    /// Ref to EthereumRPC
+    pub fn eth_rpc<'e>(&'e self) -> EthereumRPC<'e> {
+        EthereumRPC::new(&self.client, &self.eth)
     }
 }

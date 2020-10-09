@@ -1,7 +1,7 @@
 //! MMR Hashes
-use crate::{bytes, hex};
 use blake2_rfc::blake2b::blake2b;
 use cmmr::Merge;
+use primitives::{bytes, hex};
 
 /// H256 trait for `[u8;32]`
 pub trait H256 {

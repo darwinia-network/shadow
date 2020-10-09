@@ -79,7 +79,7 @@ mod conf;
 mod shared;
 
 pub mod api;
-pub mod chain;
+// pub mod chain;
 pub mod cmd;
 pub mod mmr;
 pub mod result;

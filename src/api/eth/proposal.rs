@@ -6,7 +6,7 @@ use actix_web::{web, Responder};
 use cmmr::MMR;
 use primitives::{
     bytes,
-    chain::eth::{EthHeaderJson, EthashProof, EthashProofJson},
+    chain::ethereum::{EthashProof, EthashProofJson, EthereumHeaderJson},
     rpc::RPC,
 };
 use scale::{Decode, Encode};
@@ -23,8 +23,8 @@ pub struct ProposalReq {
 }
 
 impl ProposalReq {
-    /// Get `EthHeader`
-    async fn header(&self, shared: &ShadowShared) -> EthHeaderJson {
+    /// Get `EthereumHeader`
+    async fn header(&self, shared: &ShadowShared) -> EthereumHeaderJson {
         shared
             .eth_rpc()
             .get_header_by_number(self.target)
@@ -39,7 +39,7 @@ impl ProposalReq {
         <Vec<EthashProof>>::decode(&mut bytes!(proof.as_str()).as_ref())
             .unwrap_or_default()
             .iter()
-            .map(Into::<EthashProofJson>::into)
+            .map(|p| Into::<EthashProofJson>::into(p.clone()))
             .collect()
     }
 
@@ -85,7 +85,7 @@ impl ProposalReq {
 /// Proposal Headers
 #[derive(Serialize, Encode)]
 pub struct ProposalHeader {
-    header: EthHeaderJson,
+    header: EthereumHeaderJson,
     ethash_proof: Vec<EthashProofJson>,
     mmr_root: String,
     mmr_proof: Vec<String>,

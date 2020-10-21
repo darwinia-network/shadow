@@ -4,19 +4,7 @@ use crate::{
 };
 use actix_web::{web, Responder};
 use cmmr::MMR;
-use primitives::{chain::eth::EthHeaderJson, rpc::RPC};
-
-#[derive(Serialize)]
-struct HeaderThing {
-    header: EthHeaderJson,
-    mmr_root: String,
-}
-
-#[derive(Serialize)]
-pub struct HeaderResp {
-    header_thing: HeaderThing,
-    confirmation: u64,
-}
+use primitives::{chain::ethereum::EthereumHeaderParcelJson, rpc::RPC};
 
 /// Proof target header
 ///
@@ -41,15 +29,12 @@ pub async fn handle(block: web::Path<String>, shared: web::Data<ShadowShared>) -
     };
 
     let rpc = shared.eth_rpc();
-    web::Json(HeaderResp {
-        header_thing: HeaderThing {
-            header: rpc
-                .get_header_by_number(num)
-                .await
-                .unwrap_or_default()
-                .into(),
-            mmr_root: format!("0x{}", root),
-        },
-        confirmation: rpc.block_number().await.unwrap_or(num) - num,
+    web::Json(EthereumHeaderParcelJson {
+        header: rpc
+            .get_header_by_number(num)
+            .await
+            .unwrap_or_default()
+            .into(),
+        mmr_root: format!("0x{}", root),
     })
 }

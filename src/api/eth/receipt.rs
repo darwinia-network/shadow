@@ -1,7 +1,7 @@
 use crate::{mmr::helper, ShadowShared};
 use actix_web::{web, Responder};
 use primitives::{
-    chain::eth::{EthHeaderJson, MMRProofJson},
+    chain::ethereum::{EthereumHeaderJson, MMRProofJson},
     rpc::RPC,
 };
 
@@ -26,7 +26,7 @@ impl From<(String, String, String)> for ReceiptProof {
 /// Receipt response
 #[derive(Serialize)]
 pub struct ReceiptResp {
-    header: EthHeaderJson,
+    header: EthereumHeaderJson,
     receipt_proof: ReceiptProof,
     mmr_proof: MMRProofJson,
 }
@@ -37,7 +37,7 @@ impl ReceiptResp {
         super::ffi::receipt(tx).into()
     }
     /// Get ethereum header json
-    pub async fn header(shared: &ShadowShared, block: &str) -> EthHeaderJson {
+    pub async fn header(shared: &ShadowShared, block: &str) -> EthereumHeaderJson {
         shared
             .eth_rpc()
             .get_header_by_hash(block)

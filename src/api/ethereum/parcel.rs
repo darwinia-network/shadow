@@ -10,10 +10,10 @@ use primitives::{chain::ethereum::EthereumRelayHeaderParcelJson, rpc::RPC};
 ///
 /// ```
 /// use actix_web::web;
-/// use darwinia_shadow::{api::eth, ShadowShared};
+/// use darwinia_shadow::{api::ethereum, ShadowShared};
 ///
-/// // GET `/eth/header/19`
-/// eth::header(web::Path::from("19".to_string()), web::Data::new(ShadowShared::new(None)));
+/// // GET `/ethereum/header/19`
+/// ethereum::parcel(web::Path::from("19".to_string()), web::Data::new(ShadowShared::new(None)));
 /// ```
 #[allow(clippy::eval_order_dependence)]
 pub async fn handle(block: web::Path<String>, shared: web::Data<ShadowShared>) -> impl Responder {

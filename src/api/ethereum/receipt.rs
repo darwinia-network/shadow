@@ -73,10 +73,10 @@ impl ReceiptResp {
 ///
 /// ```
 /// use actix_web::web;
-/// use darwinia_shadow::{api::eth, ShadowShared};
+/// use darwinia_shadow::{api::ethereum, ShadowShared};
 ///
-/// // GET `/eth/receipt/0x3b82a55f5e752c23359d5c3c4c3360455ce0e485ed37e1faabe9ea10d5db3e7a/66666`
-/// eth::receipt(web::Path::from((
+/// // GET `/ethereum/receipt/0x3b82a55f5e752c23359d5c3c4c3360455ce0e485ed37e1faabe9ea10d5db3e7a/66666`
+/// ethereum::receipt(web::Path::from((
 ///     "0x3b82a55f5e752c23359d5c3c4c3360455ce0e485ed37e1faabe9ea10d5db3e7a".to_string(),
 ///      0 as u64,
 /// )), web::Data::new(ShadowShared::new(None)));

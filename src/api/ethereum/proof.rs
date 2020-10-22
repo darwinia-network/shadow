@@ -82,10 +82,10 @@ pub struct ProposalHeader {
 ///
 /// ```
 /// use actix_web::web;
-/// use darwinia_shadow::{api::eth, ShadowShared};
+/// use darwinia_shadow::{api::ethereum, ShadowShared};
 ///
-/// // POST `/eth/proof`
-/// eth::proposal(web::Json(eth::ProposalReq{
+/// // POST `/ethereum/proof`
+/// ethereum::proof(web::Json(ethereum::ProposalReq{
 ///     member: 10,
 ///     target: 19,
 ///     last_leaf: 18

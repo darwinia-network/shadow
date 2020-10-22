@@ -9,6 +9,6 @@ pub use self::{
     count::handle as count,
     ffi::{epoch, import},
     parcel::handle as parcel,
-    proof::{handle as proposal, ProposalReq},
+    proof::{handle as proof, ProposalReq},
     receipt::handle as receipt,
 };

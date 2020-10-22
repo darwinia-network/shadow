@@ -2,7 +2,7 @@
 use crate::ShadowShared;
 use actix_web::{middleware, web, App, HttpServer};
 
-pub mod eth;
+pub mod ethereum;
 mod root;
 
 /// Run HTTP Server
@@ -13,10 +13,10 @@ pub async fn serve(port: u16, shared: ShadowShared) -> std::io::Result<()> {
             .wrap(middleware::Logger::default())
             .data(shared.clone())
             .service(web::resource("/version").to(root::version))
-            .service(web::resource("/eth/count").route(web::get().to(eth::count)))
-            .service(web::resource("/eth/proposal").to(eth::proposal))
-            .service(web::resource("/eth/receipt/{tx}/{last}").to(eth::receipt))
-            .service(web::resource("/eth/header/{block}").to(eth::header))
+            .service(web::resource("/ethereum/count").route(web::get().to(ethereum::count)))
+            .service(web::resource("/ethereum/proposal").to(ethereum::proposal))
+            .service(web::resource("/ethereum/receipt/{tx}/{last}").to(ethereum::receipt))
+            .service(web::resource("/ethereum/header/{block}").to(ethereum::header))
     })
     .disable_signals()
     .bind(format!("0.0.0.0:{}", port))?

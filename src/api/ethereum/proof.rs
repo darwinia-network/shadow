@@ -6,8 +6,7 @@ use actix_web::{web, Responder};
 use cmmr::MMR;
 use primitives::{
     bytes,
-    chain::ethereum::{EthashProof, EthashProofJson, EthereumHeaderJson},
-    rpc::RPC,
+    chain::ethereum::{EthashProof, EthashProofJson, EthereumHeaderJson, EthereumRelayProofsJson},
 };
 use scale::{Decode, Encode};
 
@@ -23,16 +22,6 @@ pub struct ProposalReq {
 }
 
 impl ProposalReq {
-    /// Get `EthereumHeader`
-    async fn header(&self, shared: &ShadowShared) -> EthereumHeaderJson {
-        shared
-            .eth_rpc()
-            .get_header_by_number(self.target)
-            .await
-            .unwrap_or_default()
-            .into()
-    }
-
     /// Get `EtHashProof`
     fn ethash_proof(&self) -> Vec<EthashProofJson> {
         let proof = super::ffi::proof(self.target);
@@ -72,11 +61,9 @@ impl ProposalReq {
     }
 
     /// Generate response
-    pub async fn gen(&self, shared: web::Data<ShadowShared>) -> ProposalHeader {
-        ProposalHeader {
-            header: self.header(&shared).await,
+    pub async fn gen(&self, shared: web::Data<ShadowShared>) -> EthereumRelayProofsJson {
+        EthereumRelayProofsJson {
             ethash_proof: self.ethash_proof(),
-            mmr_root: self.mmr_root(&shared.store),
             mmr_proof: self.mmr_proof(&shared.store),
         }
     }
@@ -97,7 +84,7 @@ pub struct ProposalHeader {
 /// use actix_web::web;
 /// use darwinia_shadow::{api::eth, ShadowShared};
 ///
-/// // POST `/eth/proposal`
+/// // POST `/eth/proof`
 /// eth::proposal(web::Json(eth::ProposalReq{
 ///     member: 10,
 ///     target: 19,

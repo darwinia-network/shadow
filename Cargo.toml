@@ -55,7 +55,7 @@ version = "0.0.10"
 features = ["rpc"]
 # git = "https://github.com/darwinia-network/bridge-primitives.git"
 # branch = "relay"
-path = "../bridge-primitives"
+# path = "../bridge-primitives"
 
 [dependencies.scale]
 package = "parity-scale-codec"

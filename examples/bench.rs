@@ -5,7 +5,7 @@ use darwinia_shadow::{
     mmr::{helper, MergeHash, H256},
     ShadowShared,
 };
-use primitives::rpc::eth::EthHeaderRPCResp;
+use primitives::rpc::ethereum::EthHeaderRPCResp;
 use rocksdb::IteratorMode;
 use std::time::{SystemTime, UNIX_EPOCH};
 

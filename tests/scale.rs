@@ -3,7 +3,7 @@ mod mock;
 use mock::{ha, header, proof, ETHASH_PROOF_CODEC, HEADER};
 use primitives::{
     bytes,
-    chain::eth::{EthHeader, EthashProof},
+    chain::ethereum::{EthashProof, EthereumHeader},
     hex,
 };
 use scale::{Decode, Encode};
@@ -42,7 +42,7 @@ fn eth_header() {
     assert_eq!(HEADER, encoded);
     assert_eq!(
         header,
-        EthHeader::decode(&mut bytes!(encoded.as_str()).as_ref()).unwrap()
+        EthereumHeader::decode(&mut bytes!(encoded.as_str()).as_ref()).unwrap()
     );
 }
 

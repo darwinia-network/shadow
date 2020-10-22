@@ -1,6 +1,6 @@
 //! MMR Runner
 use crate::{
-    api::eth::epoch,
+    api::ethereum::epoch,
     mmr::{
         hash::{MergeHash, H256},
         helper,

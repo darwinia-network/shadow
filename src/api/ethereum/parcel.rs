@@ -4,7 +4,7 @@ use crate::{
 };
 use actix_web::{web, Responder};
 use cmmr::MMR;
-use primitives::{chain::ethereum::EthereumHeaderParcelJson, rpc::RPC};
+use primitives::{chain::ethereum::EthereumRelayHeaderParcelJson, rpc::RPC};
 
 /// Proof target header
 ///
@@ -29,7 +29,7 @@ pub async fn handle(block: web::Path<String>, shared: web::Data<ShadowShared>) -
     };
 
     let rpc = shared.eth_rpc();
-    web::Json(EthereumHeaderParcelJson {
+    web::Json(EthereumRelayHeaderParcelJson {
         header: rpc
             .get_header_by_number(num)
             .await

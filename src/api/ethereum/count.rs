@@ -6,10 +6,10 @@ use rocksdb::IteratorMode;
 ///
 /// ```
 /// use actix_web::web;
-/// use darwinia_shadow::{api::eth, ShadowShared};
+/// use darwinia_shadow::{api::ethereum, ShadowShared};
 ///
-/// // GET `/eth/count`
-/// eth::count(web::Data::new(ShadowShared::new(None)));
+/// // GET `/ethereum/count`
+/// ethereum::count(web::Data::new(ShadowShared::new(None)));
 /// ```
 pub async fn handle(shared: web::Data<ShadowShared>) -> impl Responder {
     format!(

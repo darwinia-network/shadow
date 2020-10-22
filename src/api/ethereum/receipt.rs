@@ -1,7 +1,7 @@
 use crate::{mmr::helper, ShadowShared};
 use actix_web::{web, Responder};
 use primitives::{
-    chain::eth::{EthHeaderJson, MMRProofJson},
+    chain::ethereum::{EthereumHeaderJson, MMRProofJson},
     rpc::RPC,
 };
 
@@ -26,7 +26,7 @@ impl From<(String, String, String)> for ReceiptProof {
 /// Receipt response
 #[derive(Serialize)]
 pub struct ReceiptResp {
-    header: EthHeaderJson,
+    header: EthereumHeaderJson,
     receipt_proof: ReceiptProof,
     mmr_proof: MMRProofJson,
 }
@@ -37,7 +37,7 @@ impl ReceiptResp {
         super::ffi::receipt(tx).into()
     }
     /// Get ethereum header json
-    pub async fn header(shared: &ShadowShared, block: &str) -> EthHeaderJson {
+    pub async fn header(shared: &ShadowShared, block: &str) -> EthereumHeaderJson {
         shared
             .eth_rpc()
             .get_header_by_hash(block)
@@ -73,10 +73,10 @@ impl ReceiptResp {
 ///
 /// ```
 /// use actix_web::web;
-/// use darwinia_shadow::{api::eth, ShadowShared};
+/// use darwinia_shadow::{api::ethereum, ShadowShared};
 ///
-/// // GET `/eth/receipt/0x3b82a55f5e752c23359d5c3c4c3360455ce0e485ed37e1faabe9ea10d5db3e7a/66666`
-/// eth::receipt(web::Path::from((
+/// // GET `/ethereum/receipt/0x3b82a55f5e752c23359d5c3c4c3360455ce0e485ed37e1faabe9ea10d5db3e7a/66666`
+/// ethereum::receipt(web::Path::from((
 ///     "0x3b82a55f5e752c23359d5c3c4c3360455ce0e485ed37e1faabe9ea10d5db3e7a".to_string(),
 ///      0 as u64,
 /// )), web::Data::new(ShadowShared::new(None)));

@@ -6,8 +6,7 @@ use actix_web::{web, Responder};
 use cmmr::MMR;
 use primitives::{
     bytes,
-    chain::eth::{EthHeaderJson, EthashProof, EthashProofJson},
-    rpc::RPC,
+    chain::ethereum::{EthashProof, EthashProofJson, EthereumHeaderJson, EthereumRelayProofsJson},
 };
 use scale::{Decode, Encode};
 
@@ -23,23 +22,13 @@ pub struct ProposalReq {
 }
 
 impl ProposalReq {
-    /// Get `EthHeader`
-    async fn header(&self, shared: &ShadowShared) -> EthHeaderJson {
-        shared
-            .eth_rpc()
-            .get_header_by_number(self.target)
-            .await
-            .unwrap_or_default()
-            .into()
-    }
-
     /// Get `EtHashProof`
     fn ethash_proof(&self) -> Vec<EthashProofJson> {
         let proof = super::ffi::proof(self.target);
         <Vec<EthashProof>>::decode(&mut bytes!(proof.as_str()).as_ref())
             .unwrap_or_default()
             .iter()
-            .map(Into::<EthashProofJson>::into)
+            .map(|p| Into::<EthashProofJson>::into(p.clone()))
             .collect()
     }
 
@@ -72,11 +61,9 @@ impl ProposalReq {
     }
 
     /// Generate response
-    pub async fn gen(&self, shared: web::Data<ShadowShared>) -> ProposalHeader {
-        ProposalHeader {
-            header: self.header(&shared).await,
+    pub async fn gen(&self, shared: web::Data<ShadowShared>) -> EthereumRelayProofsJson {
+        EthereumRelayProofsJson {
             ethash_proof: self.ethash_proof(),
-            mmr_root: self.mmr_root(&shared.store),
             mmr_proof: self.mmr_proof(&shared.store),
         }
     }
@@ -85,7 +72,7 @@ impl ProposalReq {
 /// Proposal Headers
 #[derive(Serialize, Encode)]
 pub struct ProposalHeader {
-    header: EthHeaderJson,
+    header: EthereumHeaderJson,
     ethash_proof: Vec<EthashProofJson>,
     mmr_root: String,
     mmr_proof: Vec<String>,
@@ -95,10 +82,10 @@ pub struct ProposalHeader {
 ///
 /// ```
 /// use actix_web::web;
-/// use darwinia_shadow::{api::eth, ShadowShared};
+/// use darwinia_shadow::{api::ethereum, ShadowShared};
 ///
-/// // POST `/eth/proposal`
-/// eth::proposal(web::Json(eth::ProposalReq{
+/// // POST `/ethereum/proof`
+/// ethereum::proof(web::Json(ethereum::ProposalReq{
 ///     member: 10,
 ///     target: 19,
 ///     last_leaf: 18

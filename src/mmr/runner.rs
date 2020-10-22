@@ -1,6 +1,6 @@
 //! MMR Runner
 use crate::{
-    api::eth::epoch,
+    api::ethereum::epoch,
     mmr::{
         hash::{MergeHash, H256},
         helper,
@@ -9,7 +9,7 @@ use crate::{
     ShadowShared,
 };
 use cmmr::MMR;
-use primitives::rpc::eth::EthHeaderRPCResp;
+use primitives::rpc::ethereum::EthHeaderRPCResp;
 use rocksdb::IteratorMode;
 use std::{env, thread, time};
 

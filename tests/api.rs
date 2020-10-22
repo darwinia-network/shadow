@@ -1,6 +1,6 @@
 use cmmr::MerkleProof;
 use darwinia_shadow::{
-    api::eth::ProposalReq,
+    api::ethereum::ProposalReq,
     mmr::{helper, MergeHash, Runner, H256},
     result::Error,
     ShadowShared,

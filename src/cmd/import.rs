@@ -1,5 +1,5 @@
 use crate::{
-    api::eth,
+    api::ethereum,
     mmr::{helper, MergeHash, H256},
     result::Error,
     ShadowShared,
@@ -41,7 +41,7 @@ fn geth(path: String, from: i32, to: i32) -> Result<(), Error> {
 
     // Get hashes
     info!("Importing ethereum headers from {}...", &path);
-    let hashes = eth::import(&path, from, to);
+    let hashes = ethereum::import(&path, from, to);
     let hashes_vec = hashes.split(',').collect::<Vec<&str>>();
 
     // Check empty

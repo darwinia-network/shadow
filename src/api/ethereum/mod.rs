@@ -1,14 +1,14 @@
 //! Ethereum API
 mod count;
 mod ffi;
-mod header;
-mod proposal;
+mod parcel;
+mod proof;
 mod receipt;
 
 pub use self::{
     count::handle as count,
     ffi::{epoch, import},
-    header::handle as header,
-    proposal::{handle as proposal, ProposalReq},
+    parcel::handle as parcel,
+    proof::{handle as proof, ProposalReq},
     receipt::handle as receipt,
 };

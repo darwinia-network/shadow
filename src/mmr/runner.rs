@@ -1,15 +1,12 @@
 //! MMR Runner
 use crate::{
     api::ethereum::epoch,
-    mmr::{
-        hash::{MergeHash, H256},
-        helper,
-    },
+    mmr::{hash::MergeHash, helper},
     result::Error,
     ShadowShared,
 };
 use cmmr::MMR;
-use primitives::rpc::ethereum::EthHeaderRPCResp;
+use primitives::rpc::{ethereum::EthereumRPC, RPC};
 use rocksdb::IteratorMode;
 use std::{env, thread, time};
 
@@ -46,14 +43,25 @@ impl Runner {
 
     /// Start the runner
     pub async fn start(&mut self) -> Result<(), Error> {
+        // Ethereum RPC
+        let client = self.0.client.clone();
+        let eth = self.0.eth.clone();
+        let rpc = EthereumRPC::new(&client, &eth);
+
+        // MMR variables
         let mut mmr_size = self.as_mut().db.iterator(IteratorMode::Start).count() as u64;
         let last_leaf = helper::mmr_size_to_last_leaf(mmr_size as i64);
         let mut ptr = if last_leaf == 0 { 0 } else { last_leaf + 1 };
 
         loop {
+            if rpc.block_number().await? - (ptr as u64) < 12 {
+                actix_rt::time::delay_for(time::Duration::from_secs(10)).await;
+                continue;
+            }
+
             // Note:
             //
-            // This trigger is ungly, need better solution in the future
+            // This trigger is ugly, need a better solution in the future
             if ptr % 30000 == 0 {
                 thread::spawn(move || Self::epoch(ptr as u64))
                     .join()
@@ -85,14 +93,20 @@ impl Runner {
     /// Push new header hash into storage
     pub async fn push(&mut self, number: i64, mmr_size: u64) -> Result<u64, Error> {
         let mut mmr = MMR::<_, MergeHash, _>::new(mmr_size, &self.as_ref().store);
-        let hash_from_ethereum = &EthHeaderRPCResp::get(&self.0.client, &self.0.eth, number as u64)
+        let hash_from_ethereum = &EthereumRPC::new(&self.0.client, &self.0.eth)
+            .get_header_by_number(number as u64)
             .await?
-            .result
             .hash;
+        if let Some(hash) = hash_from_ethereum {
+            mmr.push(*hash)?;
+        } else {
+            return Err(Error::Primitive(format!(
+                "Get the block hash of block {} failed",
+                number,
+            )));
+        }
 
-        mmr.push(H256::from(hash_from_ethereum))?;
         let mmr_size_new = mmr.mmr_size();
-
         mmr.commit()?;
         Ok(mmr_size_new)
     }

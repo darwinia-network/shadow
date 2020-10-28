@@ -44,6 +44,8 @@ impl Runner {
     /// Start the runner
     pub async fn start(&mut self) -> Result<(), Error> {
         // Ethereum RPC
+        //
+        // Have to clone because there are a mut usage in db below
         let client = self.0.client.clone();
         let eth = self.0.eth.clone();
         let rpc = EthereumRPC::new(&client, &eth);

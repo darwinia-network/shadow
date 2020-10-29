@@ -13,8 +13,8 @@ use primitives::chain::ethereum::MMRRootJson;
 /// use actix_web::web;
 /// use darwinia_shadow::{api::ethereum, ShadowShared};
 ///
-/// // GET `/ethereum/mmr/19`
-/// ethereum::mmr(web::Path::from("19".to_string()), web::Data::new(ShadowShared::new(None)));
+/// // GET `/ethereum/mmr_root/19`
+/// ethereum::mmr_root(web::Path::from("19".to_string()), web::Data::new(ShadowShared::new(None)));
 /// ```
 #[allow(clippy::eval_order_dependence)]
 pub async fn handle(block: web::Path<String>, shared: web::Data<ShadowShared>) -> impl Responder {

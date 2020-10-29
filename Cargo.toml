@@ -51,11 +51,8 @@ uint = "0.8.3"
 
 [dependencies.primitives]
 package = "darwinia-bridge-primitives"
-version = "0.0.10"
+version = "0.1.2-alpha.0"
 features = ["rpc"]
-# git = "https://github.com/darwinia-network/bridge-primitives.git"
-# branch = "relay"
-# path = "../bridge-primitives"
 
 [dependencies.scale]
 package = "parity-scale-codec"

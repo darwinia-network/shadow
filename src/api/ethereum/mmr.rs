@@ -5,7 +5,7 @@ use crate::{
 };
 use actix_web::{web, Responder};
 use cmmr::MMR;
-use primitives::{chain::ethereum::EthereumRelayHeaderParcelJson, rpc::RPC};
+use primitives::chain::ethereum::MMRRootJson;
 
 /// Get target mmr
 ///
@@ -29,7 +29,7 @@ pub async fn handle(block: web::Path<String>, shared: web::Data<ShadowShared>) -
         )
     };
 
-    web::Json(EthereumRelayHeaderParcelJson {
+    web::Json(MMRRootJson {
         mmr_root: format!("0x{}", root),
     })
 }

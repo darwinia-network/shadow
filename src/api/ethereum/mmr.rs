@@ -1,3 +1,4 @@
+//! Ethereum MMR API
 use crate::{
     mmr::{MergeHash, H256},
     ShadowShared,
@@ -6,14 +7,14 @@ use actix_web::{web, Responder};
 use cmmr::MMR;
 use primitives::{chain::ethereum::EthereumRelayHeaderParcelJson, rpc::RPC};
 
-/// Proof target header
+/// Get target mmr
 ///
 /// ```
 /// use actix_web::web;
 /// use darwinia_shadow::{api::ethereum, ShadowShared};
 ///
-/// // GET `/ethereum/parcel/19`
-/// ethereum::parcel(web::Path::from("19".to_string()), web::Data::new(ShadowShared::new(None)));
+/// // GET `/ethereum/mmr/19`
+/// ethereum::mmr(web::Path::from("19".to_string()), web::Data::new(ShadowShared::new(None)));
 /// ```
 #[allow(clippy::eval_order_dependence)]
 pub async fn handle(block: web::Path<String>, shared: web::Data<ShadowShared>) -> impl Responder {
@@ -28,13 +29,7 @@ pub async fn handle(block: web::Path<String>, shared: web::Data<ShadowShared>) -
         )
     };
 
-    let rpc = shared.eth_rpc();
     web::Json(EthereumRelayHeaderParcelJson {
-        header: rpc
-            .get_header_by_number(num)
-            .await
-            .unwrap_or_default()
-            .into(),
         mmr_root: format!("0x{}", root),
     })
 }

@@ -12,22 +12,27 @@ const DEFAULT_RELATIVE_MMR_DB: &str = ".darwinia/cache/mmr";
 pub struct ShadowShared {
     /// MMR Store
     pub store: Store,
-    /// HTTP client
-    pub client: Client,
     /// RocksDB
     pub db: Arc<DB>,
-    /// Ethereum host
-    pub eth: String,
+    /// Ethereum rpc
+    pub eth: Arc<EthereumRPC>,
 }
 
-fn ethereum_rpc() -> String {
-    env::var("ETHEREUM_RPC").unwrap_or_else(|_| {
-        if env::var("ETHEREUM_ROPSTEN").is_ok() {
-            crate::conf::DEFAULT_ETHEREUM_ROPSTEN_RPC.into()
-        } else {
-            crate::conf::DEFAULT_ETHEREUM_RPC.into()
-        }
-    })
+fn ethereum_rpc(http: Client) -> EthereumRPC {
+    EthereumRPC::new(
+        http,
+        env::var("ETHEREUM_RPC")
+            .unwrap_or_else(|_| {
+                if env::var("ETHEREUM_ROPSTEN").is_ok() {
+                    crate::conf::DEFAULT_ETHEREUM_ROPSTEN_RPC.into()
+                } else {
+                    crate::conf::DEFAULT_ETHEREUM_RPC.into()
+                }
+            })
+            .split(',')
+            .map(|s| s.to_string())
+            .collect(),
+    )
 }
 
 impl ShadowShared {
@@ -64,15 +69,9 @@ impl ShadowShared {
                 ShadowShared {
                     db: db.clone(),
                     store: Store::with(db),
-                    client: Client::new(),
-                    eth: ethereum_rpc(),
+                    eth: Arc::new(ethereum_rpc(Client::new())),
                 }
             }
         }
-    }
-
-    /// Ref to EthereumRPC
-    pub fn eth_rpc<'e>(&'e self) -> EthereumRPC<'e> {
-        EthereumRPC::new(&self.client, vec![&self.eth])
     }
 }

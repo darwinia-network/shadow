@@ -39,7 +39,7 @@ impl ReceiptResp {
     /// Get ethereum header json
     pub async fn header(shared: &ShadowShared, block: &str) -> EthereumHeaderJson {
         shared
-            .eth_rpc()
+            .eth
             .get_header_by_hash(block)
             .await
             .unwrap_or_default()

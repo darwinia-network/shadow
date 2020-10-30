@@ -1,15 +1,12 @@
 //! MMR Runner
 use crate::{
     api::ethereum::epoch,
-    mmr::{
-        hash::{MergeHash, H256},
-        helper,
-    },
+    mmr::{hash::MergeHash, helper},
     result::Error,
     ShadowShared,
 };
 use cmmr::MMR;
-use primitives::rpc::ethereum::EthHeaderRPCResp;
+use primitives::rpc::RPC;
 use rocksdb::IteratorMode;
 use std::{env, thread, time};
 
@@ -85,15 +82,18 @@ impl Runner {
     /// Push new header hash into storage
     pub async fn push(&mut self, number: i64, mmr_size: u64) -> Result<u64, Error> {
         let mut mmr = MMR::<_, MergeHash, _>::new(mmr_size, &self.as_ref().store);
-        let hash_from_ethereum = &EthHeaderRPCResp::get(&self.0.client, &self.0.eth, number as u64)
-            .await?
-            .result
-            .hash;
+        let hash_from_ethereum = self.0.eth.get_header_by_number(number as u64).await?.hash;
+        if let Some(hash) = hash_from_ethereum {
+            mmr.push(hash)?;
+            let mmr_size_new = mmr.mmr_size();
 
-        mmr.push(H256::from(hash_from_ethereum))?;
-        let mmr_size_new = mmr.mmr_size();
-
-        mmr.commit()?;
-        Ok(mmr_size_new)
+            mmr.commit()?;
+            Ok(mmr_size_new)
+        } else {
+            Err(Error::Primitive(format!(
+                "Get Ethereum header {} from ethereum rpc failed",
+                number
+            )))
+        }
     }
 }

@@ -10,26 +10,6 @@ struct GoString {
     b: i64,
 }
 
-impl From<String> for GoString {
-    fn from(s: String) -> GoString {
-        let c_tx = CString::new(s).expect("CString::new failed");
-        GoString {
-            a: c_tx.as_ptr(),
-            b: c_tx.as_bytes().len() as i64,
-        }
-    }
-}
-
-impl From<&str> for GoString {
-    fn from(s: &str) -> GoString {
-        let c_tx = CString::new(s).expect("CString::new failed");
-        GoString {
-            a: c_tx.as_ptr(),
-            b: c_tx.as_bytes().len() as i64,
-        }
-    }
-}
-
 #[repr(C)]
 struct GoTuple {
     index: *const c_char,
@@ -47,11 +27,17 @@ extern "C" {
 
 /// Proof eth header by number
 pub fn proof(api: &str, block: u64) -> String {
-    let api = GoString::from(api);
+    let c_api = CString::new(api).expect("CString::new failed");
     unsafe {
-        CStr::from_ptr(Proof(GoString::from(api), block as u32))
-            .to_string_lossy()
-            .to_string()
+        CStr::from_ptr(Proof(
+            GoString {
+                a: c_api.as_ptr(),
+                b: c_api.as_bytes().len() as i64,
+            },
+            block as u32,
+        ))
+        .to_string_lossy()
+        .to_string()
     }
 }
 
@@ -62,8 +48,19 @@ pub fn epoch(block: u64) -> bool {
 
 /// Get receipt by tx hash
 pub fn receipt(api: &str, tx: &str) -> (String, String, String) {
+    let c_api = CString::new(api).expect("CString::new failed");
+    let c_tx = CString::new(tx).expect("CString::new failed");
     unsafe {
-        let receipt = Receipt(GoString::from(api), GoString::from(tx));
+        let receipt = Receipt(
+            GoString {
+                a: c_api.as_ptr(),
+                b: c_api.as_bytes().len() as i64,
+            },
+            GoString {
+                a: c_tx.as_ptr(),
+                b: c_tx.as_bytes().len() as i64,
+            },
+        );
 
         (
             CStr::from_ptr(receipt.index).to_string_lossy().to_string(),

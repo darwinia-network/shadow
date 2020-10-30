@@ -51,8 +51,8 @@ impl Runner {
             // Note:
             //
             // This trigger is ungly, need better solution in the future
-            if ptr % 30000 == 0 {
-                thread::spawn(move || Self::epoch(ptr as u64))
+            if (ptr + 15000) % 30000 == 0 {
+                thread::spawn(move || Self::epoch((ptr + 15000) as u64))
                     .join()
                     .unwrap_or_default();
             }

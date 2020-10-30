@@ -73,6 +73,6 @@ impl ShadowShared {
 
     /// Ref to EthereumRPC
     pub fn eth_rpc<'e>(&'e self) -> EthereumRPC<'e> {
-        EthereumRPC::new(&self.client, &self.eth)
+        EthereumRPC::new(&self.client, vec![&self.eth])
     }
 }

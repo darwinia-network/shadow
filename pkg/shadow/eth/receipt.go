@@ -125,7 +125,7 @@ type RedeemFor struct {
 	Deposit *ProofRecord `json:"deposit,omitempty"`
 }
 
-func GetReceipt(tx string, api string) (ProofRecord, string, error) {
+func GetReceipt(api string, tx string) (ProofRecord, string, error) {
 	r, err := GetReceiptLog(tx, api)
 	if err != nil || r == nil {
 		log.Error("%s", err)

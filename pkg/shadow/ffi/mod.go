@@ -23,8 +23,8 @@ func Epoch(block uint64) bool {
 }
 
 //export Proof
-func Proof(number uint64) *C.char {
-	header, err := eth.Header(number, CONFIG.Api)
+func Proof(api string, number uint64) *C.char {
+	header, err := eth.Header(api, number)
 	if err != nil {
 		return C.CString("")
 	}
@@ -38,9 +38,9 @@ func Proof(number uint64) *C.char {
 }
 
 //export Receipt
-func Receipt(tx string) (*C.char, *C.char, *C.char) {
+func Receipt(api string, tx string) (*C.char, *C.char, *C.char) {
 	tx = "0x" + tx[2:]
-	proof, _, err := eth.GetReceipt(tx)
+	proof, _, err := eth.GetReceipt(tx, api)
 	if err != nil {
 		return C.CString(""), C.CString(""), C.CString("")
 	}

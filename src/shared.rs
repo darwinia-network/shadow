@@ -28,7 +28,7 @@ fn ethereum_rpc(http: Client) -> EthereumRPC {
             }
         })
         .split(',')
-        .map(|s| s.to_string())
+        .map(|s| s.trim().to_string())
         .collect();
 
     info!("Avaiable ethereum rpc urls: \n{:#?}", rpcs);

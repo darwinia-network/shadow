@@ -43,11 +43,21 @@ impl Runner {
 
     /// Start the runner
     pub async fn start(&mut self) -> Result<(), Error> {
+        // MMR variables
         let mut mmr_size = self.as_mut().db.iterator(IteratorMode::Start).count() as u64;
         let last_leaf = helper::mmr_size_to_last_leaf(mmr_size as i64);
         let mut ptr = if last_leaf == 0 { 0 } else { last_leaf + 1 };
 
+        // Using a cache rpc block number to optimize and reduce rpc call.
+        let mut last_rpc_block_number = self.0.eth.block_number().await?;
+
         loop {
+            if last_rpc_block_number < (ptr as u64 + 12) {
+                last_rpc_block_number = self.0.eth.block_number().await?;
+                actix_rt::time::delay_for(time::Duration::from_secs(10)).await;
+                continue;
+            }
+
             // Note:
             //
             // This trigger is ugly, need better solution in the future, ptr % 30000 is to compatible with existing production, can be removed later

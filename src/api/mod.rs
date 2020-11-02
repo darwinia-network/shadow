@@ -18,6 +18,10 @@ pub async fn serve(port: u16, shared: ShadowShared) -> std::io::Result<()> {
                 web::resource("/ethereum/mmr_root/{block}")
                     .route(web::get().to(ethereum::mmr_root)),
             )
+            .service(
+                web::resource("/ethereum/mmr_leaf/{block}")
+                    .route(web::get().to(ethereum::mmr_leaf)),
+            )
             .service(web::resource("/ethereum/parcel/{block}").to(ethereum::parcel))
             .service(web::resource("/ethereum/proof").to(ethereum::proof))
             .service(web::resource("/ethereum/receipt/{tx}/{last}").to(ethereum::receipt))

@@ -28,9 +28,6 @@ enum Opt {
         /// Datadir of geth
         #[structopt(short, long)]
         path: String,
-        /// From Ethereum block height
-        #[structopt(short, long, default_value = "0")]
-        from: i32,
         /// To Ethereum block height
         #[structopt(short, long, default_value = "8000000")]
         to: i32,
@@ -54,7 +51,7 @@ pub async fn exec() -> Result<(), Error> {
     match Opt::from_args() {
         Opt::Count => count::exec(),
         Opt::Run { port, verbose } => run::exec(port, verbose).await,
-        Opt::Import { path, from, to } => import::exec(path, from, to),
+        Opt::Import { path, to } => import::exec(path, to),
         Opt::Trim { leaf } => trim::exec(leaf),
         Opt::Export { dist } => export::exec(dist),
     }?;

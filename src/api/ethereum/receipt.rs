@@ -33,13 +33,13 @@ pub struct ReceiptResp {
 
 impl ReceiptResp {
     /// Get Receipt
-    pub fn receipt(tx: &str) -> ReceiptProof {
-        super::ffi::receipt(tx).into()
+    pub fn receipt(api: &str, tx: &str) -> ReceiptProof {
+        super::ffi::receipt(api, tx).into()
     }
     /// Get ethereum header json
     pub async fn header(shared: &ShadowShared, block: &str) -> EthereumHeaderJson {
         shared
-            .eth_rpc()
+            .eth
             .get_header_by_hash(block)
             .await
             .unwrap_or_default()
@@ -49,7 +49,7 @@ impl ReceiptResp {
     /// Generate header
     /// mmr_root_height should be last confirmed block in relayt
     pub async fn new(shared: &ShadowShared, tx: &str, mmr_root_height: u64) -> ReceiptResp {
-        let receipt_proof = Self::receipt(tx);
+        let receipt_proof = Self::receipt(shared.eth.rpc(), tx);
         let header = Self::header(&shared, &receipt_proof.header_hash).await;
         let mmr_proof = if mmr_root_height > 0 {
             let (member_leaf_index, last_leaf_index) = (header.number, mmr_root_height - 1);

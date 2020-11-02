@@ -1,15 +1,12 @@
 //! MMR Runner
 use crate::{
     api::ethereum::epoch,
-    mmr::{
-        hash::{MergeHash, H256},
-        helper,
-    },
+    mmr::{hash::MergeHash, helper},
     result::Error,
     ShadowShared,
 };
 use cmmr::MMR;
-use primitives::rpc::ethereum::EthHeaderRPCResp;
+use primitives::rpc::RPC;
 use rocksdb::IteratorMode;
 use std::{env, thread, time};
 
@@ -53,9 +50,9 @@ impl Runner {
         loop {
             // Note:
             //
-            // This trigger is ungly, need better solution in the future
-            if ptr % 30000 == 0 {
-                thread::spawn(move || Self::epoch(ptr as u64))
+            // This trigger is ugly, need better solution in the future, ptr % 30000 is to compatible with existing production, can be removed later
+            if (ptr + 15000) % 30000 == 0 || ptr % 30000 == 0 {
+                thread::spawn(move || Self::epoch((ptr + 15000) as u64))
                     .join()
                     .unwrap_or_default();
             }
@@ -85,15 +82,18 @@ impl Runner {
     /// Push new header hash into storage
     pub async fn push(&mut self, number: i64, mmr_size: u64) -> Result<u64, Error> {
         let mut mmr = MMR::<_, MergeHash, _>::new(mmr_size, &self.as_ref().store);
-        let hash_from_ethereum = &EthHeaderRPCResp::get(&self.0.client, &self.0.eth, number as u64)
-            .await?
-            .result
-            .hash;
+        let hash_from_ethereum = self.0.eth.get_header_by_number(number as u64).await?.hash;
+        if let Some(hash) = hash_from_ethereum {
+            mmr.push(hash)?;
+            let mmr_size_new = mmr.mmr_size();
 
-        mmr.push(H256::from(hash_from_ethereum))?;
-        let mmr_size_new = mmr.mmr_size();
-
-        mmr.commit()?;
-        Ok(mmr_size_new)
+            mmr.commit()?;
+            Ok(mmr_size_new)
+        } else {
+            Err(Error::Primitive(format!(
+                "Get Ethereum header {} from ethereum rpc failed",
+                number
+            )))
+        }
     }
 }

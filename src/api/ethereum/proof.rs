@@ -23,8 +23,8 @@ pub struct ProposalReq {
 
 impl ProposalReq {
     /// Get `EtHashProof`
-    fn ethash_proof(&self) -> Vec<EthashProofJson> {
-        let proof = super::ffi::proof(self.target);
+    fn ethash_proof(&self, api: &str) -> Vec<EthashProofJson> {
+        let proof = super::ffi::proof(api, self.target);
         <Vec<EthashProof>>::decode(&mut bytes!(proof.as_str()).as_ref())
             .unwrap_or_default()
             .iter()
@@ -63,7 +63,7 @@ impl ProposalReq {
     /// Generate response
     pub async fn gen(&self, shared: web::Data<ShadowShared>) -> EthereumRelayProofsJson {
         EthereumRelayProofsJson {
-            ethash_proof: self.ethash_proof(),
+            ethash_proof: self.ethash_proof(shared.eth.rpc()),
             mmr_proof: self.mmr_proof(&shared.store),
         }
     }

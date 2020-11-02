@@ -40,13 +40,26 @@ $ cargo install darwinia-shadow
 + Please make sure you have `golang` installed in your machine
 
 
-## Environment
+## Environment Variables
 
-| ENV                | Desc                     | Example                            |
-|--------------------|--------------------------|------------------------------------|
-| `ETHEREUM_RPC`     | The rpc of ethereum node | ETHEREUM_RPC=http://localhost:8545 |
-| `ETHEREUM_ROPSTEN` | Enable ropsten source    | ETHEREUM_ROPSTEN=true              |
-| `MMR_LOG`          | The gap of mmr logs      | MMR_LOG=10000                      |
+- `ETHEREUM_RPC`
+
+    Optional. The RPC endpoint of a etherum node, only `http://` and `https://` are supported. [Default](https://github.com/darwinia-network/shadow/blob/master/src/conf.rs) is `https://mainnet.infura.io/v3/0bfb9acbb13c426097aabb1d81a9d016` or `https://ropsten.infura.io/v3/0bfb9acbb13c426097aabb1d81a9d016` depending on `ETHEREUM_ROPSTEN`.
+
+    Example: `http://localhost:8545/`
+
+- `ETHEREUM_ROPSTEN`
+
+    Optional. Set this to `"true"` if you'd like to running shadow for the ropsten network. Default is `"false"`.
+
+    Example: `"true"`
+
+- `MMR_LOG`
+
+    Optional. Define how frequently it outputs logs `Pushed mmr ... into database` while generating MMR. Useful when you first time running shadow, since it generates millon of MMR data at first launch. Default is `10000`.
+
+    Example: `"100000"`
+
 
 ## Trouble Shooting
 

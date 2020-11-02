@@ -56,26 +56,25 @@ fn geth(path: String, from: i32, to: i32) -> Result<(), Error> {
     let shared = ShadowShared::new(None);
     let mmr_size = shared.db.iterator(IteratorMode::Start).count() as u64;
     let last_leaf = helper::mmr_size_to_last_leaf(mmr_size as i64) as usize;
-    if last_leaf < from as usize {
+    if last_leaf + 1 != from as usize {
         error!(
-            "The last leaf of mmr is {}, can not import mmr from {}",
+            "The last leaf of mmr is {}, can not import mmr from {}, from must be last_leaf + 1",
             last_leaf, from
         );
     }
-    let rect = last_leaf - from as usize;
 
     // Build mmr
     info!("mmr_size: {}, last_leaf: {}", mmr_size, last_leaf);
     let mut mmr = MMR::<_, MergeHash, _>::new(mmr_size, &shared.store);
-    if hashes_vec.len() > rect {
-        let mut ptr = rect;
-        for i in &hashes_vec[ptr..] {
-            ptr += 1;
-            if ptr % 1000 == 0 {
-                trace!("Calculating {:?}/{}", ptr + from as usize, to);
-            }
-            mmr.push(H256::from(i))?;
+
+    let mut ptr = from;
+    for hash in &hashes_vec {
+        if ptr % 1000 == 0 {
+            trace!("Calculating {:?}/{}", ptr as usize, to);
         }
+
+        ptr += 1;
+        mmr.push(H256::from(hash))?;
     }
 
     // Commit mmr

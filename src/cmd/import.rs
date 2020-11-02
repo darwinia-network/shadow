@@ -49,21 +49,24 @@ fn geth(path: String, to: i32) -> Result<(), Error> {
         last_leaf + 1
     };
 
+    if from as i32 >= to {
+        error!(
+            "The to position of mmr is {}, can not import mmr from {}, from must be less than to",
+            to, from
+        );
+    }
+
     // Get hashes
     info!("Importing ethereum headers from {}...", &path);
     let hashes = ethereum::import(&path, from as i32, to);
     let hashes_vec = hashes.split(',').collect::<Vec<&str>>();
 
     // Check empty
-    info!("Imported {} hashes", hashes_vec.len());
+    info!("Imported {} hashes from ethereum node", hashes_vec.len());
     if hashes_vec[0].is_empty() {
         error!("Importing hashes from {} failed", path);
         return Ok(());
     }
-
-    // Generate mmr store
-    info!("Got {} header hashes", hashes_vec.len());
-
 
     // Build mmr
     info!("mmr_size: {}, from: {}", mmr_size, from);
@@ -72,7 +75,7 @@ fn geth(path: String, to: i32) -> Result<(), Error> {
     let mut ptr = from;
     for hash in &hashes_vec {
         if ptr % 1000 == 0 {
-            trace!("Calculating {:?}/{}", ptr as usize, to);
+            trace!("Start to push hash into mmr for block {:?}/{}", ptr as usize, to);
         }
 
         ptr += 1;

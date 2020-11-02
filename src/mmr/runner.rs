@@ -52,7 +52,7 @@ impl Runner {
         let mut last_rpc_block_number = self.0.eth.block_number().await?;
 
         loop {
-            if last_rpc_block_number - (ptr as u64) < 12 {
+            if last_rpc_block_number < (ptr as u64 + 12) {
                 last_rpc_block_number = self.0.eth.block_number().await?;
                 actix_rt::time::delay_for(time::Duration::from_secs(10)).await;
                 continue;

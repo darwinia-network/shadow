@@ -49,15 +49,12 @@ impl Into<MMRLeafJson> for MMRLeaf {
 #[allow(clippy::eval_order_dependence)]
 pub async fn handle(block: web::Path<String>, shared: web::Data<ShadowShared>) -> impl Responder {
     let num: u64 = block.to_string().parse().unwrap_or(0);
-    let leaf = if num == 0 {
-        "0000000000000000000000000000000000000000000000000000000000000000".to_string()
-    } else {
-        H256::hex(
-            &(&shared.store)
-                .get_elem(cmmr::leaf_index_to_pos(num - 1))
-                .unwrap().unwrap_or([0;32]),
-        )
-    };
+
+    let leaf = H256::hex(
+        &(&shared.store)
+            .get_elem(cmmr::leaf_index_to_pos(num))
+            .unwrap().unwrap_or([0;32]),
+    );
 
     web::Json(MMRLeafJson {
         mmr_leaf: format!("0x{}", leaf),

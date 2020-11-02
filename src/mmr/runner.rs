@@ -55,8 +55,12 @@ impl Runner {
         let last_leaf = helper::mmr_size_to_last_leaf(mmr_size as i64);
         let mut ptr = if last_leaf == 0 { 0 } else { last_leaf + 1 };
 
+        // Using a cache rpc block number to optimize and reduce rpc call.
+        let mut last_rpc_block_number = rpc.block_number().await?;
+
         loop {
-            if rpc.block_number().await? - (ptr as u64) < 12 {
+            if last_rpc_block_number - (ptr as u64) < 12 {
+                last_rpc_block_number = rpc.block_number().await?;
                 actix_rt::time::delay_for(time::Duration::from_secs(10)).await;
                 continue;
             }

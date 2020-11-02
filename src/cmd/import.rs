@@ -12,11 +12,11 @@ use rocksdb::{
 use std::{env, fs::File};
 
 /// Import headers from backup or geth
-pub fn exec(path: String, from: i32, to: i32) -> Result<(), Error> {
+pub fn exec(path: String, to: i32) -> Result<(), Error> {
     if path.ends_with("tar") {
         backup(path)
     } else {
-        geth(path, from, to)
+        geth(path, to)
     }
 }
 
@@ -34,14 +34,24 @@ fn backup(path: String) -> Result<(), Error> {
 }
 
 /// Import headers from geth
-fn geth(path: String, from: i32, to: i32) -> Result<(), Error> {
+fn geth(path: String, to: i32) -> Result<(), Error> {
     std::env::set_var("RUST_LOG", "info,darwinia_shadow");
     std::env::set_var("GO_LOG", "ALL");
     env_logger::init();
 
+    let shared = ShadowShared::new(None);
+
+    let mmr_size = shared.db.iterator(IteratorMode::Start).count() as u64;
+    let from = if mmr_size == 0 {
+        0
+    } else {
+        let last_leaf = helper::mmr_size_to_last_leaf(mmr_size as i64) as usize;
+        last_leaf + 1
+    };
+
     // Get hashes
     info!("Importing ethereum headers from {}...", &path);
-    let hashes = ethereum::import(&path, from, to);
+    let hashes = ethereum::import(&path, from as i32, to);
     let hashes_vec = hashes.split(',').collect::<Vec<&str>>();
 
     // Check empty
@@ -53,18 +63,10 @@ fn geth(path: String, from: i32, to: i32) -> Result<(), Error> {
 
     // Generate mmr store
     info!("Got {} header hashes", hashes_vec.len());
-    let shared = ShadowShared::new(None);
-    let mmr_size = shared.db.iterator(IteratorMode::Start).count() as u64;
-    let last_leaf = helper::mmr_size_to_last_leaf(mmr_size as i64) as usize;
-    if last_leaf + 1 != from as usize {
-        error!(
-            "The last leaf of mmr is {}, can not import mmr from {}, from must be last_leaf + 1",
-            last_leaf, from
-        );
-    }
+
 
     // Build mmr
-    info!("mmr_size: {}, last_leaf: {}", mmr_size, last_leaf);
+    info!("mmr_size: {}, from: {}", mmr_size, from);
     let mut mmr = MMR::<_, MergeHash, _>::new(mmr_size, &shared.store);
 
     let mut ptr = from;

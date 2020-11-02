@@ -14,7 +14,7 @@ import (
 )
 
 // Get ethereum header by block number
-func Header(block uint64, api string) (types.Header, error) {
+func Header(api string, block uint64) (types.Header, error) {
 	// Get header from infura
 	var (
 		resp       *http.Response
@@ -30,7 +30,7 @@ func Header(block uint64, api string) (types.Header, error) {
 
 	if err != nil {
 		if !strings.Contains(api, "infura") {
-			return Header(block, shadow.DEFAULT_ETHEREUM_RPC)
+			return Header(shadow.DEFAULT_ETHEREUM_RPC, block)
 		}
 		return infuraResp.Result, err
 	}
@@ -40,7 +40,7 @@ func Header(block uint64, api string) (types.Header, error) {
 	err = json.NewDecoder(resp.Body).Decode(&infuraResp)
 	if err != nil {
 		if !strings.Contains(api, "infura") {
-			return Header(block, shadow.DEFAULT_ETHEREUM_RPC)
+			return Header(shadow.DEFAULT_ETHEREUM_RPC, block)
 		}
 		return infuraResp.Result, err
 	}

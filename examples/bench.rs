@@ -2,10 +2,10 @@
 extern crate log;
 use cmmr::MMR;
 use darwinia_shadow::{
-    mmr::{helper, MergeHash, H256},
+    mmr::{helper, MergeHash},
     ShadowShared,
 };
-use primitives::rpc::ethereum::EthHeaderRPCResp;
+use primitives::rpc::RPC;
 use rocksdb::IteratorMode;
 use std::time::{SystemTime, UNIX_EPOCH};
 
@@ -45,15 +45,17 @@ pub async fn push(shared: &ShadowShared, number: i64, mmr_size: u64) -> u64 {
 
     let b = now();
     debug!("mmr create  : {}", b - a);
-    let hash_from_ethereum = &EthHeaderRPCResp::get(&shared.client, &shared.eth, number as u64)
+    let hash_from_ethereum = shared
+        .eth
+        .get_header_by_number(number as u64)
         .await
         .unwrap()
-        .result
-        .hash;
+        .hash
+        .unwrap();
 
     let c = now();
     debug!("rpc call    : {}", c - b);
-    mmr.push(H256::from(hash_from_ethereum)).unwrap();
+    mmr.push(hash_from_ethereum).unwrap();
 
     let d = now();
     debug!("push to mmr : {}", d - c);

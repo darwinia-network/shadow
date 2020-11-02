@@ -28,9 +28,9 @@ pub async fn handle(block: web::Path<String>, shared: web::Data<ShadowShared>) -
         )
     };
 
-    let rpc = shared.eth_rpc();
     web::Json(EthereumRelayHeaderParcelJson {
-        header: rpc
+        header: shared
+            .eth
             .get_header_by_number(num)
             .await
             .unwrap_or_default()

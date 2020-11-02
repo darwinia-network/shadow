@@ -6,7 +6,7 @@ use crate::{
     ShadowShared,
 };
 use cmmr::MMR;
-use primitives::rpc::{ethereum::EthereumRPC, RPC};
+use primitives::rpc::RPC;
 use rocksdb::IteratorMode;
 use std::{env, thread, time};
 
@@ -43,33 +43,26 @@ impl Runner {
 
     /// Start the runner
     pub async fn start(&mut self) -> Result<(), Error> {
-        // Ethereum RPC
-        //
-        // Have to clone because there are a mut usage in db below
-        let client = self.0.client.clone();
-        let eth = self.0.eth.clone();
-        let rpc = EthereumRPC::new(&client, &eth);
-
         // MMR variables
         let mut mmr_size = self.as_mut().db.iterator(IteratorMode::Start).count() as u64;
         let last_leaf = helper::mmr_size_to_last_leaf(mmr_size as i64);
         let mut ptr = if last_leaf == 0 { 0 } else { last_leaf + 1 };
 
         // Using a cache rpc block number to optimize and reduce rpc call.
-        let mut last_rpc_block_number = rpc.block_number().await?;
+        let mut last_rpc_block_number = self.0.eth.block_number().await?;
 
         loop {
             if last_rpc_block_number - (ptr as u64) < 12 {
-                last_rpc_block_number = rpc.block_number().await?;
+                last_rpc_block_number = self.0.eth.block_number().await?;
                 actix_rt::time::delay_for(time::Duration::from_secs(10)).await;
                 continue;
             }
 
             // Note:
             //
-            // This trigger is ugly, need a better solution in the future
-            if ptr % 30000 == 0 {
-                thread::spawn(move || Self::epoch(ptr as u64))
+            // This trigger is ugly, need better solution in the future, ptr % 30000 is to compatible with existing production, can be removed later
+            if (ptr + 15000) % 30000 == 0 || ptr % 30000 == 0 {
+                thread::spawn(move || Self::epoch((ptr + 15000) as u64))
                     .join()
                     .unwrap_or_default();
             }
@@ -99,21 +92,18 @@ impl Runner {
     /// Push new header hash into storage
     pub async fn push(&mut self, number: i64, mmr_size: u64) -> Result<u64, Error> {
         let mut mmr = MMR::<_, MergeHash, _>::new(mmr_size, &self.as_ref().store);
-        let hash_from_ethereum = &EthereumRPC::new(&self.0.client, &self.0.eth)
-            .get_header_by_number(number as u64)
-            .await?
-            .hash;
+        let hash_from_ethereum = self.0.eth.get_header_by_number(number as u64).await?.hash;
         if let Some(hash) = hash_from_ethereum {
-            mmr.push(*hash)?;
-        } else {
-            return Err(Error::Primitive(format!(
-                "Get the block hash of block {} failed",
-                number,
-            )));
-        }
+            mmr.push(hash)?;
+            let mmr_size_new = mmr.mmr_size();
 
-        let mmr_size_new = mmr.mmr_size();
-        mmr.commit()?;
-        Ok(mmr_size_new)
+            mmr.commit()?;
+            Ok(mmr_size_new)
+        } else {
+            Err(Error::Primitive(format!(
+                "Get Ethereum header {} from ethereum rpc failed",
+                number
+            )))
+        }
     }
 }

@@ -36,7 +36,7 @@ async fn stops_at(db: &DB, runner: &mut Runner, count: i64) -> Result<(), Error>
 async fn test_proposal() {
     let shared = ShadowShared::new(None);
     let mut runner = Runner::from(shared.clone());
-    let rpc = shared.eth_rpc();
+    let rpc = shared.eth;
 
     // Gen mmrs
     assert!(stops_at(&shared.db, &mut runner, 30).await.is_ok());

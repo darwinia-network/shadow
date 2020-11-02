@@ -43,9 +43,9 @@ func init() {
 	}
 }
 
-func GetChainBlockInfo(blockNum int64) (*BlockResult, error) {
+func GetChainBlockInfo(api string, blockNum int64) (*BlockResult, error) {
 	params := []interface{}{util.IntToHex(blockNum), true}
-	if result, err := RPC("eth_getBlockByNumber", params); err != nil {
+	if result, err := RPC(api, "eth_getBlockByNumber", params); err != nil {
 		return nil, err
 	} else {
 		var block BlockResult
@@ -54,8 +54,8 @@ func GetChainBlockInfo(blockNum int64) (*BlockResult, error) {
 	}
 }
 
-func RPC(method string, params interface{}) (*dto.RequestResult, error) {
-	provider := providers.NewHTTPProvider(strings.ReplaceAll(API, "https://", ""), 10, true)
+func RPC(api string, method string, params interface{}) (*dto.RequestResult, error) {
+	provider := providers.NewHTTPProvider(strings.ReplaceAll(api, "https://", ""), 10, true)
 	pointer := &dto.RequestResult{}
 	err := provider.SendRequest(pointer, method, params)
 	if err != nil {
@@ -65,11 +65,11 @@ func RPC(method string, params interface{}) (*dto.RequestResult, error) {
 	return pointer, nil
 }
 
-func GetReceiptLog(tx string) (*Receipts, error) {
+func GetReceiptLog(tx string, api string) (*Receipts, error) {
 	params := make([]interface{}, 1)
 	params[0] = tx
 	var receipt Receipts
-	if receiptResult, err := RPC("eth_getTransactionReceipt", params); err != nil {
+	if receiptResult, err := RPC(api, "eth_getTransactionReceipt", params); err != nil {
 		return nil, err
 	} else {
 		err := mapstructure.Decode(receiptResult.Result, &receipt)
@@ -125,22 +125,22 @@ type RedeemFor struct {
 	Deposit *ProofRecord `json:"deposit,omitempty"`
 }
 
-func GetReceipt(tx string) (ProofRecord, string, error) {
-	r, err := GetReceiptLog(tx)
+func GetReceipt(api string, tx string) (ProofRecord, string, error) {
+	r, err := GetReceiptLog(tx, api)
 	if err != nil || r == nil {
 		log.Error("%s", err)
 		return ProofRecord{}, "", err
 	}
 
-	return BuildProofRecord(r)
+	return BuildProofRecord(api, r)
 }
 
-func BuildProofRecord(r *Receipts) (ProofRecord, string, error) {
+func BuildProofRecord(api string, r *Receipts) (ProofRecord, string, error) {
 	proofRecord := ProofRecord{
 		Index:      r.TransactionIndex,
 		HeaderHash: r.BlockHash,
 	}
-	block, err := GetChainBlockInfo(util.U256(r.BlockNumber).Int64())
+	block, err := GetChainBlockInfo(api, util.U256(r.BlockNumber).Int64())
 	if err != nil {
 		return ProofRecord{}, "", err
 	}

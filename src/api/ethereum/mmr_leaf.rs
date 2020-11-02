@@ -54,7 +54,7 @@ pub async fn handle(block: web::Path<String>, shared: web::Data<ShadowShared>) -
     } else {
         H256::hex(
             &(&shared.store)
-                .get_elem(cmmr::leaf_index_to_pos(num - 1))
+                .get_elem(cmmr::leaf_index_to_pos(num))
                 .unwrap().unwrap_or([0;32]),
         )
     };

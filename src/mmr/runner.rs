@@ -54,6 +54,7 @@ impl Runner {
         loop {
             // checking finalization
             if last_rpc_block_number < (ptr as u64 + 12) {
+                trace!("Pause 10s due to finalization checking, prepare to push block {}, last block number from rpc is {}", ptr, last_rpc_block_number);
                 last_rpc_block_number = self.0.eth.block_number().await?;
                 actix_rt::time::delay_for(time::Duration::from_secs(10)).await;
                 continue;

@@ -72,11 +72,11 @@ impl Runner {
             // Note:
             //
             // This trigger is ungly, need better solution in the future
-            if ptr % 30000 == 0 {
-                thread::spawn(move || Self::epoch(ptr as u64))
-                    .join()
-                    .unwrap_or_default();
-            }
+            // if ptr % 30000 == 0 {
+            //     thread::spawn(move || Self::epoch(ptr as u64))
+            //         .join()
+            //         .unwrap_or_default();
+            // }
 
             match self.push(ptr, mmr_size).await {
                 Err(_e) => {

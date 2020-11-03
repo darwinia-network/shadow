@@ -9,7 +9,7 @@ use crate::{
     ShadowShared,
 };
 use cmmr::MMR;
-use primitives::rpc::ethereum::EthHeaderRPCResp;
+use primitives::rpc::{ethereum::{EthHeaderRPCResp, EthereumRPC}, RPC};
 use rocksdb::IteratorMode;
 use std::{env, thread, time};
 
@@ -46,17 +46,25 @@ impl Runner {
 
     /// Start the runner
     pub async fn start(&mut self) -> Result<(), Error> {
+
+        // Ethereum RPC
+        //
+        // Have to clone because there are a mut usage in db below
+        let client = self.0.client.clone();
+        let eth = self.0.eth.clone();
+        let rpc = EthereumRPC::new(&client, &eth);
+
         // MMR variables
         let mut mmr_size = self.as_mut().db.iterator(IteratorMode::Start).count() as u64;
         let last_leaf = helper::mmr_size_to_last_leaf(mmr_size as i64);
         let mut ptr = if last_leaf == 0 { 0 } else { last_leaf + 1 };
 
         // Using a cache rpc block number to optimize and reduce rpc call.
-        let mut last_rpc_block_number = self.0.eth.block_number().await?;
+        let mut last_rpc_block_number = rpc.block_number().await?;
 
         loop {
             if last_rpc_block_number < (ptr as u64 + 12) {
-                last_rpc_block_number = self.0.eth.block_number().await?;
+                last_rpc_block_number = rpc.block_number().await?;
                 actix_rt::time::delay_for(time::Duration::from_secs(10)).await;
                 continue;
             }

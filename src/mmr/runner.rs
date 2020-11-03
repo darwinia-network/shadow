@@ -52,7 +52,9 @@ impl Runner {
         let mut last_rpc_block_number = self.0.eth.block_number().await?;
 
         loop {
+            // checking finalization
             if last_rpc_block_number < (ptr as u64 + 12) {
+                trace!("Pause 10s due to finalization checking, prepare to push block {}, last block number from rpc is {}", ptr, last_rpc_block_number);
                 last_rpc_block_number = self.0.eth.block_number().await?;
                 actix_rt::time::delay_for(time::Duration::from_secs(10)).await;
                 continue;
@@ -61,11 +63,11 @@ impl Runner {
             // Note:
             //
             // This trigger is ugly, need better solution in the future, ptr % 30000 is to compatible with existing production, can be removed later
-            if (ptr + 15000) % 30000 == 0 {
-                thread::spawn(move || Self::epoch((ptr + 15000) as u64))
-                    .join()
-                    .unwrap_or_default();
-            }
+            // if (ptr + 15000) % 30000 == 0 || ptr % 30000 == 0 {
+            //     thread::spawn(move || Self::epoch((ptr + 15000) as u64))
+            //         .join()
+            //         .unwrap_or_default();
+            // }
 
             match self.push(ptr, mmr_size).await {
                 Err(_e) => {

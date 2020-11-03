@@ -61,7 +61,7 @@ impl Runner {
             // Note:
             //
             // This trigger is ugly, need better solution in the future, ptr % 30000 is to compatible with existing production, can be removed later
-            if (ptr + 15000) % 30000 == 0 || ptr % 30000 == 0 {
+            if (ptr + 15000) % 30000 == 0 {
                 thread::spawn(move || Self::epoch((ptr + 15000) as u64))
                     .join()
                     .unwrap_or_default();

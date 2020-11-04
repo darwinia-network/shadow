@@ -42,6 +42,7 @@ func Receipt(api string, tx string) (*C.char, *C.char, *C.char) {
 	tx = "0x" + tx[2:]
 	proof, _, err := eth.GetReceipt(api, tx)
 	if err != nil {
+		log.Error("%v", err)
 		return C.CString(""), C.CString(""), C.CString("")
 	}
 

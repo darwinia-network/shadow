@@ -59,6 +59,7 @@ func RPC(api string, method string, params interface{}) (*dto.RequestResult, err
 	pointer := &dto.RequestResult{}
 	err := provider.SendRequest(pointer, method, params)
 	if err != nil {
+		log.Error("%v", err)
 		return nil, err
 	}
 
@@ -150,7 +151,7 @@ func BuildProofRecord(api string, r *Receipts) (ProofRecord, string, error) {
 	p, _ := ants.NewPoolWithFunc(10, func(i interface{}) {
 		hash := i.([]string)
 		func(hash []string) {
-			b, err := GetReceiptRlpEncode(hash[1])
+			b, err := GetReceiptRlpEncode(api, hash[1])
 			if err == nil {
 				receiptsMap.Set(hash[0], b)
 			}
@@ -190,8 +191,8 @@ func BuildProofRecord(api string, r *Receipts) (ProofRecord, string, error) {
 	return proofRecord, block.Hash, nil
 }
 
-func GetReceiptRlpEncode(tx string) (*types.Receipt, error) {
-	client, err := ethclient.Dial(API)
+func GetReceiptRlpEncode(api string, tx string) (*types.Receipt, error) {
+	client, err := ethclient.Dial(api)
 	if err != nil {
 		return nil, err
 	}

@@ -55,7 +55,7 @@ func GetChainBlockInfo(api string, blockNum int64) (*BlockResult, error) {
 }
 
 func RPC(api string, method string, params interface{}) (*dto.RequestResult, error) {
-	provider := providers.NewHTTPProvider(strings.ReplaceAll(api, "https://", ""), 10, true)
+	provider := providers.NewHTTPProvider(strings.TrimLeft(strings.TrimLeft(api, "https://"), "http://"), 10, strings.HasPrefix(api, "https://"))
 	pointer := &dto.RequestResult{}
 	err := provider.SendRequest(pointer, method, params)
 	if err != nil {

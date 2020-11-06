@@ -2,9 +2,12 @@ use crate::{
     mmr::{MergeHash, H256},
     ShadowShared,
 };
-use actix_web::{web, Responder};
+use actix_web::{error, web, Responder};
 use cmmr::MMR;
-use primitives::{chain::ethereum::EthereumRelayHeaderParcelJson, rpc::RPC};
+use primitives::{
+    chain::ethereum::{EthereumHeader, EthereumRelayHeaderParcelJson},
+    rpc::RPC,
+};
 
 /// Proof target header
 ///
@@ -17,24 +20,33 @@ use primitives::{chain::ethereum::EthereumRelayHeaderParcelJson, rpc::RPC};
 /// ```
 #[allow(clippy::eval_order_dependence)]
 pub async fn handle(block: web::Path<String>, shared: web::Data<ShadowShared>) -> impl Responder {
+    let header: EthereumHeader;
     let num: u64 = block.to_string().parse().unwrap_or(0);
-    let root = if num == 0 {
-        "0000000000000000000000000000000000000000000000000000000000000000".to_string()
-    } else {
-        H256::hex(
-            &MMR::<_, MergeHash, _>::new(cmmr::leaf_index_to_mmr_size(num - 1), &shared.store)
-                .get_root()
-                .unwrap_or_default(),
-        )
-    };
+    if num == 0 {
+        return Err(error::ErrorBadRequest("Requesting mmr of block -1"));
+    }
 
-    web::Json(EthereumRelayHeaderParcelJson {
-        header: shared
-            .eth
-            .get_header_by_number(num)
-            .await
-            .unwrap_or_default()
-            .into(),
-        mmr_root: format!("0x{}", root),
-    })
+    if let Ok(h) = shared.eth.get_header_by_number(num).await {
+        header = h;
+    } else {
+        return Err(error::ErrorInternalServerError(format!(
+            "Get block header {} failed",
+            num
+        )));
+    }
+
+    // Gen response
+    if let Ok(hash_bytes) =
+        MMR::<_, MergeHash, _>::new(cmmr::leaf_index_to_mmr_size(num - 1), &shared.store).get_root()
+    {
+        Ok(web::Json(EthereumRelayHeaderParcelJson {
+            header: header.into(),
+            mmr_root: format!("0x{}", H256::hex(&hash_bytes)),
+        }))
+    } else {
+        Err(error::ErrorInternalServerError(format!(
+            "Get mmr root of block {} failed",
+            num
+        )))
+    }
 }

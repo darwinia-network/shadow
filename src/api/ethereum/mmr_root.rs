@@ -20,7 +20,7 @@ use primitives::chain::ethereum::MMRRootJson;
 pub async fn handle(block: web::Path<String>, shared: web::Data<ShadowShared>) -> impl Responder {
     let num: u64 = block.to_string().parse().unwrap_or(0);
     if num == 0 {
-        return Err(error::ErrorBadRequest("Requesting mmr of block 0"));
+        return Err(error::ErrorBadRequest("Requesting mmr_root of block 0"));
     }
 
     if let Ok(hash_bytes) =

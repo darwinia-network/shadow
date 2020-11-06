@@ -1,14 +1,12 @@
 //! Ethereum MMR API
-use crate::{
-    mmr::{H256},
-    ShadowShared,
-};
-use actix_web::{web, Responder};
-use cmmr::{MMRStore};
-use primitives::bytes;
+use super::helper::WebResult;
+use crate::ShadowShared;
+use actix_web::{error, web};
+use cmmr::MMRStore;
+use primitives::{bytes, hex};
 
 /// Single MMR struct
-#[derive(Clone, Debug,Default, PartialEq, Eq)]
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct MMRLeaf {
     /// MMR Leaf
     pub mmr_leaf: [u8; 32],
@@ -47,15 +45,24 @@ impl Into<MMRLeafJson> for MMRLeaf {
 /// ethereum::mmr_leaf(web::Path::from("19".to_string()), web::Data::new(ShadowShared::new(None)));
 /// ```
 #[allow(clippy::eval_order_dependence)]
-pub async fn handle(block: web::Path<String>, shared: web::Data<ShadowShared>) -> impl Responder {
+pub async fn handle(
+    block: web::Path<String>,
+    shared: web::Data<ShadowShared>,
+) -> WebResult<web::Json<MMRLeafJson>> {
     let num: u64 = block.to_string().parse().unwrap_or(0);
-    let leaf = H256::hex(
-        &(&shared.store)
-            .get_elem(cmmr::leaf_index_to_pos(num))
-            .unwrap().unwrap_or([0;32]),
-    );
+    let leaf = (&shared.store)
+        .get_elem(cmmr::leaf_index_to_pos(num))
+        .unwrap_or_default()
+        .unwrap_or([0; 32]);
 
-    web::Json(MMRLeafJson {
-        mmr_leaf: format!("0x{}", leaf),
-    })
+    if leaf == [0; 32] {
+        Err(error::ErrorInternalServerError(format!(
+            "Get block header {} failed",
+            block
+        )))
+    } else {
+        Ok(web::Json(MMRLeafJson {
+            mmr_leaf: format!("0x{}", hex!(&leaf)),
+        }))
+    }
 }

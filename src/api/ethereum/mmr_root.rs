@@ -1,10 +1,6 @@
 //! Ethereum MMR API
-use crate::{
-    mmr::{MergeHash, H256},
-    ShadowShared,
-};
-use actix_web::{error, web, Responder};
-use cmmr::MMR;
+use crate::ShadowShared;
+use actix_web::{error::Error, web};
 use primitives::chain::ethereum::MMRRootJson;
 
 /// Get target mmr
@@ -17,22 +13,12 @@ use primitives::chain::ethereum::MMRRootJson;
 /// ethereum::mmr_root(web::Path::from("19".to_string()), web::Data::new(ShadowShared::new(None)));
 /// ```
 #[allow(clippy::eval_order_dependence)]
-pub async fn handle(block: web::Path<String>, shared: web::Data<ShadowShared>) -> impl Responder {
+pub async fn handle(
+    block: web::Path<String>,
+    shared: web::Data<ShadowShared>,
+) -> Result<web::Json<MMRRootJson>, Error> {
     let num: u64 = block.to_string().parse().unwrap_or(0);
-    if num == 0 {
-        return Err(error::ErrorBadRequest("Requesting mmr_root of block 0"));
-    }
-
-    if let Ok(hash_bytes) =
-        MMR::<_, MergeHash, _>::new(cmmr::leaf_index_to_mmr_size(num - 1), &shared.store).get_root()
-    {
-        Ok(web::Json(MMRRootJson {
-            mmr_root: format!("0x{}", H256::hex(&hash_bytes)),
-        }))
-    } else {
-        Err(error::ErrorInternalServerError(format!(
-            "Get mmr root of block {} failed",
-            num
-        )))
-    }
+    Ok(web::Json(MMRRootJson {
+        mmr_root: super::helper::mmr_root(num, &shared)?,
+    }))
 }

@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/darwinia-network/shadow/pkg/shadow"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/rlp"
@@ -29,9 +28,6 @@ func Header(api string, block uint64) (types.Header, error) {
 	)
 
 	if err != nil {
-		if !strings.Contains(api, "infura") {
-			return Header(shadow.DEFAULT_ETHEREUM_RPC, block)
-		}
 		return infuraResp.Result, err
 	}
 
@@ -39,9 +35,6 @@ func Header(api string, block uint64) (types.Header, error) {
 	defer resp.Body.Close()
 	err = json.NewDecoder(resp.Body).Decode(&infuraResp)
 	if err != nil {
-		if !strings.Contains(api, "infura") {
-			return Header(shadow.DEFAULT_ETHEREUM_RPC, block)
-		}
 		return infuraResp.Result, err
 	}
 

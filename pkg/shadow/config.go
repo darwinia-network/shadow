@@ -6,10 +6,6 @@ import (
 	"github.com/darwinia-network/shadow/pkg/shadow/util"
 )
 
-const (
-	DEFAULT_ETHEREUM_RPC string = "https://mainnet.infura.io/v3/0bfb9acbb13c426097aabb1d81a9d016"
-)
-
 type RawConfig struct {
 	Eth Config `json:"eth"`
 }

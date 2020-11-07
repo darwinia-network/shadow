@@ -7,9 +7,10 @@ use actix_web::error;
 use cmmr::MMR;
 use primitives::{chain::ethereum::EthereumHeaderJson, rpc::RPC};
 
+/// Web result
 pub type WebResult<R> = Result<R, error::Error>;
 
-// Get mmr_root string with web response
+/// Get mmr_root string with web response
 pub fn mmr_root(block: u64, shared: &ShadowShared) -> WebResult<String> {
     let num: u64 = block.to_string().parse().unwrap_or(0);
     if num == 0 {
@@ -28,7 +29,7 @@ pub fn mmr_root(block: u64, shared: &ShadowShared) -> WebResult<String> {
     }
 }
 
-// Get header json with web response
+/// Get header json with web response
 pub async fn header(block: u64, shared: &ShadowShared) -> WebResult<EthereumHeaderJson> {
     if let Ok(h) = shared.eth.get_header_by_number(block).await {
         Ok(h.into())
@@ -40,7 +41,7 @@ pub async fn header(block: u64, shared: &ShadowShared) -> WebResult<EthereumHead
     }
 }
 
-// Get header json with web response
+/// Get header json with web response
 pub async fn header_by_hash(block: &str, shared: &ShadowShared) -> WebResult<EthereumHeaderJson> {
     if let Ok(h) = shared.eth.get_header_by_hash(block).await {
         Ok(h.into())

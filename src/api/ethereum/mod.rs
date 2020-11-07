@@ -1,7 +1,7 @@
 //! Ethereum API
 mod count;
 mod ffi;
-mod helper;
+pub mod helper;
 mod mmr_leaf;
 mod mmr_root;
 mod parcel;

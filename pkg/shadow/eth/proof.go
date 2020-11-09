@@ -12,6 +12,7 @@ import (
 	"github.com/darwinia-network/shadow/pkg/shadow/util"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/darwinia-network/shadow/pkg/shadow/log"
 )
 
 // Constants
@@ -68,21 +69,25 @@ func Epoch(block uint64, config *shadow.Config) (*ethashproof.DatasetMerkleTreeC
 	if err != nil {
 		err = config.CreateLock(shadow.PROOF_LOCK, epoch)
 		if err != nil {
+			log.Error("epoch create lock failed error %v, epoch %v", err, epoch)
 			return nil, errors.New("Create epoch lock failed")
 		}
 
 		_, err = ethashproof.CalculateDatasetMerkleRoot(epoch, true)
 		if err != nil {
+			log.Error("epoch calculate dataset merkleroot failed error %v, epoch %v", err, epoch)
 			return nil, errors.New("Calculate merkle root failed")
 		}
 
 		cache, err = ethashproof.LoadCache(int(epoch))
 		if err != nil {
+			log.Error("epoch load cache failed error %v, epoch %v", err, epoch)
 			return nil, errors.New("Get ethash proof failed again, please retry")
 		}
 
 		err = config.RemoveLock(shadow.PROOF_LOCK, epoch)
 		if err != nil {
+			log.Error("epoch remove lock failed error %v, epoch %v", err, epoch)
 			return nil, errors.New("Remove lock failed")
 		}
 	}

@@ -26,11 +26,13 @@ func Epoch(block uint64) bool {
 func Proof(api string, number uint64) *C.char {
 	header, err := eth.Header(api, number)
 	if err != nil {
+		log.Error("get ethashproof when get header failed %v", err)
 		return C.CString("")
 	}
 
 	proof, err := eth.Proof(&header, &CONFIG)
 	if err != nil {
+		log.Error("get ethashproof when get proof failed %v", err)
 		return C.CString("")
 	}
 

@@ -21,11 +21,7 @@ pub struct ShadowShared {
 fn ethereum_rpc(http: Client) -> EthereumRPC {
     let rpcs = env::var("ETHEREUM_RPC")
         .unwrap_or_else(|_| {
-            if env::var("ETHEREUM_ROPSTEN").is_ok() {
-                crate::conf::DEFAULT_ETHEREUM_ROPSTEN_RPC.into()
-            } else {
-                crate::conf::DEFAULT_ETHEREUM_RPC.into()
-            }
+            "http://localhost:8545".into()
         })
         .split(',')
         .map(|s| s.trim().to_string())

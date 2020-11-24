@@ -1,5 +1,5 @@
 //! `shadow` commands
-use crate::result::Error;
+use crate::result::Result;
 use std::path::PathBuf;
 use structopt::{clap::AppSettings, StructOpt};
 
@@ -47,7 +47,7 @@ enum Opt {
 }
 
 /// Exec `shadow` binary
-pub async fn exec() -> Result<(), Error> {
+pub async fn exec() -> Result<()> {
     match Opt::from_args() {
         Opt::Count => count::exec(),
         Opt::Run { port, verbose } => run::exec(port, verbose).await,
@@ -56,5 +56,5 @@ pub async fn exec() -> Result<(), Error> {
         Opt::Export { dist } => export::exec(dist),
     }?;
 
-    Ok::<(), Error>(())
+    Ok(())
 }

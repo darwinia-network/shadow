@@ -1,56 +1,25 @@
 //! MMR Errors
-use cmmr::Error as MMR;
-use primitives::result::Error as Primitive;
-use reqwest::Error as Reqwest;
-use rocksdb::Error as Rocksdb;
-use serde_json::Error as SerdeJson;
-use std::{
-    error::Error as ErrorTrait,
-    fmt::{Display, Formatter, Result as FmtResult},
-    io::Error as Io,
-    result::Result as StdResult,
-};
+use thiserror::Error as ThisError;
+use anyhow::Result as AnyResult;
 
-/// The custom shadow error
-pub struct Shadow(String);
+#[allow(missing_docs)]
+#[derive(ThisError, Debug)]
+pub enum Error {
+    #[error(transparent)]
+    IO(#[from] std::io::Error),
 
-impl Display for Shadow {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        f.write_str(&self.0)
-    }
+    #[error(transparent)]
+    Reqwest(#[from] reqwest::Error),
+
+    #[error(transparent)]
+    SerdeJson(#[from] serde_json::Error),
+
+    #[error(transparent)]
+    Primitive(#[from] primitives::result::Error),
+
+    #[error("{0}")]
+    Shadow(String),
 }
-
-/// Error generator
-macro_rules! error {
-    ($($e:ident),*) => {
-        /// Bridger Error
-        #[derive(Debug)]
-        #[allow(missing_docs)]
-        pub enum Error {
-            $($e(String),)+
-        }
-
-        impl Display for Error {
-            fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-                match self {
-                    $(Error::$e(e) => e.fmt(f),)+
-                }
-            }
-        }
-
-        impl ErrorTrait for Error {}
-
-        $(
-            impl From<$e> for Error {
-                fn from(e: $e) -> Error {
-                    Error::$e(format!("{}", e))
-                }
-            }
-        )+
-    };
-}
-
-error! {Io, MMR, Reqwest, SerdeJson, Rocksdb, Shadow, Primitive}
 
 /// Sup Result
-pub type Result<T> = StdResult<T, Error>;
+pub type Result<T> = AnyResult<T>;

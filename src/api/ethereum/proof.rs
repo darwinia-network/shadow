@@ -1,7 +1,8 @@
 use crate::{
-    api::ShadowShared,
-    mmr::{helper, MergeHash, Store, H256},
+    ShadowShared,
+
 };
+use mmr::{MergeHash, RocksdbStore, H256};
 use actix_web::{web, Responder};
 use cmmr::MMR;
 use primitives::{
@@ -33,7 +34,7 @@ impl ProposalReq {
     }
 
     /// Get mmr root
-    pub fn mmr_root(&self, store: &Store) -> String {
+    pub fn mmr_root(&self, store: &RocksdbStore) -> String {
         if self.target < 1 {
             "0x0000000000000000000000000000000000000000000000000000000000000000".into()
         } else {
@@ -52,12 +53,12 @@ impl ProposalReq {
     }
 
     /// Generate mmr proof
-    pub fn mmr_proof(&self, store: &Store) -> Vec<String> {
+    pub fn mmr_proof(&self, store: &RocksdbStore) -> Vec<String> {
         if self.last_leaf < 1 {
             return vec![];
         }
 
-        helper::gen_proof(store, self.member, self.last_leaf)
+        store.gen_proof(self.member, self.last_leaf)
     }
 
     /// Generate response

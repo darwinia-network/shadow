@@ -1,4 +1,4 @@
-use crate::{result::Error, ShadowShared};
+use crate::{result::Result, ShadowShared};
 use rocksdb::backup::{BackupEngine, BackupEngineOptions};
 use std::{
     env,
@@ -10,7 +10,7 @@ use std::{
 use tar::Builder;
 
 /// Exec export command
-pub fn exec(dist: Option<PathBuf>) -> Result<(), Error> {
+pub fn exec(dist: Option<PathBuf>) -> Result<()> {
     let tmp = env::temp_dir();
 
     // Create backup of rocksdb

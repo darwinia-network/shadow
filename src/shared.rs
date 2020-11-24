@@ -1,4 +1,4 @@
-use crate::mmr::Store;
+use mmr::RocksdbStore;
 use primitives::rpc::EthereumRPC;
 use reqwest::Client;
 use rocksdb::DB;
@@ -11,7 +11,7 @@ const DEFAULT_RELATIVE_MMR_DB: &str = ".darwinia/cache/mmr";
 #[derive(Clone)]
 pub struct ShadowShared {
     /// MMR Store
-    pub store: Store,
+    pub store: RocksdbStore,
     /// RocksDB
     pub db: Arc<DB>,
     /// Ethereum rpc
@@ -68,7 +68,7 @@ impl ShadowShared {
                 let db = Arc::new(rocks);
                 ShadowShared {
                     db: db.clone(),
-                    store: Store::with(db),
+                    store: RocksdbStore::with(db),
                     eth: Arc::new(ethereum_rpc(Client::new())),
                 }
             }

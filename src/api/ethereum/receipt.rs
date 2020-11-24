@@ -1,4 +1,4 @@
-use crate::{mmr::helper, ShadowShared};
+use crate::{ShadowShared};
 use actix_web::{web, Responder};
 use primitives::{
     chain::ethereum::{EthereumHeaderJson, MMRProofJson},
@@ -56,7 +56,7 @@ impl ReceiptResp {
             MMRProofJson {
                 member_leaf_index,
                 last_leaf_index,
-                proof: helper::gen_proof(&shared.store, member_leaf_index, last_leaf_index),
+                proof: shared.store.gen_proof(member_leaf_index, last_leaf_index),
             }
         } else {
             MMRProofJson::default()

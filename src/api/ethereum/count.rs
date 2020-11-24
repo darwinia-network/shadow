@@ -1,4 +1,5 @@
-use crate::{mmr::helper, ShadowShared};
+use crate::{ShadowShared};
+use mmr::mmr_size_to_last_leaf;
 use actix_web::{web, Responder};
 use rocksdb::IteratorMode;
 
@@ -14,6 +15,6 @@ use rocksdb::IteratorMode;
 pub async fn handle(shared: web::Data<ShadowShared>) -> impl Responder {
     format!(
         "{}",
-        helper::mmr_size_to_last_leaf(shared.db.iterator(IteratorMode::Start).count() as i64)
+        mmr_size_to_last_leaf(shared.db.iterator(IteratorMode::Start).count() as i64)
     )
 }

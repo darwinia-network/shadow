@@ -1,8 +1,7 @@
 //! MMR Runner
 use crate::{
     api::ethereum::epoch,
-    mmr::{hash::MergeHash, helper, H256},
-    result::Error,
+    result::Result,
     ShadowShared,
 };
 use cmmr::MMR;
@@ -10,6 +9,7 @@ use cmmr::{MMRStore};
 use primitives::rpc::RPC;
 use rocksdb::IteratorMode;
 use std::{env, thread, time};
+use mmr::{H256, MergeHash, mmr_size_to_last_leaf};
 
 /// MMR Runner
 #[derive(Clone)]
@@ -54,7 +54,7 @@ impl Runner {
     }
 
     /// Start the runner
-    pub async fn start(&mut self) -> Result<(), Error> {
+    pub async fn start(&mut self) -> Result<()> {
         // MMR variables
         let mut mmr_size = self.as_mut().db.iterator(IteratorMode::Start).count() as u64;
         info!("last mmr size {}", mmr_size);
@@ -71,7 +71,7 @@ impl Runner {
             }
         }
 
-        let last_leaf = helper::mmr_size_to_last_leaf(mmr_size as i64);
+        let last_leaf = mmr_size_to_last_leaf(mmr_size as i64);
         let mut ptr = if last_leaf == 0 { 0 } else { last_leaf + 1 };
 
         // Using a cache rpc block number to optimize and reduce rpc call.
@@ -94,6 +94,8 @@ impl Runner {
             //         .join()
             //         .unwrap_or_default();
             // }
+
+
 
             match self.push(ptr, mmr_size).await {
                 Err(_e) => {
@@ -118,7 +120,7 @@ impl Runner {
     }
 
     /// Push new header hash into storage
-    pub async fn push(&mut self, number: i64, mmr_size: u64) -> Result<u64, Error> {
+    pub async fn push(&mut self, number: i64, mmr_size: u64) -> Result<u64> {
         let mut mmr = MMR::<_, MergeHash, _>::new(mmr_size, &self.as_ref().store);
         let hash_from_ethereum = self.0.eth.get_header_by_number(number as u64).await?.hash;
         if let Some(hash) = hash_from_ethereum {
@@ -128,10 +130,9 @@ impl Runner {
             mmr.commit()?;
             Ok(mmr_size_new)
         } else {
-            Err(Error::Primitive(format!(
-                "Get Ethereum header {} from ethereum rpc failed",
-                number
-            )))
+            Err(anyhow::anyhow!(
+                "Get Ethereum header {} from ethereum rpc failed", number
+            ))
         }
     }
 }

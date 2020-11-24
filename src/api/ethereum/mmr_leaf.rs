@@ -1,8 +1,8 @@
 //! Ethereum MMR API
 use crate::{
-    mmr::{H256},
     ShadowShared,
 };
+use mmr::{H256};
 use actix_web::{web, Responder};
 use cmmr::{MMRStore};
 use primitives::bytes;

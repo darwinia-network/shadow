@@ -1,7 +1,7 @@
 use crate::{
-    mmr::{MergeHash, H256},
     ShadowShared,
 };
+use mmr::{MergeHash, H256};
 use actix_web::{web, Responder};
 use cmmr::MMR;
 use primitives::{chain::ethereum::EthereumRelayHeaderParcelJson, rpc::RPC};

@@ -1,9 +1,9 @@
 use crate::{
     api::ethereum,
-    mmr::{helper, MergeHash, H256},
-    result::Error,
+    result::Result,
     ShadowShared,
 };
+use mmr::{MergeHash, H256, mmr_size_to_last_leaf};
 use cmmr::MMR;
 use rocksdb::{
     backup::{BackupEngine, BackupEngineOptions, RestoreOptions},
@@ -12,7 +12,7 @@ use rocksdb::{
 use std::{env, fs::File};
 
 /// Import headers from backup or geth
-pub fn exec(path: String, to: i32) -> Result<(), Error> {
+pub fn exec(path: String, to: i32) -> Result<()> {
     if path.ends_with("tar") {
         backup(path)
     } else {
@@ -21,7 +21,7 @@ pub fn exec(path: String, to: i32) -> Result<(), Error> {
 }
 
 /// Import headers from backup
-fn backup(path: String) -> Result<(), Error> {
+fn backup(path: String) -> Result<()> {
     let db_dir = dirs::home_dir().unwrap().join(".darwinia/cache/mmr");
     let mut wal_dir = env::temp_dir();
     wal_dir.push("shadow_mmr");
@@ -34,7 +34,7 @@ fn backup(path: String) -> Result<(), Error> {
 }
 
 /// Import headers from geth
-fn geth(path: String, to: i32) -> Result<(), Error> {
+fn geth(path: String, to: i32) -> Result<()> {
     std::env::set_var("RUST_LOG", "info,darwinia_shadow");
     std::env::set_var("GO_LOG", "ALL");
     env_logger::init();
@@ -45,7 +45,7 @@ fn geth(path: String, to: i32) -> Result<(), Error> {
     let from = if mmr_size == 0 {
         0
     } else {
-        let last_leaf = helper::mmr_size_to_last_leaf(mmr_size as i64) as usize;
+        let last_leaf = mmr_size_to_last_leaf(mmr_size as i64) as usize;
         last_leaf + 1
     };
 
@@ -79,7 +79,7 @@ fn geth(path: String, to: i32) -> Result<(), Error> {
         }
 
         ptr += 1;
-        mmr.push(H256::from(hash))?;
+        mmr.push(H256::from(hash)?)?;
     }
 
     // Commit mmr

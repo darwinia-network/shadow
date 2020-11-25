@@ -8,7 +8,7 @@ pub fn exec(uri: Option<String>) -> Result<()> {
     let client = build_client(&database(uri)?)?;
 
     println!(
-        "Current best block: {}",
+        "Current leaf count: {}",
         client.count()?
     );
 

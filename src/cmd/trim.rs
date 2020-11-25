@@ -3,7 +3,7 @@ use crate::mmr::{build_client, ClientType};
 
 /// Trim mmrs
 pub fn exec(leaf: u64) -> Result<()> {
-    let client = build_client(ClientType::Rocksdb)?;
+    let client = build_client(ClientType::Mysql)?;
     client.trim_from(leaf)?;
     println!(
         "Current best block: {:?}",

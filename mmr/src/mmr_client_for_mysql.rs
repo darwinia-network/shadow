@@ -143,8 +143,17 @@ impl MmrClientTrait for MmrClientForMysql {
         unimplemented!()
     }
 
-    fn trim_from(&self, _leaf_index: u64) -> Result<()> {
-        unimplemented!()
+    fn trim_from(&self, leaf_index: u64) -> Result<()> {
+        let mut conn = self.db.get_conn()?;
+        let mut tx = conn.start_transaction(TxOpts::default())?;
+
+        let position = tx.query_first::<u64, _>(format!("select position from mmr where leaf_index={}", leaf_index))?;
+        if let Some(position) = position {
+            tx.exec_drop("delete from mmr where position>=:position", params! { position })?;
+        }
+
+        tx.commit()?;
+        Ok(())
     }
 }
 

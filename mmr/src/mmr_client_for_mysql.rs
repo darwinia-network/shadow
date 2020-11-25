@@ -139,7 +139,7 @@ impl MmrClientTrait for MmrClientForMysql {
         )
     }
 
-    fn backup(&self, _dir: &PathBuf) -> Result<()> {
+    fn backup(&self, _dir: PathBuf) -> Result<()> {
         unimplemented!()
     }
 
@@ -154,6 +154,14 @@ impl MmrClientTrait for MmrClientForMysql {
 
         tx.commit()?;
         Ok(())
+    }
+
+    fn import_from_backup(&self, backup_file: PathBuf) -> Result<()> {
+        unimplemented!()
+    }
+
+    fn import_from_geth(&self, geth_dir: PathBuf, til_block: u64) -> Result<()> {
+        unimplemented!()
     }
 }
 

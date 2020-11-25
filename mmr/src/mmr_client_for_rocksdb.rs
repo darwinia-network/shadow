@@ -4,9 +4,9 @@ use rocksdb::{IteratorMode, DB};
 use crate::{Result, MergeHash, H256, MMRError, MmrClientTrait, mmr_size_to_last_leaf};
 use crate::RocksdbStore;
 use std::sync::Arc;
-use rocksdb::backup::{BackupEngine, BackupEngineOptions};
+use rocksdb::backup::{BackupEngine, BackupEngineOptions, RestoreOptions};
 use std::path::PathBuf;
-use std::{io, fs};
+use std::{io, fs, env};
 use std::io::{Write, stdout};
 use tar::Builder;
 use std::fs::File;
@@ -87,7 +87,7 @@ impl MmrClientTrait for MmrClientForRocksdb {
         )
     }
 
-    fn backup(&self, dir: &PathBuf) -> Result<()> {
+    fn backup(&self, dir: PathBuf) -> Result<()> {
         let mut rocks = dir.clone();
         rocks.push("shadow_mmr");
 
@@ -131,5 +131,59 @@ impl MmrClientTrait for MmrClientForRocksdb {
 
         trace!("Trimed leaves greater and equal than {}", leaf_index);
         Ok(())
+    }
+
+    fn import_from_backup(&self, backup_file: PathBuf) -> Result<()> {
+        // from
+        tar::Archive::new(File::open(&backup_file)?).unpack(&env::temp_dir())?;
+        let mut wal_dir = env::temp_dir();
+        wal_dir.push("shadow_mmr");
+
+        //
+        let mut engine = BackupEngine::open(&BackupEngineOptions::default(), &wal_dir)?;
+        engine.restore_from_latest_backup(self.db.path(), wal_dir, &RestoreOptions::default())?;
+        Ok(())
+    }
+
+    fn import_from_geth(&self, geth_dir: PathBuf, til_block: u64) -> Result<()> {
+        // let from = self.count()?;
+        // if from >= til_block {
+        //     anyhow::bail!("The to position of mmr is {}, can not import mmr from {}, from must be less than to",
+        //         to, from
+        //     );
+        // }
+        //
+        // // Get hashes
+        // info!("Importing ethereum headers from {}...", geth_dir);
+        // let hashes = ethereum::import(&geth_dir, from, til_block);
+        // let hashes_vec = hashes.split(',').collect::<Vec<&str>>();
+        //
+        // // Check empty
+        // info!("Imported {} hashes from ethereum node", hashes_vec.len());
+        // if hashes_vec[0].is_empty() {
+        //     anyhow::bail!("Importing hashes from {} failed", path);
+        // }
+        //
+        // // Build mmr
+        // let store = RocksdbStore::with(self.db.clone());
+        // let mmr_size = cmmr::leaf_index_to_mmr_size(last_leaf);
+        // info!("mmr_size: {}, from: {}", mmr_size, from);
+        // let mut mmr = MMR::<[u8; 32], MergeHash, _>::new(mmr_size, store);
+        //
+        // let mut ptr = from;
+        // for hash in &hashes_vec {
+        //     if ptr % 1000 == 0 {
+        //         trace!("Start to push hash into mmr for block {:?}/{}", ptr as usize, to);
+        //     }
+        //
+        //     ptr += 1;
+        //     mmr.push(H256::from(hash)?)?;
+        // }
+        //
+        // // Commit mmr
+        // mmr.commit()?;
+        // info!("done.");
+        // Ok(())
+        unimplemented!()
     }
 }

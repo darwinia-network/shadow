@@ -7,6 +7,7 @@ mod count;
 mod export;
 mod run;
 mod trim;
+mod import;
 
 #[derive(StructOpt)]
 #[structopt(setting = AppSettings::InferSubcommands)]
@@ -29,15 +30,18 @@ enum Opt {
         #[structopt(short, long)]
         verbose: bool,
     },
-    // /// Imports mmr from shadow backup or geth
-    // Import {
-    //     /// Datadir of geth
-    //     #[structopt(short, long)]
-    //     path: String,
-    //     /// To Ethereum block height
-    //     #[structopt(short, long, default_value = "8000000")]
-    //     to: i32,
-    // },
+    /// Imports mmr from shadow backup or geth
+    Import {
+        /// Datadir of geth
+        #[structopt(short, long)]
+        path: String,
+        /// To Ethereum block height
+        #[structopt(short, long, default_value = "8000000")]
+        to: u64,
+        /// Uri to db, Mysql url or Rocksdb path
+        #[structopt(short, long)]
+        uri: Option<String>,
+    },
     /// Exports shadow's rocksdb
     Export {
         /// Target datadir
@@ -63,7 +67,7 @@ pub async fn exec() -> Result<()> {
     match Opt::from_args() {
         Opt::Count { uri } => count::exec(uri),
         Opt::Run { port, verbose, uri } => run::exec(port, verbose, uri).await,
-        // Opt::Import { path, to } => import::exec(path, to),
+        Opt::Import { path, to, uri } => import::exec(path, to, uri),
         Opt::Trim { leaf, uri } => trim::exec(leaf, uri),
         Opt::Export { dist, uri } => export::exec(dist, uri),
     }?;

@@ -8,6 +8,6 @@ pub fn exec(dist: Option<PathBuf>, uri: Option<String>) -> Result<()> {
     // Build mmr client
     let client = build_client(&client_type(uri)?)?;
     let dir = if let Some(p) = dist { p } else { env::temp_dir() };
-    client.backup(&dir)?;
+    client.backup(dir)?;
     Ok(())
 }

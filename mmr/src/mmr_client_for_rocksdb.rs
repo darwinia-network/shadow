@@ -1,7 +1,7 @@
 use cmmr::{MMR, MMRStore};
 use rocksdb::{IteratorMode, DB};
 
-use crate::{Result, MergeHash, H256, MMRError, MmrClientTrait, mmr_size_to_last_leaf};
+use crate::{Result, MergeHash, H256, MmrClientTrait, mmr_size_to_last_leaf};
 use crate::RocksdbStore;
 use std::sync::Arc;
 use rocksdb::backup::{BackupEngine, BackupEngineOptions, RestoreOptions};
@@ -62,15 +62,12 @@ impl MmrClientTrait for MmrClientForRocksdb {
         }
     }
 
-    fn get_elem(&self, pos: u64) -> Result<String> {
+    fn get_elem(&self, pos: u64) -> Result<Option<String>> {
         let store = RocksdbStore::with(self.db.clone());
         let result = store.get_elem(pos)?;
-
-        if let Some(hash) = result {
-            Ok(H256::hex(&hash))
-        } else {
-            Err(MMRError::ElementNotFound(pos))?
-        }
+        Ok(
+            result.map(|hash| H256::hex(&hash))
+        )
     }
 
     fn gen_proof(&self, member: u64, last_leaf: u64) -> Result<Vec<String>> {
@@ -185,5 +182,25 @@ impl MmrClientTrait for MmrClientForRocksdb {
         // info!("done.");
         // Ok(())
         unimplemented!()
+    }
+
+    fn get_leaf(&self, leaf_index: u64) -> Result<Option<String>> {
+        self.get_elem(cmmr::leaf_index_to_pos(leaf_index))
+    }
+
+    fn get_mmr_root(&self, leaf_index: u64) -> Result<Option<String>> {
+        if let Some(last_leaf_index) = self.get_last_leaf_index()? {
+            if leaf_index > last_leaf_index {
+                Ok(None)
+            } else {
+                let store = RocksdbStore::with(self.db.clone());
+                let mmr_size = cmmr::leaf_index_to_mmr_size(leaf_index);
+                let mmr = MMR::<[u8; 32], MergeHash, _>::new(mmr_size, store);
+                let root = mmr.get_root()?;
+                Ok(Some(H256::hex(&root)))
+            }
+        } else {
+            Ok(None)
+        }
     }
 }

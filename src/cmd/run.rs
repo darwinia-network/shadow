@@ -1,4 +1,4 @@
-use crate::{mmr::client_type, mmr::Runner, mmr::ClientType, result::Result};
+use crate::{mmr::database, mmr::Runner, result::Result};
 use std::sync::Arc;
 use primitives::rpc::EthereumRPC;
 use std::env;
@@ -18,7 +18,7 @@ pub async fn exec(port: u16, verbose: bool, uri: Option<String>) -> Result<()> {
     let eth = Arc::new(ethereum_rpc());
 
     // Build Runner
-    let runner = Runner::new(eth, client_type(uri)?);
+    let runner = Runner::new(eth, database(uri)?);
 
     // Start
     runner.start().await?;

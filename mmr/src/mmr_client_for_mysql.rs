@@ -2,7 +2,7 @@ use cmmr::MMR;
 use mysql::*;
 use mysql::prelude::*;
 
-use crate::{Result, MergeHash, H256, MMRError, MmrClientTrait};
+use crate::{Result, MergeHash, H256, MmrClientTrait};
 use crate::MysqlStore;
 use std::path::PathBuf;
 
@@ -109,16 +109,10 @@ impl MmrClientTrait for MmrClientForMysql {
         Ok(leaf_index)
     }
 
-    fn get_elem(&self, pos: u64) -> Result<String> {
+    fn get_elem(&self, pos: u64) -> Result<Option<String>> {
         let mut conn = self.db.get_conn()?;
-
         let result = conn.query_first::<String, _>(format!("SELECT hash FROM mmr WHERE position={}", pos))?;
-
-        if let Some(hash) = result {
-            Ok(hash)
-        } else {
-            Err(MMRError::ElementNotFound(pos))?
-        }
+        Ok(result)
     }
 
     fn gen_proof(&self, member: u64, last_leaf: u64) -> Result<Vec<String>> {
@@ -147,9 +141,9 @@ impl MmrClientTrait for MmrClientForMysql {
         let mut conn = self.db.get_conn()?;
         let mut tx = conn.start_transaction(TxOpts::default())?;
 
-        let position = tx.query_first::<u64, _>(format!("select position from mmr where leaf_index={}", leaf_index))?;
+        let position = tx.query_first::<u64, _>(format!("SELECT position FROM mmr WHERE leaf_index={}", leaf_index))?;
         if let Some(position) = position {
-            tx.exec_drop("delete from mmr where position>=:position", params! { position })?;
+            tx.exec_drop("DELETE FROM mmr WHERE position>=:position", params! { position })?;
         }
 
         tx.commit()?;
@@ -162,6 +156,18 @@ impl MmrClientTrait for MmrClientForMysql {
 
     fn import_from_geth(&self, geth_dir: PathBuf, til_block: u64) -> Result<()> {
         unimplemented!()
+    }
+
+    fn get_leaf(&self, leaf_index: u64) -> Result<Option<String>> {
+        let mut conn = self.db.get_conn()?;
+        let result = conn.query_first::<String, _>(format!("SELECT hash FROM mmr WHERE leaf_index={}", leaf_index))?;
+        Ok(result)
+    }
+
+    fn get_mmr_root(&self, leaf_index: u64) -> Result<Option<String>> {
+        let mut conn = self.db.get_conn()?;
+        let result = conn.query_first::<String, _>(format!("SELECT root FROM mmr WHERE leaf_index={}", leaf_index))?;
+        Ok(result)
     }
 }
 

@@ -6,13 +6,15 @@ pub trait MmrClientTrait {
     fn batch_push(&mut self, elems: &[&str]) -> Result<Vec<u64>>;
     fn get_mmr_size(&self) -> Result<u64>;
     fn get_last_leaf_index(&self) -> Result<Option<u64>>;
-    fn get_elem(&self, pos: u64) -> Result<String>;
+    fn get_elem(&self, pos: u64) -> Result<Option<String>>;
     fn gen_proof(&self, member: u64, last_leaf: u64) -> Result<Vec<String>>;
     fn backup(&self, dir: PathBuf) -> Result<()>;
     /// delete from leaf_index, include the leaf_index
     fn trim_from(&self, leaf_index: u64) -> Result<()>;
     fn import_from_backup(&self, backup_file: PathBuf) -> Result<()>;
     fn import_from_geth(&self, geth_dir: PathBuf, til_block: u64) -> Result<()>;
+    fn get_leaf(&self, leaf_index: u64) -> Result<Option<String>>;
+    fn get_mmr_root(&self, leaf_index: u64) -> Result<Option<String>>;
 
     fn count(&self) -> Result<u64> {
         let count = match self.get_last_leaf_index()? {

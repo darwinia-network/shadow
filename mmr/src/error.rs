@@ -21,8 +21,6 @@ pub enum MMRError {
     #[error(transparent)]
     AnyhowError(#[from] anyhow::Error),
 
-    #[error("Element of position {0} is not found")]
-    ElementNotFound(u64),
 }
 
 pub type Result<T> = AnyResult<T, MMRError>;

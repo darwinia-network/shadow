@@ -76,10 +76,8 @@ extern crate log;
 extern crate serde;
 
 mod conf;
-mod shared;
 
 pub mod cmd;
 pub mod mmr;
 pub mod result;
 
-pub use shared::ShadowShared;

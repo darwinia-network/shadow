@@ -16,3 +16,5 @@ cmmr = { version = "0.3.0", package = "ckb-merkle-mountain-range"}
 blake2-rfc = "0.2.18"
 rocksdb = "0.15.0"
 mysql = "*"
+tar = "0.4.30"
+atty = "0.2.14"

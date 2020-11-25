@@ -1,26 +1,10 @@
 //! MMR Runner
-use mmr::{
-    MmrClientTrait, MmrClientForRocksdb, MmrClientForMysql, H256
-};
+use mmr::H256;
 use crate::result::Result;
+use crate::mmr::{build_client, ClientType};
 use primitives::rpc::{RPC, EthereumRPC};
 use std::time::Duration;
-use mysql::Pool;
 use std::sync::Arc;
-use rocksdb::DB;
-
-/// Constants
-const DEFAULT_ROCKSDB_FILE: &str = ".darwinia/cache/mmr";
-const DEFAULT_MYSQL_URI: &str = "mysql://root:@localhost:3306/mmr_store";
-
-/// Client type with diff mmr store
-#[derive(Clone)]
-pub enum ClientType {
-    /// client with rocksdb store
-    Rocksdb,
-    /// client with mysql store
-    Mysql,
-}
 
 /// MMR Runner
 pub struct Runner {
@@ -36,7 +20,7 @@ impl Runner {
 
     /// Start the runner
     pub async fn start(&self) -> Result<()> {
-        let client = Runner::build_client(&self.client_type)?;
+        let client = build_client(self.client_type.clone())?;
         let mmr_size = client.get_mmr_size().unwrap();
 
         // MMR variables
@@ -80,7 +64,7 @@ impl Runner {
                 let leaf = H256::hex(&hash);
                 let client_type = self.client_type.clone();
                 let result = tokio::task::spawn_blocking(move || {
-                    let mut client = Runner::build_client(&client_type)?;
+                    let mut client = build_client(client_type)?;
                     client.push(&leaf)
                 }).await?;
 
@@ -110,20 +94,7 @@ impl Runner {
         }
     }
 
-    fn build_client(client_type: &ClientType) -> Result<Box<dyn MmrClientTrait>> {
-        match client_type {
-            ClientType::Mysql => {
-                let db = Pool::new(DEFAULT_MYSQL_URI.to_string())?;
-                let client = MmrClientForMysql::new(db);
-                Ok(Box::new(client))
-            },
-            ClientType::Rocksdb => {
-                let db = DB::open_default(DEFAULT_ROCKSDB_FILE.to_string())?;
-                let client = MmrClientForRocksdb::new(Arc::new(db));
-                Ok(Box::new(client))
-            }
-        }
-    }
+
 }
 
 

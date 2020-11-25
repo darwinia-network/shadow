@@ -13,6 +13,9 @@ pub enum MMRError {
     MysqlError(#[from] mysql::Error),
 
     #[error(transparent)]
+    RocksdbError(#[from] rocksdb::Error),
+
+    #[error(transparent)]
     ArrayBytesError(#[from] array_bytes::Error),
 
     #[error(transparent)]

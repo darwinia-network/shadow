@@ -4,6 +4,12 @@ use rocksdb::{IteratorMode, DB};
 use crate::{Result, MergeHash, H256, MMRError, MmrClientTrait, mmr_size_to_last_leaf};
 use crate::RocksdbStore;
 use std::sync::Arc;
+use rocksdb::backup::{BackupEngine, BackupEngineOptions};
+use std::path::PathBuf;
+use std::{io, fs};
+use std::io::{Write, stdout};
+use tar::Builder;
+use std::fs::File;
 
 pub struct MmrClientForRocksdb {
     db: Arc<DB>,
@@ -79,5 +85,51 @@ impl MmrClientTrait for MmrClientForRocksdb {
                 .map(|item| H256::hex(item))
                 .collect::<Vec<String>>()
         )
+    }
+
+    fn backup(&self, dir: &PathBuf) -> Result<()> {
+        let mut rocks = dir.clone();
+        rocks.push("shadow_mmr");
+
+        let mut engine = BackupEngine::open(&BackupEngineOptions::default(), &rocks)?;
+        engine.create_new_backup_flush(&self.db.clone(), true)?;
+        io::stderr().write_all(
+            format!("Created backup at {} succeed!\n", &rocks.to_string_lossy()).as_bytes(),
+        )?;
+
+        // Tar backup
+        io::stderr().write_all(b"Generateing tar package...\n")?;
+        if atty::is(atty::Stream::Stdout) {
+            let mut tar = dir.clone();
+            if !&dir.exists() {
+                fs::create_dir(dir)?;
+            }
+            tar.push("shadow_mmr.tar");
+
+            let mut ar = Builder::new(File::create(&tar)?);
+            ar.append_dir_all("shadow_mmr", &rocks)?;
+            io::stderr()
+                .write_all(format!("Export mmr at {} succeed!\n", &tar.to_string_lossy()).as_bytes())?;
+        } else {
+            let mut ar = Builder::new(stdout());
+            ar.append_dir_all("shadow_mmr", &rocks)?;
+            io::stderr().write_all(b"Export mmr succeed!")?;
+        };
+
+        // clean backup
+        fs::remove_dir_all(&rocks)?;
+        io::stderr()
+            .write_all(format!("Clean backup at {} succeed!\n", &rocks.to_string_lossy()).as_bytes())?;
+        Ok(())
+    }
+
+    fn trim_from(&self, leaf_index: u64) -> Result<()> {
+        let mmr_size = self.get_mmr_size().unwrap();
+        for i in cmmr::leaf_index_to_pos(leaf_index)..mmr_size {
+            self.db.delete(i.to_le_bytes())?;
+        }
+
+        trace!("Trimed leaves greater and equal than {}", leaf_index);
+        Ok(())
     }
 }

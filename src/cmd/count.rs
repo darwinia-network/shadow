@@ -1,13 +1,19 @@
-use crate::{result::Result, ShadowShared};
-use mmr::mmr_size_to_last_leaf;
-use rocksdb::IteratorMode;
+use crate::{result::Result};
+use crate::mmr::{build_client, ClientType};
 
 /// Count mmr
 pub fn exec() -> Result<()> {
-    let shared = ShadowShared::new(None);
+    let client = build_client(ClientType::Mysql)?;
+
+    let count =
+        match client.count()? {
+            None => "None".to_string(),
+            Some(count) => count.to_string()
+        };
+
     println!(
         "Current best block: {}",
-        mmr_size_to_last_leaf(shared.db.iterator(IteratorMode::Start).count() as i64)
+        count
     );
 
     Ok(())

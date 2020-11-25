@@ -4,6 +4,7 @@ use mysql::prelude::*;
 
 use crate::{Result, MergeHash, H256, MMRError, MmrClientTrait};
 use crate::MysqlStore;
+use std::path::PathBuf;
 
 pub struct MmrClientForMysql {
     db: Pool
@@ -136,6 +137,14 @@ impl MmrClientTrait for MmrClientForMysql {
                 .map(|item| H256::hex(item))
                 .collect::<Vec<String>>()
         )
+    }
+
+    fn backup(&self, _dir: &PathBuf) -> Result<()> {
+        unimplemented!()
+    }
+
+    fn trim_from(&self, _leaf_index: u64) -> Result<()> {
+        unimplemented!()
     }
 }
 

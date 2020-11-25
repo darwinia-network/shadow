@@ -78,7 +78,6 @@ extern crate serde;
 mod conf;
 mod shared;
 
-pub mod api;
 pub mod cmd;
 pub mod mmr;
 pub mod result;

@@ -26,8 +26,8 @@ pub async fn serve(port: u16, shared: ShadowShared) -> std::io::Result<()> {
             .service(web::resource("/ethereum/proof").to(ethereum::proof))
             .service(web::resource("/ethereum/receipt/{tx}/{last}").to(ethereum::receipt))
     })
-    .disable_signals()
-    .bind(format!("0.0.0.0:{}", port))?
-    .run()
-    .await
+        .disable_signals()
+        .bind(format!("0.0.0.0:{}", port))?
+        .run()
+        .await
 }

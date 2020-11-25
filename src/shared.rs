@@ -18,7 +18,7 @@ pub struct ShadowShared {
     pub eth: Arc<EthereumRPC>,
 }
 
-fn ethereum_rpc(http: Client) -> EthereumRPC {
+pub fn ethereum_rpc() -> EthereumRPC {
     let rpcs = env::var("ETHEREUM_RPC")
         .unwrap_or_else(|_| {
             if env::var("ETHEREUM_ROPSTEN").is_ok() {
@@ -31,8 +31,9 @@ fn ethereum_rpc(http: Client) -> EthereumRPC {
         .map(|s| s.trim().to_string())
         .collect();
 
+
     info!("Avaiable ethereum rpc urls: \n{:#?}", rpcs);
-    EthereumRPC::new(http, rpcs)
+    EthereumRPC::new(Client::new(), rpcs)
 }
 
 impl ShadowShared {
@@ -69,7 +70,7 @@ impl ShadowShared {
                 ShadowShared {
                     db: db.clone(),
                     store: RocksdbStore::with(db),
-                    eth: Arc::new(ethereum_rpc(Client::new())),
+                    eth: Arc::new(ethereum_rpc()),
                 }
             }
         }

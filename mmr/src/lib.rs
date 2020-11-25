@@ -6,7 +6,9 @@ mod helper;
 mod mysql_store;
 mod rocksdb_store;
 mod hash;
-mod client;
+mod mmr_client_for_mysql;
+mod mmr_client_trait;
+mod mmr_client_for_rocksdb;
 
 pub use self::{
     error::{Result, MMRError},
@@ -14,7 +16,9 @@ pub use self::{
     rocksdb_store::RocksdbStore,
     mysql_store::MysqlStore,
     helper::mmr_size_to_last_leaf,
-    client::Client,
+    mmr_client_trait::MmrClientTrait,
+    mmr_client_for_mysql::MmrClientForMysql,
+    mmr_client_for_rocksdb::MmrClientForRocksdb,
 };
 
 #[cfg(test)]

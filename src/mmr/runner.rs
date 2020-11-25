@@ -1,49 +1,106 @@
 //! MMR Runner
-use crate::{
-    api::ethereum::epoch,
-    result::Result,
-    ShadowShared,
+use mmr::{
+    MmrClientTrait, MmrClientForRocksdb, MmrClientForMysql, H256
 };
-use cmmr::MMR;
-use cmmr::{MMRStore};
-use primitives::rpc::RPC;
-use rocksdb::IteratorMode;
-use std::{env, thread, time};
-use mmr::{H256, MergeHash, mmr_size_to_last_leaf};
+use crate::result::Result;
+use primitives::rpc::{RPC, EthereumRPC};
+use std::time::Duration;
+use mysql::Pool;
+use std::sync::Arc;
+use rocksdb::DB;
+
+/// Constants
+const DEFAULT_ROCKSDB_FILE: &str = ".darwinia/cache/mmr";
+const DEFAULT_MYSQL_URI: &str = "mysql://root:@localhost:3306/mmr_store";
+
+/// Client type with diff mmr store
+#[derive(Clone)]
+pub enum ClientType {
+    /// client with rocksdb store
+    Rocksdb,
+    /// client with mysql store
+    Mysql,
+}
 
 /// MMR Runner
-#[derive(Clone)]
-pub struct Runner(ShadowShared);
-
-impl AsRef<ShadowShared> for Runner {
-    fn as_ref(&self) -> &ShadowShared {
-        &self.0
-    }
-}
-
-impl AsMut<ShadowShared> for Runner {
-    fn as_mut(&mut self) -> &mut ShadowShared {
-        &mut self.0
-    }
-}
-
-impl From<ShadowShared> for Runner {
-    fn from(s: ShadowShared) -> Self {
-        Self(s)
-    }
+pub struct Runner {
+    eth: Arc<EthereumRPC>,
+    client_type: ClientType,
 }
 
 impl Runner {
-    /// Async epoch
-    pub fn epoch(block: u64) {
-        if !epoch(block) {
-            thread::sleep(time::Duration::from_secs(10));
-            Self::epoch(block);
+    /// new
+    pub fn new(eth: Arc<EthereumRPC>, client_type: ClientType) -> Self {
+        Runner { eth, client_type }
+    }
+
+    /// Start the runner
+    pub async fn start(&self) -> Result<()> {
+        let client = Runner::build_client(&self.client_type)?;
+        let mmr_size = client.get_mmr_size().unwrap();
+
+        // MMR variables
+        info!("last mmr size {}", mmr_size);
+
+        // Check if the correct ethereum node is connected
+        if mmr_size > 0 {
+            let valid_hash = client.get_elem(0)?;
+            let hash_from_ethereum = self.eth.get_header_by_number(0).await?.hash;
+
+            if let Some(hash) = hash_from_ethereum {
+                let rpc_hash = H256::hex(&hash);
+                assert_eq!(valid_hash, rpc_hash, "RPC network should be {} but {}", Runner::network_name(&valid_hash), Runner::network_name(&rpc_hash));
+            } else {
+                panic!("rpc request is unreachable");
+            }
+        }
+
+        // Leaf index to push into mmr store
+        let mut ptr: u64 =
+            match client.get_last_leaf_index()? {
+                Some(last_leaf_index) => last_leaf_index + 1,
+                None => 0
+            };
+
+        // Using a cache rpc block number to optimize and reduce rpc call.
+        let mut last_rpc_block_number = self.eth.block_number().await?;
+
+        loop {
+            // checking finalization, run too fast
+            if last_rpc_block_number < (ptr as u64 + 12) {
+                trace!("Pause 10s due to finalization checking, prepare to push block {}, last block number from rpc is {}", ptr, last_rpc_block_number);
+                tokio::time::delay_for(Duration::from_millis(10)).await;
+                last_rpc_block_number = self.eth.block_number().await?;
+                continue;
+            }
+
+            let hash_from_ethereum = self.eth.get_header_by_number(ptr).await?.hash;
+
+            if let Some(hash) = hash_from_ethereum {
+                let leaf = H256::hex(&hash);
+                let client_type = self.client_type.clone();
+                let result = tokio::task::spawn_blocking(move || {
+                    let mut client = Runner::build_client(&client_type)?;
+                    client.push(&leaf)
+                }).await?;
+
+                let leaf = H256::hex(&hash);
+                match result {
+                    Ok(position) => {
+                        trace!("Pushed leaf {}: {} at position {}", ptr, leaf, position);
+                        ptr += 1;
+                    },
+                    Err(err) => error!("Failed to push {}: {:?}", leaf, err)
+                }
+            } else {
+                warn!("Ethereum block hash of {} is none", ptr);
+                tokio::time::delay_for(Duration::from_millis(10)).await;
+            }
         }
     }
 
     /// translate from hash to network name
-    pub fn network_name(h: &str) -> &str {
+    fn network_name(h: &str) -> &str {
         match h {
             "41941023680923e0fe4d74a34bdac8141f2540e3ae90623718e47d66d1ca4a2d" => "Ropsten",
             "d4e56740f876aef8c010b86a40d5f56745a118d0906a34e69aec8c0db1cb8fa3" => "Mainnet",
@@ -53,86 +110,20 @@ impl Runner {
         }
     }
 
-    /// Start the runner
-    pub async fn start(&mut self) -> Result<()> {
-        // MMR variables
-        let mut mmr_size = self.as_mut().db.iterator(IteratorMode::Start).count() as u64;
-        info!("last mmr size {}", mmr_size);
-
-        if mmr_size > 0 {
-            let valid_hash = H256::hex(&(&self.as_ref().store).get_elem(0).unwrap().unwrap_or([0;32]));
-            let hash_from_ethereum = self.0.eth.get_header_by_number(0).await?.hash;
-
-            if let Some(hash) = hash_from_ethereum {
-                let rpc_hash = H256::hex(&hash);
-                assert!(valid_hash == rpc_hash, "RPC network should be {} but {}", Runner::network_name(&valid_hash), Runner::network_name(&rpc_hash));
-            } else {
-                panic!("rpc request is unreachable");
+    fn build_client(client_type: &ClientType) -> Result<Box<dyn MmrClientTrait>> {
+        match client_type {
+            ClientType::Mysql => {
+                let db = Pool::new(DEFAULT_MYSQL_URI.to_string())?;
+                let client = MmrClientForMysql::new(db);
+                Ok(Box::new(client))
+            },
+            ClientType::Rocksdb => {
+                let db = DB::open_default(DEFAULT_ROCKSDB_FILE.to_string())?;
+                let client = MmrClientForRocksdb::new(Arc::new(db));
+                Ok(Box::new(client))
             }
-        }
-
-        let last_leaf = mmr_size_to_last_leaf(mmr_size as i64);
-        let mut ptr = if last_leaf == 0 { 0 } else { last_leaf + 1 };
-
-        // Using a cache rpc block number to optimize and reduce rpc call.
-        let mut last_rpc_block_number = self.0.eth.block_number().await?;
-
-        loop {
-            // checking finalization
-            if last_rpc_block_number < (ptr as u64 + 12) {
-                trace!("Pause 10s due to finalization checking, prepare to push block {}, last block number from rpc is {}", ptr, last_rpc_block_number);
-                last_rpc_block_number = self.0.eth.block_number().await?;
-                actix_rt::time::delay_for(time::Duration::from_secs(10)).await;
-                continue;
-            }
-
-            // Note:
-            //
-            // This trigger is ugly, need better solution in the future, ptr % 30000 is to compatible with existing production, can be removed later
-            // if (ptr + 15000) % 30000 == 0 || ptr % 30000 == 0 {
-            //     thread::spawn(move || Self::epoch((ptr + 15000) as u64))
-            //         .join()
-            //         .unwrap_or_default();
-            // }
-
-
-
-            match self.push(ptr, mmr_size).await {
-                Err(_e) => {
-                    actix_rt::time::delay_for(time::Duration::from_secs(10)).await;
-                }
-                Ok(mmr_size_new) => {
-                    if ptr
-                        % env::var("MMR_LOG")
-                            .unwrap_or_else(|_| "10000".to_string())
-                            .parse::<i64>()
-                            .unwrap_or(10000)
-                        == 0
-                    {
-                        trace!("Pushed mmr {} into database", ptr);
-                    }
-
-                    mmr_size = mmr_size_new;
-                    ptr += 1;
-                }
-            }
-        }
-    }
-
-    /// Push new header hash into storage
-    pub async fn push(&mut self, number: i64, mmr_size: u64) -> Result<u64> {
-        let mut mmr = MMR::<_, MergeHash, _>::new(mmr_size, &self.as_ref().store);
-        let hash_from_ethereum = self.0.eth.get_header_by_number(number as u64).await?.hash;
-        if let Some(hash) = hash_from_ethereum {
-            mmr.push(hash)?;
-            let mmr_size_new = mmr.mmr_size();
-
-            mmr.commit()?;
-            Ok(mmr_size_new)
-        } else {
-            Err(anyhow::anyhow!(
-                "Get Ethereum header {} from ethereum rpc failed", number
-            ))
         }
     }
 }
+
+

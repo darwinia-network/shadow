@@ -2,22 +2,24 @@ use cmmr::MMR;
 use mysql::*;
 use mysql::prelude::*;
 
-use crate::error::Result;
-use crate::{MysqlStore, MergeHash, H256, MMRError};
+use crate::{Result, MergeHash, H256, MMRError, MmrClientTrait};
+use crate::MysqlStore;
 
-pub struct Client {
+pub struct MmrClientForMysql {
     db: Pool
 }
 
-impl Client {
-
+impl MmrClientForMysql {
     /// create a new client instance
     pub fn new(db: Pool) -> Self {
-        Client { db }
+        MmrClientForMysql { db }
     }
+}
+
+impl MmrClientTrait for MmrClientForMysql {
 
     /// push single element to mmr
-    pub fn push(&mut self, elem: &str) -> Result<u64> {
+    fn push(&mut self, elem: &str) -> Result<u64> {
         let mut conn = self.db.get_conn()?;
         let mut tx = conn.start_transaction(TxOpts::default())?;
 
@@ -44,7 +46,7 @@ impl Client {
     }
 
     /// push elements to mmr
-    pub fn batch_push(&mut self, elems: &[&str]) -> Result<Vec<u64>> {
+    fn batch_push(&mut self, elems: &[&str]) -> Result<Vec<u64>> {
         let mut result = vec![];
 
         let mut conn = self.db.get_conn()?;
@@ -82,7 +84,7 @@ impl Client {
     }
 
     /// get mmr size from db directly
-    pub fn get_mmr_size(&self) -> Result<u64> {
+    fn get_mmr_size(&self) -> Result<u64> {
         let mut conn = self.db.get_conn()?;
         let mut mmr_size = 0;
         if let Some(result) = conn.query_first::<Option<u64>, _>("SELECT MAX(position)+1 FROM mmr")? {
@@ -94,7 +96,7 @@ impl Client {
         Ok(mmr_size)
     }
 
-    pub fn get_last_leaf_index(&self) -> Result<Option<u64>> {
+    fn get_last_leaf_index(&self) -> Result<Option<u64>> {
         let mut conn = self.db.get_conn()?;
         let mut leaf_index = None;
         if let Some(result) = conn.query_first::<Option<u64>, _>("SELECT MAX(leaf_index) FROM mmr")? {
@@ -106,7 +108,7 @@ impl Client {
         Ok(leaf_index)
     }
 
-    pub fn get_elem(&self, pos: u64) -> Result<String> {
+    fn get_elem(&self, pos: u64) -> Result<String> {
         let mut conn = self.db.get_conn()?;
 
         let result = conn.query_first::<String, _>(format!("SELECT hash FROM mmr WHERE position={}", pos))?;
@@ -118,28 +120,30 @@ impl Client {
         }
     }
 
-    pub fn gen_proof(&self, member: u64, last_leaf: u64) -> Result<Vec<String>> {
+    fn gen_proof(&self, member: u64, last_leaf: u64) -> Result<Vec<String>> {
         let mut conn = self.db.get_conn()?;
         let mut tx = conn.start_transaction(TxOpts::default())?;
         let store = MysqlStore::new(self.db.clone(), &mut tx);
         let mmr_size = cmmr::leaf_index_to_mmr_size(last_leaf);
         let mmr = MMR::<[u8; 32], MergeHash, _>::new(mmr_size, store);
         let proof = mmr.gen_proof(vec![cmmr::leaf_index_to_pos(member)])?;
-        tx.commit();
+        tx.commit()?;
 
-        Ok(proof
-            .proof_items()
-            .iter()
-            .map(|item| H256::hex(item))
-            .collect::<Vec<String>>())
+        Ok(
+            proof
+                .proof_items()
+                .iter()
+                .map(|item| H256::hex(item))
+                .collect::<Vec<String>>()
+        )
     }
 }
 
 #[test]
 fn test_client() {
-    use crate::Client;
-    let db = Pool::new("mysql://root:@localhost:3306/mmr_store".to_string())?;
-    let mut client = Client::new(db);
+    use crate::MmrClientForMysql;
+    let db = Pool::new("mysql://root:@localhost:3306/mmr_store".to_string()).unwrap();
+    let mut client = MmrClientForMysql::new(db);
 
     client.push("c0c8c3f7dc9cdfa87d2433bcd72a744d634524a5ff76e019e44ea450476bac99").unwrap();
     // println!("{:?}", client.get_last_leaf_index());
@@ -147,7 +151,7 @@ fn test_client() {
 
 #[test]
 fn test_client_batch_push() {
-    use crate::Client;
+    use crate::MmrClientForMysql;
 
     let hashs: [&str; 10] = [
         "34f61bfda344b3fad3c3e38832a91448b3c613b199eb23e5110a635d71c13c65",
@@ -162,7 +166,7 @@ fn test_client_batch_push() {
         "c0c8c3f7dc9cdfa87d2433bcd72a744d634524a5ff76e019e44ea450476bac99",
     ];
 
-    let db = Pool::new("mysql://root:@localhost:3306/mmr_store".to_string())?;
-    let mut client = Client::new(db);
+    let db = Pool::new("mysql://root:@localhost:3306/mmr_store".to_string()).unwrap();
+    let mut client = MmrClientForMysql::new(db);
     client.batch_push(&hashs).unwrap();
 }

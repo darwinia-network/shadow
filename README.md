@@ -44,15 +44,9 @@ $ cargo install darwinia-shadow
 
 - `ETHEREUM_RPC`
 
-    Optional. The RPC endpoint of a etherum node, only `http://` and `https://` are supported. [Default](https://github.com/darwinia-network/shadow/blob/master/src/conf.rs) is `https://mainnet.infura.io/v3/0bfb9acbb13c426097aabb1d81a9d016` or `https://ropsten.infura.io/v3/0bfb9acbb13c426097aabb1d81a9d016` depending on `ETHEREUM_ROPSTEN`.
+    Optional. The RPC endpoint of a etherum node, only `http://` and `https://` are supported. Default is http://localhost:8545 .
 
     Example: `http://localhost:8545/`
-
-- `ETHEREUM_ROPSTEN`
-
-    Optional. Set this to `"true"` if you'd like to running shadow for the ropsten network. Default is `"false"`.
-
-    Example: `"true"`
 
 - `MMR_LOG`
 

@@ -8,6 +8,8 @@ use darwinia_shadow::{
 use primitives::rpc::RPC;
 use rocksdb::{IteratorMode, DB};
 
+use std::env;
+
 async fn stops_at(db: &DB, runner: &mut Runner, count: i64) -> Result<(), Error> {
     let mut mmr_size = db.iterator(IteratorMode::Start).count() as u64;
     let mut ptr = {
@@ -34,6 +36,7 @@ async fn stops_at(db: &DB, runner: &mut Runner, count: i64) -> Result<(), Error>
 
 #[actix_rt::test]
 async fn test_proposal() {
+    env::set_var("ETHEREUM_RPC", r#"https://mainnet.infura.io/v3/0bfb9acbb13c426097aabb1d81a9d016"#);
     let shared = ShadowShared::new(None);
     let mut runner = Runner::from(shared.clone());
     let rpc = shared.eth;

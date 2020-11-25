@@ -12,12 +12,19 @@ mod trim;
 #[structopt(setting = AppSettings::InferSubcommands)]
 enum Opt {
     /// Current block height in mmr store
-    Count,
+    Count {
+        /// Uri to db, Mysql url or Rocksdb path
+        #[structopt(short, long)]
+        uri: Option<String>,
+    },
     /// Start shadow service
     Run {
         /// Http server port
         #[structopt(short, long, default_value = "3000")]
         port: u16,
+        /// Uri to db, Mysql url or Rocksdb path
+        #[structopt(short, long)]
+        uri: Option<String>,
         /// Verbose mode
         #[structopt(short, long)]
         verbose: bool,
@@ -36,23 +43,29 @@ enum Opt {
         /// Target datadir
         #[structopt(short, long)]
         dist: Option<PathBuf>,
+        /// Uri to db, Mysql url or Rocksdb path
+        #[structopt(short, long)]
+        uri: Option<String>,
     },
     /// Trim mmr from target leaf
     Trim {
         /// The target leaf
         #[structopt(short, long)]
         leaf: u64,
+        /// Uri to db, Mysql url or Rocksdb path
+        #[structopt(short, long)]
+        uri: Option<String>,
     },
 }
 
 /// Exec `shadow` binary
 pub async fn exec() -> Result<()> {
     match Opt::from_args() {
-        Opt::Count => count::exec(),
-        Opt::Run { port, verbose } => run::exec(port, verbose).await,
+        Opt::Count { uri } => count::exec(uri),
+        Opt::Run { port, verbose, uri } => run::exec(port, verbose, uri).await,
         // Opt::Import { path, to } => import::exec(path, to),
-        Opt::Trim { leaf } => trim::exec(leaf),
-        Opt::Export { dist } => export::exec(dist),
+        Opt::Trim { leaf, uri } => trim::exec(leaf, uri),
+        Opt::Export { dist, uri } => export::exec(dist, uri),
     }?;
 
     Ok(())

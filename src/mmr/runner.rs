@@ -1,10 +1,23 @@
 //! MMR Runner
-use mmr::H256;
-use crate::result::Result;
-use crate::mmr::{build_client, ClientType};
+use mmr::{H256, MmrClientTrait, MmrClientForMysql, MmrClientForRocksdb};
+use crate::{
+    result::Result,
+    mmr::build_client,
+};
 use primitives::rpc::{RPC, EthereumRPC};
 use std::time::Duration;
+use rocksdb::DB;
+use mysql::Pool;
 use std::sync::Arc;
+
+/// Client type with diff mmr store
+#[derive(Clone)]
+pub enum ClientType {
+    /// client with rocksdb store
+    Rocksdb(Arc<DB>),
+    /// client with mysql store
+    Mysql(Pool),
+}
 
 /// MMR Runner
 pub struct Runner {
@@ -20,7 +33,7 @@ impl Runner {
 
     /// Start the runner
     pub async fn start(&self) -> Result<()> {
-        let client = build_client(self.client_type.clone())?;
+        let client = build_client(&self.client_type)?;
         let mmr_size = client.get_mmr_size().unwrap();
 
         // MMR variables
@@ -64,7 +77,7 @@ impl Runner {
                 let leaf = H256::hex(&hash);
                 let client_type = self.client_type.clone();
                 let result = tokio::task::spawn_blocking(move || {
-                    let mut client = build_client(client_type)?;
+                    let mut client = build_client(&client_type)?;
                     client.push(&leaf)
                 }).await?;
 

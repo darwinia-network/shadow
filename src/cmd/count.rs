@@ -1,9 +1,10 @@
 use crate::{result::Result};
-use crate::mmr::{build_client, ClientType};
+use crate::mmr::{client_type, build_client};
 
 /// Count mmr
-pub fn exec() -> Result<()> {
-    let client = build_client(ClientType::Mysql)?;
+pub fn exec(uri: Option<String>) -> Result<()> {
+    // Build mmr client
+    let client = build_client(&client_type(uri)?)?;
 
     let count =
         match client.count()? {

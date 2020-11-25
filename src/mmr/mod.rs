@@ -1,38 +1,46 @@
 //! Shdaow service mmr implementation
 use crate::result::Result;
 use mmr::{MmrClientTrait, MmrClientForMysql, MmrClientForRocksdb};
-use mysql::Pool;
 use rocksdb::DB;
+use mysql::Pool;
 use std::sync::Arc;
 
 mod runner;
 
 pub use runner::Runner;
+pub use runner::ClientType;
 
-/// Constants
-const DEFAULT_ROCKSDB_FILE: &str = ".darwinia/cache/mmr";
-const DEFAULT_MYSQL_URI: &str = "mysql://root:@localhost:3306/mmr_store";
+/// Default uris
+const DEFAULT_ROCKSDB_FILE: &str = ".shadow/cache/mmr";
+// const DEFAULT_MYSQL_URI: &str = "mysql://root:@localhost:3306/mmr_store";
 
-/// Client type with diff mmr store
-#[derive(Clone)]
-pub enum ClientType {
-    /// client with rocksdb store
-    Rocksdb,
-    /// client with mysql store
-    Mysql,
+/// Build mmr client type
+pub fn client_type(uri: Option<String>) -> Result<ClientType> {
+    if let Some(uri) = uri {
+        if uri.starts_with("mysql://") {
+            let pool = Pool::new(uri)?;
+            Ok(ClientType::Mysql(pool))
+        } else {
+            let db = DB::open_default(uri)?;
+            Ok(ClientType::Rocksdb(Arc::new(db)))
+        }
+    } else {
+        let path_buf = dirs::home_dir().unwrap().join(DEFAULT_ROCKSDB_FILE);
+        let path = path_buf.to_str().unwrap().to_string();
+        let db = DB::open_default(path)?;
+        Ok(ClientType::Rocksdb(Arc::new(db)))
+    }
 }
 
 /// convenient method to create mmr client
-pub fn build_client(client_type: ClientType) -> Result<Box<dyn MmrClientTrait>> {
+pub fn build_client(client_type: &ClientType) -> Result<Box<dyn MmrClientTrait>> {
     match client_type {
-        ClientType::Mysql => {
-            let db = Pool::new(DEFAULT_MYSQL_URI.to_string())?;
-            let client = MmrClientForMysql::new(db);
+        ClientType::Mysql(pool) => {
+            let client = MmrClientForMysql::new(pool.clone());
             Ok(Box::new(client))
         },
-        ClientType::Rocksdb => {
-            let db = DB::open_default(DEFAULT_ROCKSDB_FILE.to_string())?;
-            let client = MmrClientForRocksdb::new(Arc::new(db));
+        ClientType::Rocksdb(db) => {
+            let client = MmrClientForRocksdb::new(db.clone());
             Ok(Box::new(client))
         }
     }

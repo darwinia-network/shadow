@@ -1,9 +1,9 @@
 use crate::{result::Result};
-use crate::mmr::{build_client, ClientType};
+use crate::mmr::{client_type, build_client};
 
 /// Trim mmrs
-pub fn exec(leaf: u64) -> Result<()> {
-    let client = build_client(ClientType::Mysql)?;
+pub fn exec(leaf: u64, uri: Option<String>) -> Result<()> {
+    let client = build_client(&client_type(uri)?)?;
     client.trim_from(leaf)?;
     println!(
         "Current best block: {:?}",

@@ -1,10 +1,10 @@
-use crate::{mmr::Runner, mmr::ClientType, result::Result};
+use crate::{mmr::client_type, mmr::Runner, mmr::ClientType, result::Result};
 use std::sync::Arc;
 use primitives::rpc::EthereumRPC;
 use std::env;
 
 /// Run shadow service
-pub async fn exec(port: u16, verbose: bool) -> Result<()> {
+pub async fn exec(port: u16, verbose: bool, uri: Option<String>) -> Result<()> {
     if std::env::var("RUST_LOG").is_err() {
         if verbose {
             std::env::set_var("RUST_LOG", "info,darwinia_shadow");
@@ -14,8 +14,13 @@ pub async fn exec(port: u16, verbose: bool) -> Result<()> {
     }
     env_logger::init();
 
+    // Build eth client
     let eth = Arc::new(ethereum_rpc());
-    let runner = Runner::new(eth, ClientType::Mysql);
+
+    // Build Runner
+    let runner = Runner::new(eth, client_type(uri)?);
+
+    // Start
     runner.start().await?;
 
     Ok(())

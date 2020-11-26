@@ -65,7 +65,6 @@ impl ProposalReq {
 
 /// Proposal Handler
 pub async fn handle(req: Json<ProposalReq>, app_data: Data<AppData>) -> impl Responder {
-    println!("----------");
     match req.0.gen(&app_data.mmr_db, &app_data.eth).await {
         Ok(result) => Json(ProofResult::EthereumRelayProofs(result)),
         Err(err) => Json(ProofResult::Error(err.to_json()))

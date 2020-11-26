@@ -70,6 +70,26 @@ impl MmrClientTrait for MmrClientForRocksdb {
         )
     }
 
+    fn get_leaf(&self, leaf_index: u64) -> Result<Option<String>> {
+        self.get_elem(cmmr::leaf_index_to_pos(leaf_index))
+    }
+
+    fn get_mmr_root(&self, leaf_index: u64) -> Result<Option<String>> {
+        if let Some(last_leaf_index) = self.get_last_leaf_index()? {
+            if leaf_index > last_leaf_index {
+                Ok(None)
+            } else {
+                let store = RocksdbStore::with(self.db.clone());
+                let mmr_size = cmmr::leaf_index_to_mmr_size(leaf_index);
+                let mmr = MMR::<[u8; 32], MergeHash, _>::new(mmr_size, store);
+                let root = mmr.get_root()?;
+                Ok(Some(H256::hex(&root)))
+            }
+        } else {
+            Ok(None)
+        }
+    }
+
     fn gen_proof(&self, member: u64, last_leaf: u64) -> Result<Vec<String>> {
         let store = RocksdbStore::with(self.db.clone());
         let mmr_size = cmmr::leaf_index_to_mmr_size(last_leaf);
@@ -83,6 +103,17 @@ impl MmrClientTrait for MmrClientForRocksdb {
                 .collect::<Vec<String>>()
         )
     }
+
+    fn trim_from(&self, leaf_index: u64) -> Result<()> {
+        let mmr_size = self.get_mmr_size().unwrap();
+        for i in cmmr::leaf_index_to_pos(leaf_index)..mmr_size {
+            self.db.delete(i.to_le_bytes())?;
+        }
+
+        trace!("Trimed leaves greater and equal than {}", leaf_index);
+        Ok(())
+    }
+
 
     fn backup(&self, dir: PathBuf) -> Result<()> {
         let mut rocks = dir.clone();
@@ -120,17 +151,7 @@ impl MmrClientTrait for MmrClientForRocksdb {
         Ok(())
     }
 
-    fn trim_from(&self, leaf_index: u64) -> Result<()> {
-        let mmr_size = self.get_mmr_size().unwrap();
-        for i in cmmr::leaf_index_to_pos(leaf_index)..mmr_size {
-            self.db.delete(i.to_le_bytes())?;
-        }
-
-        trace!("Trimed leaves greater and equal than {}", leaf_index);
-        Ok(())
-    }
-
-    fn import_from_backup(&self, backup_file: PathBuf) -> Result<()> {
+    fn import_from_backup(&mut self, backup_file: PathBuf) -> Result<()> {
         // from
         tar::Archive::new(File::open(&backup_file)?).unpack(&env::temp_dir())?;
         let mut wal_dir = env::temp_dir();
@@ -140,67 +161,5 @@ impl MmrClientTrait for MmrClientForRocksdb {
         let mut engine = BackupEngine::open(&BackupEngineOptions::default(), &wal_dir)?;
         engine.restore_from_latest_backup(self.db.path(), wal_dir, &RestoreOptions::default())?;
         Ok(())
-    }
-
-    fn import_from_geth(&self, _geth_dir: PathBuf, _til_block: u64) -> Result<()> {
-        // let from = self.count()?;
-        // if from >= til_block {
-        //     anyhow::bail!("The to position of mmr is {}, can not import mmr from {}, from must be less than to",
-        //         to, from
-        //     );
-        // }
-        //
-        // // Get hashes
-        // info!("Importing ethereum headers from {}...", geth_dir);
-        // let hashes = ethereum::import(&geth_dir, from, til_block);
-        // let hashes_vec = hashes.split(',').collect::<Vec<&str>>();
-        //
-        // // Check empty
-        // info!("Imported {} hashes from ethereum node", hashes_vec.len());
-        // if hashes_vec[0].is_empty() {
-        //     anyhow::bail!("Importing hashes from {} failed", path);
-        // }
-        //
-        // // Build mmr
-        // let store = RocksdbStore::with(self.db.clone());
-        // let mmr_size = cmmr::leaf_index_to_mmr_size(last_leaf);
-        // info!("mmr_size: {}, from: {}", mmr_size, from);
-        // let mut mmr = MMR::<[u8; 32], MergeHash, _>::new(mmr_size, store);
-        //
-        // let mut ptr = from;
-        // for hash in &hashes_vec {
-        //     if ptr % 1000 == 0 {
-        //         trace!("Start to push hash into mmr for block {:?}/{}", ptr as usize, to);
-        //     }
-        //
-        //     ptr += 1;
-        //     mmr.push(H256::from(hash)?)?;
-        // }
-        //
-        // // Commit mmr
-        // mmr.commit()?;
-        // info!("done.");
-        // Ok(())
-        unimplemented!()
-    }
-
-    fn get_leaf(&self, leaf_index: u64) -> Result<Option<String>> {
-        self.get_elem(cmmr::leaf_index_to_pos(leaf_index))
-    }
-
-    fn get_mmr_root(&self, leaf_index: u64) -> Result<Option<String>> {
-        if let Some(last_leaf_index) = self.get_last_leaf_index()? {
-            if leaf_index > last_leaf_index {
-                Ok(None)
-            } else {
-                let store = RocksdbStore::with(self.db.clone());
-                let mmr_size = cmmr::leaf_index_to_mmr_size(leaf_index);
-                let mmr = MMR::<[u8; 32], MergeHash, _>::new(mmr_size, store);
-                let root = mmr.get_root()?;
-                Ok(Some(H256::hex(&root)))
-            }
-        } else {
-            Ok(None)
-        }
     }
 }

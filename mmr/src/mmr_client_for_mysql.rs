@@ -115,6 +115,18 @@ impl MmrClientTrait for MmrClientForMysql {
         Ok(result)
     }
 
+    fn get_leaf(&self, leaf_index: u64) -> Result<Option<String>> {
+        let mut conn = self.db.get_conn()?;
+        let result = conn.query_first::<String, _>(format!("SELECT hash FROM mmr WHERE leaf_index={}", leaf_index))?;
+        Ok(result)
+    }
+
+    fn get_mmr_root(&self, leaf_index: u64) -> Result<Option<String>> {
+        let mut conn = self.db.get_conn()?;
+        let result = conn.query_first::<String, _>(format!("SELECT root FROM mmr WHERE leaf_index={}", leaf_index))?;
+        Ok(result)
+    }
+
     fn gen_proof(&self, member: u64, last_leaf: u64) -> Result<Vec<String>> {
         let mut conn = self.db.get_conn()?;
         let mut tx = conn.start_transaction(TxOpts::default())?;
@@ -133,10 +145,6 @@ impl MmrClientTrait for MmrClientForMysql {
         )
     }
 
-    fn backup(&self, _dir: PathBuf) -> Result<()> {
-        unimplemented!()
-    }
-
     fn trim_from(&self, leaf_index: u64) -> Result<()> {
         let mut conn = self.db.get_conn()?;
         let mut tx = conn.start_transaction(TxOpts::default())?;
@@ -150,24 +158,12 @@ impl MmrClientTrait for MmrClientForMysql {
         Ok(())
     }
 
-    fn import_from_backup(&self, _backup_file: PathBuf) -> Result<()> {
+    fn backup(&self, _dir: PathBuf) -> Result<()> {
         unimplemented!()
     }
 
-    fn import_from_geth(&self, _geth_dir: PathBuf, _til_block: u64) -> Result<()> {
+    fn import_from_backup(&mut self, _backup_file: PathBuf) -> Result<()> {
         unimplemented!()
-    }
-
-    fn get_leaf(&self, leaf_index: u64) -> Result<Option<String>> {
-        let mut conn = self.db.get_conn()?;
-        let result = conn.query_first::<String, _>(format!("SELECT hash FROM mmr WHERE leaf_index={}", leaf_index))?;
-        Ok(result)
-    }
-
-    fn get_mmr_root(&self, leaf_index: u64) -> Result<Option<String>> {
-        let mut conn = self.db.get_conn()?;
-        let result = conn.query_first::<String, _>(format!("SELECT root FROM mmr WHERE leaf_index={}", leaf_index))?;
-        Ok(result)
     }
 }
 

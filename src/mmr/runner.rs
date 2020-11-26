@@ -1,10 +1,8 @@
 //! MMR Runner
-use mmr::{H256, MmrClientTrait, MmrClientForMysql, MmrClientForRocksdb, Database, build_client};
+use mmr::{H256, Database, build_client};
 use crate::result::Result;
 use primitives::rpc::{RPC, EthereumRPC};
 use std::time::Duration;
-use rocksdb::DB;
-use mysql::Pool;
 use std::sync::Arc;
 
 /// MMR Runner
@@ -15,8 +13,8 @@ pub struct Runner {
 
 impl Runner {
     /// new
-    pub fn new(eth: Arc<EthereumRPC>, database: Database) -> Self {
-        Runner { eth, database }
+    pub fn new(eth: &Arc<EthereumRPC>, database: &Database) -> Self {
+        Runner { eth: eth.clone(), database: database.clone() }
     }
 
     /// Start the runner

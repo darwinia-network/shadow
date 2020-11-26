@@ -1,6 +1,7 @@
 //! Shdaow service mmr implementation
 use crate::result::Result;
-use mmr::{MmrClientTrait, MmrClientForMysql, MmrClientForRocksdb, Database};
+use crate::conf::DEFAULT_ROCKSDB_FILE;
+use mmr::Database;
 use rocksdb::DB;
 use mysql::Pool;
 use std::sync::Arc;
@@ -8,10 +9,6 @@ use std::sync::Arc;
 mod runner;
 
 pub use runner::Runner;
-
-/// Default uris
-const DEFAULT_ROCKSDB_FILE: &str = ".shadow/cache/mmr";
-// const DEFAULT_MYSQL_URI: &str = "mysql://root:@localhost:3306/mmr_store";
 
 /// Build mmr client type
 pub fn database(uri: Option<String>) -> Result<Database> {

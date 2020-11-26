@@ -9,17 +9,26 @@ pub enum Error {
     IO(#[from] std::io::Error),
 
     #[error(transparent)]
-    Reqwest(#[from] reqwest::Error),
+    RocksdbError(#[from] rocksdb::Error),
 
     #[error(transparent)]
-    SerdeJson(#[from] serde_json::Error),
+    MysqlError(#[from] mysql::Error),
 
     #[error(transparent)]
-    Primitive(#[from] primitives::result::Error),
+    MmrError(#[from] mmr::Error),
+
+    #[error(transparent)]
+    PrimitivesError(#[from] primitives::result::Error),
+
+    #[error(transparent)]
+    JoinError(#[from] tokio::task::JoinError),
+
+    #[error(transparent)]
+    ApiError(#[from] api::Error),
 
     #[error("{0}")]
     Shadow(String),
 }
 
 /// Sup Result
-pub type Result<T> = AnyResult<T>;
+pub type Result<T> = AnyResult<T, Error>;

@@ -1,4 +1,4 @@
-use std::{env, process::Command};
+// use std::{env, process::Command};
 
 fn main() {
     // // Pre-check
@@ -24,8 +24,11 @@ fn main() {
     //     println!("cargo:rustc-link-search={}", out_dir);
     //     println!("cargo:rustc-link-lib=static=darwinia_shadow");
     // }
+
+        println!("cargo:rustc-link-search=/usr/local/lib");
+        println!("cargo:rustc-link-lib=dylib=darwinia_shadow");
 }
-//
+
 // /// Build golang library
 // fn go(dynamic: &mut bool, out_dir: &str) {
 //     if *dynamic {

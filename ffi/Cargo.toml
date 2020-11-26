@@ -1,0 +1,17 @@
+[package]
+name = "ffi"
+version = "0.1.0"
+authors = ["Aki <wuminzhe@gmail.com>"]
+edition = "2018"
+include = [
+    "go.mod",
+    "go.sum",
+    "build.rs",
+    "pkg/**/*",
+    "src/**/*",
+    "Cargo.toml",
+]
+links = "darwinia_shadow"
+
+[dependencies]
+libc = "0.2.71"

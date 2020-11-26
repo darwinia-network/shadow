@@ -1,17 +1,32 @@
 //! The API server of Shadow
-use crate::ShadowShared;
 use actix_web::{middleware, web, App, HttpServer};
 
 pub mod ethereum;
 mod root;
+mod error;
+
+pub use error::{Result, Error};
+use primitives::rpc::EthereumRPC;
+use std::sync::Arc;
+
+#[derive(Clone)]
+pub struct AppData {
+    pub(crate) mmr_db: mmr::Database,
+    pub(crate) eth: Arc<EthereumRPC>,
+}
 
 /// Run HTTP Server
-pub async fn serve(port: u16, shared: ShadowShared) -> std::io::Result<()> {
+pub async fn serve(port: u16, mmr_db: &mmr::Database, eth: &Arc<EthereumRPC>) -> Result<()> {
+    let app_data = AppData {
+        mmr_db: mmr_db.clone(),
+        eth: eth.clone()
+    };
+
     HttpServer::new(move || {
         App::new()
             .wrap(middleware::Compress::default())
             .wrap(middleware::Logger::default())
-            .data(shared.clone())
+            .data(app_data.clone())
             .service(web::resource("/version").to(root::version))
             .service(web::resource("/ethereum/count").route(web::get().to(ethereum::count)))
             .service(
@@ -22,12 +37,13 @@ pub async fn serve(port: u16, shared: ShadowShared) -> std::io::Result<()> {
                 web::resource("/ethereum/mmr_leaf/{block}")
                     .route(web::get().to(ethereum::mmr_leaf)),
             )
-            .service(web::resource("/ethereum/parcel/{block}").to(ethereum::parcel))
+            // .service(web::resource("/ethereum/parcel/{block}").to(ethereum::parcel))
             .service(web::resource("/ethereum/proof").to(ethereum::proof))
             .service(web::resource("/ethereum/receipt/{tx}/{last}").to(ethereum::receipt))
     })
         .disable_signals()
         .bind(format!("0.0.0.0:{}", port))?
         .run()
-        .await
+        .await?;
+    Ok(())
 }

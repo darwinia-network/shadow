@@ -1,20 +1,26 @@
-use crate::{ShadowShared};
-use mmr::mmr_size_to_last_leaf;
-use actix_web::{web, Responder};
-use rocksdb::IteratorMode;
+use actix_web::{web::Data, Responder};
+use mmr::{build_client, Database};
+use crate::{Result, AppData};
+use actix_web::web::Json;
+use serde::Serialize;
+
+/// Count result
+#[derive(Clone, Debug, Serialize, PartialEq, Eq)]
+#[serde(untagged)]
+pub enum CountResult {
+    Count { count: String },
+    Error { error: String }
+}
 
 /// Count the mmr of ethereum headers
-///
-/// ```
-/// use actix_web::web;
-/// use darwinia_shadow::{api::ethereum, ShadowShared};
-///
-/// // GET `/ethereum/count`
-/// ethereum::count(web::Data::new(ShadowShared::new(None)));
-/// ```
-pub async fn handle(shared: web::Data<ShadowShared>) -> impl Responder {
-    format!(
-        "{}",
-        mmr_size_to_last_leaf(shared.db.iterator(IteratorMode::Start).count() as i64)
-    )
+pub async fn handle(app_data: Data<AppData>) -> impl Responder {
+    match count(&app_data.mmr_db) {
+        Ok(count) => Json(CountResult::Count { count }),
+        Err(err) => Json(CountResult::Error { error: err.to_string() })
+    }
+}
+
+fn count(mmr_db: &Database) -> Result<String> {
+    let client = build_client(mmr_db)?;
+    Ok(format!("{}", client.count()?))
 }

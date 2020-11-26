@@ -1,9 +1,24 @@
-use crate::{ShadowShared};
-use actix_web::{web, Responder};
+use mmr::{Database, build_client};
+use primitives::rpc::EthereumRPC;
+use actix_web::{
+    web::{Data, Path, Json},
+    Responder
+};
 use primitives::{
     chain::ethereum::{EthereumHeaderJson, MMRProofJson},
     rpc::RPC,
 };
+use crate::{Result, AppData};
+use serde::Serialize;
+use crate::error::ErrorJson;
+
+/// Receipt result
+#[derive(Serialize)]
+#[serde(untagged)]
+pub enum ReceiptResult {
+    ReceiptResp(ReceiptResp),
+    Error(ErrorJson)
+}
 
 /// Receipt proof
 #[derive(Serialize)]
@@ -34,56 +49,48 @@ pub struct ReceiptResp {
 impl ReceiptResp {
     /// Get Receipt
     pub fn receipt(api: &str, tx: &str) -> ReceiptProof {
-        super::ffi::receipt(api, tx).into()
+        ffi::receipt(api, tx).into()
     }
+
     /// Get ethereum header json
-    pub async fn header(shared: &ShadowShared, block: &str) -> EthereumHeaderJson {
-        shared
-            .eth
-            .get_header_by_hash(block)
-            .await
-            .unwrap_or_default()
-            .into()
+    pub async fn header(eth: &EthereumRPC, block: &str) -> Result<EthereumHeaderJson> {
+        let result = eth.get_header_by_hash(block).await?.into();
+        Ok(result)
     }
 
     /// Generate header
     /// mmr_root_height should be last confirmed block in relayt
-    pub async fn new(shared: &ShadowShared, tx: &str, mmr_root_height: u64) -> ReceiptResp {
-        let receipt_proof = Self::receipt(shared.eth.rpc(), tx);
-        let header = Self::header(&shared, &receipt_proof.header_hash).await;
-        let mmr_proof = if mmr_root_height > 0 {
-            let (member_leaf_index, last_leaf_index) = (header.number, mmr_root_height - 1);
-            MMRProofJson {
-                member_leaf_index,
-                last_leaf_index,
-                proof: shared.store.gen_proof(member_leaf_index, last_leaf_index),
-            }
-        } else {
-            MMRProofJson::default()
+    pub async fn new(mmr_db: &Database,
+                     eth: &EthereumRPC,
+                     tx: &str,
+                     mmr_root_height: u64
+    ) -> Result<ReceiptResp> {
+        let receipt_proof = Self::receipt(eth.rpc(), tx);
+        let header = Self::header(eth, &receipt_proof.header_hash).await?;
+
+        let client = build_client(mmr_db)?;
+        let (member_leaf_index, last_leaf_index) = (header.number, mmr_root_height - 1);
+        let mmr_proof = MMRProofJson {
+            member_leaf_index,
+            last_leaf_index,
+            proof: client.gen_proof(member_leaf_index, last_leaf_index)?,
         };
-        ReceiptResp {
+
+        Ok(ReceiptResp {
             header,
             receipt_proof,
             mmr_proof,
-        }
+        })
     }
 }
 
 /// Receipt Handler
-///
-/// ```
-/// use actix_web::web;
-/// use darwinia_shadow::{api::ethereum, ShadowShared};
-///
-/// // GET `/ethereum/receipt/0x3b82a55f5e752c23359d5c3c4c3360455ce0e485ed37e1faabe9ea10d5db3e7a/66666`
-/// ethereum::receipt(web::Path::from((
-///     "0x3b82a55f5e752c23359d5c3c4c3360455ce0e485ed37e1faabe9ea10d5db3e7a".to_string(),
-///      0 as u64,
-/// )), web::Data::new(ShadowShared::new(None)));
-/// ```
-pub async fn handle(
-    tx: web::Path<(String, u64)>,
-    shared: web::Data<ShadowShared>,
-) -> impl Responder {
-    web::Json(ReceiptResp::new(&shared, tx.0.as_str(), tx.1).await)
+pub async fn handle(tx: Path<(String, u64)>, app_data: Data<AppData>) -> impl Responder {
+    let tx_hash = tx.0.as_str();
+    let mmr_root_height = tx.1;
+
+    match ReceiptResp::new(&app_data.mmr_db, &app_data.eth, tx_hash, mmr_root_height).await {
+        Ok(result) => Json(ReceiptResult::ReceiptResp(result)),
+        Err(err) => Json(ReceiptResult::Error(err.to_json()))
+    }
 }

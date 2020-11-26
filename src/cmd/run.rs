@@ -1,4 +1,5 @@
 use crate::{mmr::database, mmr::Runner, result::Result};
+use tokio::join;
 use std::sync::Arc;
 use primitives::rpc::EthereumRPC;
 use std::env;
@@ -14,14 +15,18 @@ pub async fn exec(port: u16, verbose: bool, uri: Option<String>) -> Result<()> {
     }
     env_logger::init();
 
-    // Build eth client
+    // Shared data
+    let mmr_db = database(uri)?;
     let eth = Arc::new(ethereum_rpc());
 
-    // Build Runner
-    let runner = Runner::new(eth, database(uri)?);
-
-    // Start
-    runner.start().await?;
+    // Start Runner and Api Server
+    let runner = Runner::new(&eth, &mmr_db);
+    let (a, b) = join!(
+        runner.start(),
+        api::serve(port, &mmr_db, &eth),
+    );
+    a?;
+    b?;
 
     Ok(())
 }

@@ -1,15 +1,25 @@
-use crate::{
-    ShadowShared,
-
+use mmr::{Database, build_client};
+use actix_web::{
+    web::{Data, Json},
+    Responder
 };
-use mmr::{MergeHash, RocksdbStore, H256};
-use actix_web::{web, Responder};
-use cmmr::MMR;
 use primitives::{
-    bytes,
-    chain::ethereum::{EthashProof, EthashProofJson, EthereumHeaderJson, EthereumRelayProofsJson},
+    chain::ethereum::{EthashProof, EthashProofJson, EthereumRelayProofsJson},
+    rpc::EthereumRPC,
 };
 use scale::{Decode, Encode};
+use crate::{Result, AppData};
+use serde::{Serialize, Deserialize};
+use crate::error::ErrorJson;
+use array_bytes::bytes;
+
+/// Proof result
+#[derive(Clone, Serialize, PartialEq, Eq)]
+#[serde(untagged)]
+pub enum ProofResult {
+    EthereumRelayProofs(EthereumRelayProofsJson),
+    Error(ErrorJson)
+}
 
 /// Proposal post req
 #[derive(Deserialize, Encode)]
@@ -24,74 +34,40 @@ pub struct ProposalReq {
 
 impl ProposalReq {
     /// Get `EtHashProof`
-    fn ethash_proof(&self, api: &str) -> Vec<EthashProofJson> {
-        let proof = super::ffi::proof(api, self.target);
-        <Vec<EthashProof>>::decode(&mut bytes!(proof.as_str()).as_ref())
-            .unwrap_or_default()
+    fn ethash_proof(&self, api: &str) -> Result<Vec<EthashProofJson>> {
+        let proof = ffi::proof(api, self.target);
+        // let y =  &mut bytes!(proof.as_str()).as_ref();
+        let proof_vec_u8 = bytes(proof.as_str())?;
+        let result = <Vec<EthashProof>>::decode(&mut proof_vec_u8.as_ref())?
             .iter()
             .map(|p| Into::<EthashProofJson>::into(p.clone()))
-            .collect()
-    }
-
-    /// Get mmr root
-    pub fn mmr_root(&self, store: &RocksdbStore) -> String {
-        if self.target < 1 {
-            "0x0000000000000000000000000000000000000000000000000000000000000000".into()
-        } else {
-            format!(
-                "0x{}",
-                H256::hex(
-                    &MMR::<_, MergeHash, _>::new(
-                        cmmr::leaf_index_to_mmr_size(self.target - 1),
-                        store
-                    )
-                    .get_root()
-                    .unwrap_or_default()
-                )
-            )
-        }
+            .collect();
+        Ok(result)
     }
 
     /// Generate mmr proof
-    pub fn mmr_proof(&self, store: &RocksdbStore) -> Vec<String> {
-        if self.last_leaf < 1 {
-            return vec![];
-        }
-
-        store.gen_proof(self.member, self.last_leaf)
+    pub fn mmr_proof(&self, mmr_db: &Database) -> Result<Vec<String>> {
+        let client = build_client(mmr_db)?;
+        let member = self.member;
+        let last_leaf = self.last_leaf;
+        client.gen_proof(member, last_leaf).map_err(|err| err.into())
     }
 
     /// Generate response
-    pub async fn gen(&self, shared: web::Data<ShadowShared>) -> EthereumRelayProofsJson {
-        EthereumRelayProofsJson {
-            ethash_proof: self.ethash_proof(shared.eth.rpc()),
-            mmr_proof: self.mmr_proof(&shared.store),
-        }
+    pub async fn gen(&self, mmr_db: &Database, eth: &EthereumRPC) -> Result<EthereumRelayProofsJson> {
+        let result = EthereumRelayProofsJson {
+            ethash_proof: self.ethash_proof(eth.rpc())?,
+            mmr_proof: self.mmr_proof(mmr_db)?,
+        };
+        Ok(result)
     }
 }
 
-/// Proposal Headers
-#[derive(Serialize, Encode)]
-pub struct ProposalHeader {
-    header: EthereumHeaderJson,
-    ethash_proof: Vec<EthashProofJson>,
-    mmr_root: String,
-    mmr_proof: Vec<String>,
-}
-
 /// Proposal Handler
-///
-/// ```
-/// use actix_web::web;
-/// use darwinia_shadow::{api::ethereum, ShadowShared};
-///
-/// // POST `/ethereum/proof`
-/// ethereum::proof(web::Json(ethereum::ProposalReq{
-///     member: 10,
-///     target: 19,
-///     last_leaf: 18
-/// }), web::Data::new(ShadowShared::new(None)));
-/// ```
-pub async fn handle(req: web::Json<ProposalReq>, share: web::Data<ShadowShared>) -> impl Responder {
-    web::Json(req.0.gen(share).await)
+pub async fn handle(req: Json<ProposalReq>, app_data: Data<AppData>) -> impl Responder {
+    println!("----------");
+    match req.0.gen(&app_data.mmr_db, &app_data.eth).await {
+        Ok(result) => Json(ProofResult::EthereumRelayProofs(result)),
+        Err(err) => Json(ProofResult::Error(err.to_json()))
+    }
 }

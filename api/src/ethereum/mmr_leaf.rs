@@ -1,61 +1,36 @@
 //! Ethereum MMR API
-use crate::{
-    ShadowShared,
+use mmr::{Database, build_client};
+use actix_web::{
+    web::{Data, Path, Json},
+    Responder
 };
-use mmr::{H256};
-use actix_web::{web, Responder};
-use cmmr::{MMRStore};
-use primitives::bytes;
+use crate::{Result, Error, AppData};
+use serde::{Serialize};
 
-/// Single MMR struct
-#[derive(Clone, Debug,Default, PartialEq, Eq)]
-pub struct MMRLeaf {
-    /// MMR Leaf
-    pub mmr_leaf: [u8; 32],
-}
-
-/// MMR Root Json
-#[derive(Clone, Debug, Default, Serialize, Deserialize, PartialEq, Eq)]
-pub struct MMRLeafJson {
-    /// MMR leaf string
-    pub mmr_leaf: String,
-}
-
-impl Into<MMRLeaf> for MMRLeafJson {
-    fn into(self) -> MMRLeaf {
-        MMRLeaf {
-            mmr_leaf: bytes!(self.mmr_leaf.as_str(), 32),
-        }
-    }
-}
-
-impl Into<MMRLeafJson> for MMRLeaf {
-    fn into(self) -> MMRLeafJson {
-        MMRLeafJson {
-            mmr_leaf: primitives::hex!(&self.mmr_leaf),
-        }
-    }
+/// MMR leaf result
+#[derive(Clone, Debug, Serialize, PartialEq, Eq)]
+#[serde(untagged)]
+pub enum MMRLeafResult {
+    MMRLeaf { mmr_leaf: String },
+    Error { error: String }
 }
 
 /// Get target mmr
-///
-/// ```
-/// use actix_web::web;
-/// use darwinia_shadow::{api::ethereum, ShadowShared};
-///
-/// // GET `/ethereum/mmr_leaf/19`
-/// ethereum::mmr_leaf(web::Path::from("19".to_string()), web::Data::new(ShadowShared::new(None)));
-/// ```
 #[allow(clippy::eval_order_dependence)]
-pub async fn handle(block: web::Path<String>, shared: web::Data<ShadowShared>) -> impl Responder {
-    let num: u64 = block.to_string().parse().unwrap_or(0);
-    let leaf = H256::hex(
-        &(&shared.store)
-            .get_elem(cmmr::leaf_index_to_pos(num))
-            .unwrap().unwrap_or([0;32]),
-    );
+pub async fn handle(block: Path<String>, app_data: Data<AppData>) -> impl Responder {
+    match mmr_leaf(block, &app_data.mmr_db) {
+        Ok(leaf) => Json(MMRLeafResult::MMRLeaf { mmr_leaf: format!("0x{}", leaf) }),
+        Err(err) => Json(MMRLeafResult::Error { error: err.to_string() })
+    }
+}
 
-    web::Json(MMRLeafJson {
-        mmr_leaf: format!("0x{}", leaf),
-    })
+fn mmr_leaf(block: Path<String>, mmr_db: &Database) -> Result<String> {
+    let leaf_index: u64 = block.to_string().parse()?;
+    let client = build_client(mmr_db)?;
+    let result = client.get_leaf(leaf_index)?;
+    if let Some(leaf) = result {
+        Ok(leaf)
+    } else {
+        Err(Error::LeafNotFound(leaf_index))
+    }
 }

@@ -1,35 +1,36 @@
 //! Ethereum MMR API
-use crate::{
-    ShadowShared,
+use mmr::{Database, build_client};
+use actix_web::{
+    web::{Data, Path, Json},
+    Responder
 };
-use mmr::{MergeHash, H256};
-use actix_web::{web, Responder};
-use cmmr::MMR;
-use primitives::chain::ethereum::MMRRootJson;
+use crate::{Result, Error, AppData};
+use serde::Serialize;
+
+/// MMR root result
+#[derive(Clone, Debug, Serialize, PartialEq, Eq)]
+#[serde(untagged)]
+pub enum MMRRootResult {
+    MmrRoot { mmr_root: String },
+    Error { error: String }
+}
 
 /// Get target mmr
-///
-/// ```
-/// use actix_web::web;
-/// use darwinia_shadow::{api::ethereum, ShadowShared};
-///
-/// // GET `/ethereum/mmr_root/19`
-/// ethereum::mmr_root(web::Path::from("19".to_string()), web::Data::new(ShadowShared::new(None)));
-/// ```
 #[allow(clippy::eval_order_dependence)]
-pub async fn handle(block: web::Path<String>, shared: web::Data<ShadowShared>) -> impl Responder {
-    let num: u64 = block.to_string().parse().unwrap_or(0);
-    let root = if num == 0 {
-        "0000000000000000000000000000000000000000000000000000000000000000".to_string()
-    } else {
-        H256::hex(
-            &MMR::<_, MergeHash, _>::new(cmmr::leaf_index_to_mmr_size(num - 1), &shared.store)
-                .get_root()
-                .unwrap_or_default(),
-        )
-    };
+pub async fn handle(block: Path<String>, app_data: Data<AppData>) -> impl Responder {
+    match mmr_root(block, &app_data.mmr_db) {
+        Ok(root) => Json(MMRRootResult::MmrRoot { mmr_root: format!("0x{}", root) }),
+        Err(err) => Json(MMRRootResult::Error { error: err.to_string() })
+    }
+}
 
-    web::Json(MMRRootJson {
-        mmr_root: format!("0x{}", root),
-    })
+fn mmr_root(block: Path<String>, mmr_db: &Database) -> Result<String> {
+    let leaf_index: u64 = block.to_string().parse()?;
+    let client = build_client(mmr_db)?;
+    let result = client.get_mmr_root(leaf_index)?;
+    if let Some(root) = result {
+        Ok(root)
+    } else {
+        Err(Error::MmrRootNotFound(leaf_index))
+    }
 }

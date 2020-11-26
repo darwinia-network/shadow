@@ -142,7 +142,7 @@ impl MmrClientTrait for MmrClientForRocksdb {
         Ok(())
     }
 
-    fn import_from_geth(&self, geth_dir: PathBuf, til_block: u64) -> Result<()> {
+    fn import_from_geth(&self, _geth_dir: PathBuf, _til_block: u64) -> Result<()> {
         // let from = self.count()?;
         // if from >= til_block {
         //     anyhow::bail!("The to position of mmr is {}, can not import mmr from {}, from must be less than to",

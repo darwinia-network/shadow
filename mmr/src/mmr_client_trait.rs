@@ -50,6 +50,7 @@ pub trait MmrClientTrait {
         let mut ptr = from;
         let mut batch = vec![];
         for hash in hashes_vec {
+            batch.push(hash);
             if ptr % 1000 == 0 {
                 trace!("Start to push hash into mmr for block {:?}/{}", ptr as usize, til_block);
                 self.batch_push(&batch)?;
@@ -57,7 +58,6 @@ pub trait MmrClientTrait {
             }
 
             ptr += 1;
-            batch.push(hash);
         }
 
         if batch.len() > 0 {

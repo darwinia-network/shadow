@@ -10,7 +10,7 @@ use primitives::chain::ethereum::MMRRootJson;
 /// use darwinia_shadow::{api::ethereum, ShadowShared};
 ///
 /// // GET `/ethereum/parent_mmr_root/19`
-/// ethereum::mmr_root(web::Path::from("19".to_string()), web::Data::new(ShadowShared::new(None)));
+/// ethereum::parent_mmr_root(web::Path::from("19".to_string()), web::Data::new(ShadowShared::new(None)));
 /// ```
 pub async fn handle(
     block: web::Path<String>,

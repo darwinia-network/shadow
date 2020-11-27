@@ -51,27 +51,19 @@ pub async fn handle(
 ) -> WebResult<web::Json<MMRLeafJson>> {
     let num: u64 = block.to_string().parse().unwrap_or(0);
 
-    let leaf_result = (&shared.store)
+    (&shared.store)
         .get_elem(cmmr::leaf_index_to_pos(num))
         .and_then(|elem: Option<[u8; 32]> | {
             elem.ok_or(
-                cmmr::Error::StoreError(format!("There is no leaf of index {} found in store", num))
+                cmmr::Error::StoreError(format!("No leaf of index {} found in store", num))
             )
         })
-        .map(|leaf| format!("0x{}", hex!(&leaf)));
-
-    match leaf_result {
-        Ok(leaf) => {
-            Ok(web::Json(MMRLeafJson {
-                mmr_leaf: leaf,
-            }))
-        },
-        Err(err) => {
-            Err(error::ErrorInternalServerError(format!(
-                "Get mmr leaf of {} failed, caused by {}",
+        .map(|leaf| format!("0x{}", hex!(&leaf)))
+        .map(|mmr_leaf| web::Json(MMRLeafJson { mmr_leaf }))
+        .map_err(|err| {
+            error::ErrorInternalServerError(format!(
+                "Get mmr leaf of {} failed, caused by: {}",
                 block, err.to_string()
-            )))
-        }
-    }
-
+            ))
+        })
 }

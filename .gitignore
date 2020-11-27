@@ -2,3 +2,6 @@
 **/*target
 **/*Cargo.lock
 .idea
+/ffi
+/mmr
+/api

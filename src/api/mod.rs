@@ -15,7 +15,7 @@ pub async fn serve(port: u16, shared: ShadowShared) -> std::io::Result<()> {
             .service(web::resource("/version").to(root::version))
             .service(web::resource("/ethereum/count").route(web::get().to(ethereum::count)))
             .service(
-                web::resource("/ethereum/mmr_root/{block}")
+                web::resource("/ethereum/parent_mmr_root/{block}")
                     .route(web::get().to(ethereum::mmr_root)),
             )
             .service(

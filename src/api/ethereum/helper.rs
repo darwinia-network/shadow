@@ -18,38 +18,41 @@ pub fn parent_mmr_root(block: u64, shared: &ShadowShared) -> WebResult<String> {
         return Err(error::ErrorBadRequest("Requesting mmr_root of block 0"));
     }
 
-    if let Ok(hash_bytes) =
-        MMR::<_, MergeHash, _>::new(cmmr::leaf_index_to_mmr_size(num - 1), &shared.store).get_root()
-    {
-        Ok(format!("0x{}", H256::hex(&hash_bytes)))
-    } else {
-        Err(error::ErrorInternalServerError(format!(
-            "Get mmr root of block {} failed",
-            num
-        )))
+    match MMR::<_, MergeHash, _>::new(cmmr::leaf_index_to_mmr_size(num - 1), &shared.store).get_root() {
+        Ok(hash_bytes) => {
+            Ok(format!("0x{}", H256::hex(&hash_bytes)))
+        },
+        Err(err) => {
+            Err(error::ErrorInternalServerError(format!(
+                "Get mmr root of block {}'s parent failed, caused by {}",
+                num, err.to_string()
+            )))
+        }
     }
 }
 
 /// Get header json with web response
 pub async fn header(block: u64, shared: &ShadowShared) -> WebResult<EthereumHeaderJson> {
-    if let Ok(h) = shared.eth.get_header_by_number(block).await {
-        Ok(h.into())
-    } else {
-        return Err(error::ErrorInternalServerError(format!(
-            "Get block header {} failed",
-            block
-        )));
-    }
+    shared.eth
+        .get_header_by_number(block).await
+        .map(|header| header.into())
+        .map_err(|err| {
+            error::ErrorInternalServerError(format!(
+                "Get block header {} failed, caused by {}",
+                block, err.to_string()
+            ))
+        })
 }
 
 /// Get header json with web response
 pub async fn header_by_hash(block: &str, shared: &ShadowShared) -> WebResult<EthereumHeaderJson> {
-    if let Ok(h) = shared.eth.get_header_by_hash(block).await {
-        Ok(h.into())
-    } else {
-        return Err(error::ErrorInternalServerError(format!(
-            "Get block header {} failed",
-            block
-        )));
-    }
+    shared.eth.
+        get_header_by_hash(block).await
+        .map(|header| header.into())
+        .map_err(|err| {
+            error::ErrorInternalServerError(format!(
+                "Get block header {} failed, caused by {}",
+                block, err.to_string()
+            ))
+        })
 }

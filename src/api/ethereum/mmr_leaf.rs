@@ -50,19 +50,24 @@ pub async fn handle(
     shared: web::Data<ShadowShared>,
 ) -> WebResult<web::Json<MMRLeafJson>> {
     let num: u64 = block.to_string().parse().unwrap_or(0);
-    let leaf = (&shared.store)
-        .get_elem(cmmr::leaf_index_to_pos(num))
-        .unwrap_or_default()
-        .unwrap_or([0; 32]);
 
-    if leaf == [0; 32] {
-        Err(error::ErrorInternalServerError(format!(
-            "Get block header {} failed",
-            block
-        )))
-    } else {
-        Ok(web::Json(MMRLeafJson {
-            mmr_leaf: format!("0x{}", hex!(&leaf)),
-        }))
+    let leaf_result = (&shared.store)
+        .get_elem(cmmr::leaf_index_to_pos(num))
+        .map(|elem| elem.unwrap_or([0; 32]))
+        .map(|leaf| format!("0x{}", hex!(&leaf)));
+
+    match leaf_result {
+        Ok(leaf) => {
+            Ok(web::Json(MMRLeafJson {
+                mmr_leaf: leaf,
+            }))
+        },
+        Err(err) => {
+            Err(error::ErrorInternalServerError(format!(
+                "Get mmr leaf of {} failed, caused by {}",
+                block, err.to_string()
+            )))
+        }
     }
+
 }

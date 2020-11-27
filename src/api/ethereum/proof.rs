@@ -75,5 +75,15 @@ pub async fn handle(
     req: web::Json<ProposalReq>,
     share: web::Data<ShadowShared>,
 ) -> WebResult<web::Json<EthereumRelayProofsJson>> {
-    Ok(web::Json(req.0.gen(share).await?))
+    let proposal = req.0;
+
+    proposal.gen(share).await
+        .map(|json| web::Json(json))
+        .map_err(|err| {
+            error::ErrorInternalServerError(format!(
+                "Get proof of (member: {}, target: {}, last_leaf: {}) failed, caused by {}",
+                proposal.member,  proposal.target, proposal.last_leaf,
+                err.to_string()
+            ))
+        })
 }

@@ -23,11 +23,14 @@ where
     H: H256 + AsRef<[u8]>,
 {
     fn get_elem(&self, pos: u64) -> MMRResult<Option<H>> {
-        if let Ok(Some(elem)) = self.db.get(pos.to_le_bytes()) {
-            Ok(Some(H::from_bytes(&elem)))
-        } else {
-            Ok(None)
-        }
+        self.db
+            .get(pos.to_le_bytes())
+            .map_err(|err| {
+                cmmr::Error::StoreError(err.to_string())
+            })
+            .map(|elem| {
+                elem.map(|e| H::from_bytes(&e))
+            })
     }
 
     fn append(&mut self, pos: u64, elems: Vec<H>) -> MMRResult<()> {

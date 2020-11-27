@@ -78,7 +78,7 @@ pub async fn handle(
     let proposal = req.0;
 
     proposal.gen(share).await
-        .map(|json| web::Json(json))
+        .map(web::Json)
         .map_err(|err| {
             error::ErrorInternalServerError(format!(
                 "Get proof of (member: {}, target: {}, last_leaf: {}) failed, caused by {}",

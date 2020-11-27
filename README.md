@@ -122,7 +122,7 @@ the mmr root of block_number's parent as leaf index
 
 ##### REQUEST
 
-`GET /ethereum/mmr_root/{block_number}`
+`GET /ethereum/parent_mmr_root/{block_number}`
 
 ##### REQUEST PARAMS
 
@@ -139,7 +139,7 @@ the mmr root of block_number's parent as leaf index
 ##### EXAMPLE
 
 ```bash
-> curl https://shadow.darwinia.network/ethereum/mmr_root/10
+> curl https://shadow.darwinia.network/ethereum/parent_mmr_root/10
 {"mmr_root":"0xe28d7f650efb9cbaaca7f485d078c0f6b1104807a3a31f85fc1268b0673140ff"}
 ```
 

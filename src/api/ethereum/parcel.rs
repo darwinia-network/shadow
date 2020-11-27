@@ -21,6 +21,6 @@ pub async fn handle(
     // Gen response
     Ok(web::Json(EthereumRelayHeaderParcelJson {
         header: super::helper::header(num, &shared).await?,
-        mmr_root: super::helper::mmr_root(num, &shared)?,
+        mmr_root: super::helper::parent_mmr_root(num, &shared)?,
     }))
 }

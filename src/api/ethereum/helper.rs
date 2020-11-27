@@ -10,8 +10,9 @@ use primitives::{chain::ethereum::EthereumHeaderJson, rpc::RPC};
 /// Web result
 pub type WebResult<R> = Result<R, error::Error>;
 
-/// Get mmr_root string with web response
-pub fn mmr_root(block: u64, shared: &ShadowShared) -> WebResult<String> {
+/// Get parent_mmr_root string with web response
+/// block's parent is leaf index
+pub fn parent_mmr_root(block: u64, shared: &ShadowShared) -> WebResult<String> {
     let num: u64 = block.to_string().parse().unwrap_or(0);
     if num == 0 {
         return Err(error::ErrorBadRequest("Requesting mmr_root of block 0"));

@@ -68,7 +68,7 @@ async fn test_proposal() {
     // Should pass verification
     assert!(p_r0
         .verify(
-            H256::from(&helper::mmr_root(req_r0.target, &shared).unwrap()),
+            H256::from(&helper::parent_mmr_root(req_r0.target, &shared).unwrap()),
             vec![(
                 cmmr::leaf_index_to_pos(req_r0.member),
                 rpc.get_header_by_number(req_r0.member)
@@ -102,7 +102,7 @@ async fn test_proposal() {
     // The the round 0's mmr_root to verify round 1's hash
     assert!(p_r1
         .verify(
-            H256::from(&helper::mmr_root(req_r0.target, &shared).unwrap()),
+            H256::from(&helper::parent_mmr_root(req_r0.target, &shared).unwrap()),
             vec![(
                 cmmr::leaf_index_to_pos(req_r1.member),
                 rpc.get_header_by_number(req_r1.member)

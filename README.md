@@ -60,6 +60,196 @@ $ cargo install darwinia-shadow
 Everytime you run `proof` in error, please delete `~/.ethashproof` and `~/.ethash` 
 and retry.
 
+## Apis
+
+### Get the total number of leaves
+
+##### REQUEST
+
+`GET /ethereum/count`
+
+##### RESPONSE
+
+```json
+count number
+```
+
+##### EXAMPLE
+
+```bash
+> curl https://shadow.darwinia.network/ethereum/count
+128
+```
+
+
+
+### Get the mmr leaf by leaf index
+
+##### REQUEST
+
+`GET /ethereum/mmr_leaf/{leaf_index}`
+
+##### REQUEST PARAMS
+
+`leaf_index`: from 0
+
+##### RESPONSE
+
+```json
+{
+  "mmr_leaf": "STRING, the mmr leaf"
+}
+```
+
+##### EXAMPLE
+
+```bash
+> curl https://shadow.darwinia.network/ethereum/mmr_leaf/10
+{"mmr_leaf":"0x4ff4a38b278ab49f7739d3a4ed4e12714386a9fdf72192f2e8f7da7822f10b4d"}
+```
+
+
+
+### Get the mmr root in `block_number`
+
+the mmr root of block_number's parent as leaf index
+
+##### REQUEST
+
+`GET /ethereum/parent_mmr_root/{block_number}`
+
+##### REQUEST PARAMS
+
+`block_number`:  from 0
+
+##### RESPONSE
+
+```json
+{
+  "mmr_root": "INTEGER, the mmr root of block_number's parent(block_number-1) as leaf index."
+}
+```
+
+##### EXAMPLE
+
+```bash
+> curl https://shadow.darwinia.network/ethereum/parent_mmr_root/10
+{"mmr_root":"0xe28d7f650efb9cbaaca7f485d078c0f6b1104807a3a31f85fc1268b0673140ff"}
+```
+
+
+
+### Get proofs
+
+1. get the mmr proof of `member` under the root of `last_leaf`'s mountain
+2. get the ethash of `target` block
+
+##### REQUEST
+
+`POST /ethereum/proof`
+
+##### REQUEST PARAMS
+
+```json
+{
+	"member": 2, // leaf index, just to get the mmr proof for this leaf
+	"last_leaf": 9, // mmr mountain boundary, mmr_proof_of(member, last_leaf)
+  "target": 10 // ethash of target, last_leaf == target - 1
+}
+```
+
+##### RESPONSE
+
+```json
+{
+  "ethash_proof": [
+    {
+      "dag_nodes": [ 
+        "0x5f5a713f8189...",
+        "0x0011509c9e55..."
+      ],
+      "proof": [
+        "0x4d1fe9b0c4bd1e33ca4887ed3e49f244",
+        ...
+      ]
+    },
+    ...
+  ],
+  "mmr_proof": [
+    "0x3d6122660cc824376f11ee842f83addc3525e2dd6756b9bcf0affa6aa88cf741",
+    ...
+  ]
+}
+```
+
+##### EXAMPLE
+
+```bash
+> curl https://shadow.darwinia.network/ethereum/proof \
+    -X POST \
+    -H "Content-Type: application/json" \
+    -d '{"member": 2, "target": 10, "last_leaf": 9}'
+{"ethash_proof":[],"mmr_proof":[]}
+```
+
+
+
+### Get ethereum tx receipt by tx hash
+
+##### REQUEST
+
+`GET /ethereum/receipt/{tx_hash}/{mmr_root_height}`
+
+##### REQUEST PARAMS
+
+`tx_hash`:  ethereum tx hash
+
+`mmr_root_height`: (mmr_root_height - 1) is the mmr leaf index for mountain boundary. 
+
+> mmr_root_height 似乎会产生歧义，建议改掉
+
+##### RESPONSE
+
+```json
+{
+  "header": {
+    "parent_hash": "hash of the parent block",
+    "timestamp": "INTEGER, the unix timestamp for when the block was collated",
+    "number": "INTEGER, the block number",
+    "author": "the address of the beneficiary to whom the mining rewards were given",
+    "transactions_root": "the root of the transaction trie of the block",
+    "uncles_hash": "SHA3 of the uncles data in the block",
+    "extra_data": "the extra data field of this block",
+    "state_root": "the root of the final state trie of the block",
+    "receipts_root": "the root of the receipts trie of the block",
+    "log_bloom": "the bloom filter for the logs of the block",
+    "gas_used": "INTEGER, the total used gas by all transactions in this block",
+    "gas_limit": "INTEGER, the maximum gas allowed in this block",
+    "difficulty": "INTEGER, the difficulty for this block",
+    "seal": "STRING ARRAY",
+    "hash": "hash of the block"
+  },
+  "receipt_proof": {
+    "index": "0x4b",
+    "proof": "",
+    "header_hash": ""
+  },
+  "mmr_proof": {
+    "member_leaf_index": "INTEGER, just to get the mmr proof for this leaf",
+    "last_leaf_index": "INTEGER, mmr mountain boundary, mmr_proof_of(member_leaf_index, last_leaf_index)",
+    "proof": []
+  }
+}
+```
+
+##### EXAMPLE
+
+```bash
+> curl https://shadow.darwinia.network/ethereum/receipt/0x9b8f30bc20809571dd2382433b28d259456cb7f03aec935f6592e1ba1f1173e1/11330897
+{"header":{},"receipt_proof":{},"mmr_proof":{}}
+```
+
+
 
 ## LICENSE
 

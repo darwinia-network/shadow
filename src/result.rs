@@ -1,4 +1,5 @@
 //! MMR Errors
+use actix_web::Error as ActixWeb;
 use cmmr::Error as MMR;
 use primitives::result::Error as Primitive;
 use reqwest::Error as Reqwest;
@@ -50,7 +51,7 @@ macro_rules! error {
     };
 }
 
-error! {Io, MMR, Reqwest, SerdeJson, Rocksdb, Shadow, Primitive}
+error! {Io, MMR, Reqwest, SerdeJson, Rocksdb, Shadow, Primitive, ActixWeb}
 
 /// Sup Result
 pub type Result<T> = StdResult<T, Error>;

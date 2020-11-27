@@ -1,9 +1,7 @@
-use crate::{mmr::helper, ShadowShared};
-use actix_web::{web, Responder};
-use primitives::{
-    chain::ethereum::{EthereumHeaderJson, MMRProofJson},
-    rpc::RPC,
-};
+use super::helper::WebResult;
+use crate::{mmr::helper as mmr_helper, ShadowShared};
+use actix_web::{error, web};
+use primitives::chain::ethereum::{EthereumHeaderJson, MMRProofJson};
 
 /// Receipt proof
 #[derive(Serialize)]
@@ -32,40 +30,35 @@ pub struct ReceiptResp {
 }
 
 impl ReceiptResp {
-    /// Get Receipt
-    pub fn receipt(api: &str, tx: &str) -> ReceiptProof {
-        super::ffi::receipt(api, tx).into()
-    }
-    /// Get ethereum header json
-    pub async fn header(shared: &ShadowShared, block: &str) -> EthereumHeaderJson {
-        shared
-            .eth
-            .get_header_by_hash(block)
-            .await
-            .unwrap_or_default()
-            .into()
-    }
-
     /// Generate header
     /// mmr_root_height should be last confirmed block in relayt
-    pub async fn new(shared: &ShadowShared, tx: &str, mmr_root_height: u64) -> ReceiptResp {
-        let receipt_proof = Self::receipt(shared.eth.rpc(), tx);
-        let header = Self::header(&shared, &receipt_proof.header_hash).await;
+    pub async fn new(
+        shared: &ShadowShared,
+        tx: &str,
+        mmr_root_height: u64,
+    ) -> super::helper::WebResult<ReceiptResp> {
+        let receipt_proof: ReceiptProof = super::ffi::receipt(shared.eth.rpc(), tx).into();
+        let header = super::helper::header_by_hash(&receipt_proof.header_hash, &shared).await?;
         let mmr_proof = if mmr_root_height > 0 {
             let (member_leaf_index, last_leaf_index) = (header.number, mmr_root_height - 1);
             MMRProofJson {
                 member_leaf_index,
                 last_leaf_index,
-                proof: helper::gen_proof(&shared.store, member_leaf_index, last_leaf_index),
+                proof: mmr_helper::gen_proof(&shared.store, member_leaf_index, last_leaf_index),
             }
         } else {
-            MMRProofJson::default()
+            return Err(error::ErrorInternalServerError(format!(
+                "Get mmr proof of failed, member_leaf_index: {}, last_leaf_index: {}",
+                header.number,
+                mmr_root_height - 1
+            )));
         };
-        ReceiptResp {
+
+        Ok(ReceiptResp {
             header,
             receipt_proof,
             mmr_proof,
-        }
+        })
     }
 }
 
@@ -84,6 +77,8 @@ impl ReceiptResp {
 pub async fn handle(
     tx: web::Path<(String, u64)>,
     shared: web::Data<ShadowShared>,
-) -> impl Responder {
-    web::Json(ReceiptResp::new(&shared, tx.0.as_str(), tx.1).await)
+) -> WebResult<web::Json<ReceiptResp>> {
+    Ok(web::Json(
+        ReceiptResp::new(&shared, tx.0.as_str(), tx.1).await?,
+    ))
 }

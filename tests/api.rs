@@ -1,7 +1,7 @@
 use cmmr::MerkleProof;
 use darwinia_shadow::{
-    api::ethereum::ProposalReq,
-    mmr::{helper, MergeHash, Runner, H256},
+    api::ethereum::{helper, ProposalReq},
+    mmr::{helper as mmr_helper, MergeHash, Runner, H256},
     result::Error,
     ShadowShared,
 };
@@ -13,7 +13,7 @@ use std::env;
 async fn stops_at(db: &DB, runner: &mut Runner, count: i64) -> Result<(), Error> {
     let mut mmr_size = db.iterator(IteratorMode::Start).count() as u64;
     let mut ptr = {
-        let last_leaf = helper::mmr_size_to_last_leaf(mmr_size as i64);
+        let last_leaf = mmr_helper::mmr_size_to_last_leaf(mmr_size as i64);
         if last_leaf == 0 {
             0
         } else {
@@ -39,7 +39,7 @@ async fn test_proposal() {
     env::set_var("ETHEREUM_RPC", r#"https://mainnet.infura.io/v3/0bfb9acbb13c426097aabb1d81a9d016"#);
     let shared = ShadowShared::new(None);
     let mut runner = Runner::from(shared.clone());
-    let rpc = shared.eth;
+    let rpc = &shared.eth;
 
     // Gen mmrs
     assert!(stops_at(&shared.db, &mut runner, 30).await.is_ok());
@@ -71,7 +71,7 @@ async fn test_proposal() {
     // Should pass verification
     assert!(p_r0
         .verify(
-            H256::from(&req_r0.mmr_root(&shared.store)),
+            H256::from(&helper::parent_mmr_root(req_r0.target, &shared).unwrap()),
             vec![(
                 cmmr::leaf_index_to_pos(req_r0.member),
                 rpc.get_header_by_number(req_r0.member)
@@ -105,7 +105,7 @@ async fn test_proposal() {
     // The the round 0's mmr_root to verify round 1's hash
     assert!(p_r1
         .verify(
-            H256::from(&req_r0.mmr_root(&shared.store)),
+            H256::from(&helper::parent_mmr_root(req_r0.target, &shared).unwrap()),
             vec![(
                 cmmr::leaf_index_to_pos(req_r1.member),
                 rpc.get_header_by_number(req_r1.member)

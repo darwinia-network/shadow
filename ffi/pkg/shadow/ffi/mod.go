@@ -2,9 +2,9 @@ package main
 
 import "C"
 import (
-	"github.com/darwinia-network/shadow/pkg/shadow"
-	"github.com/darwinia-network/shadow/pkg/shadow/eth"
-	"github.com/darwinia-network/shadow/pkg/shadow/log"
+	"github.com/darwinia-network/shadow/ffi/pkg/shadow"
+	"github.com/darwinia-network/shadow/ffi/pkg/shadow/eth"
+	"github.com/darwinia-network/shadow/ffi/pkg/shadow/log"
 	"strings"
 )
 

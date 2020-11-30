@@ -3,7 +3,7 @@ package shadow
 import (
 	"os"
 	"path/filepath"
-	"github.com/darwinia-network/shadow/pkg/shadow/util"
+	"github.com/darwinia-network/shadow/ffi/pkg/shadow/util"
 )
 
 type RawConfig struct {
@@ -32,7 +32,7 @@ func RootDir() (string, error) {
 	util.Assert(err)
 
 	// Create root dir if not exist
-	root := filepath.Join(home, ".darwinia")
+	root := filepath.Join(home, ".shadow")
 	if _, err := os.Stat(root); os.IsNotExist(err) {
 		err = os.Mkdir(root, 0700)
 		if err != nil {

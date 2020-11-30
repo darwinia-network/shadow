@@ -1,4 +1,4 @@
-module github.com/darwinia-network/shadow
+module github.com/darwinia-network/shadow/ffi
 
 go 1.14
 

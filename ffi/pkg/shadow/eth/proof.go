@@ -5,14 +5,14 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/darwinia-network/shadow/pkg/ethashproof"
-	"github.com/darwinia-network/shadow/pkg/ethashproof/ethash"
-	"github.com/darwinia-network/shadow/pkg/ethashproof/mtree"
-	"github.com/darwinia-network/shadow/pkg/shadow"
-	"github.com/darwinia-network/shadow/pkg/shadow/util"
+	"github.com/darwinia-network/shadow/ffi/pkg/ethashproof"
+	"github.com/darwinia-network/shadow/ffi/pkg/ethashproof/ethash"
+	"github.com/darwinia-network/shadow/ffi/pkg/ethashproof/mtree"
+	"github.com/darwinia-network/shadow/ffi/pkg/shadow"
+	"github.com/darwinia-network/shadow/ffi/pkg/shadow/util"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/darwinia-network/shadow/pkg/shadow/log"
+	"github.com/darwinia-network/shadow/ffi/pkg/shadow/log"
 )
 
 // Constants

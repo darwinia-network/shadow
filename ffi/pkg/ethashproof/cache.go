@@ -9,7 +9,7 @@ import (
 	"os/user"
 	"path/filepath"
 
-	"github.com/darwinia-network/shadow/pkg/ethashproof/mtree"
+	"github.com/darwinia-network/shadow/ffi/pkg/ethashproof/mtree"
 )
 
 const CACHE_LEVEL uint64 = 15

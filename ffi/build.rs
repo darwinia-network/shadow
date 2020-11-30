@@ -8,12 +8,21 @@ fn main() {
     println!("cargo:rerun-if-changed=pkg/shadow/lock.go");
     println!("cargo:rerun-if-changed=pkg/shadow/ffi/mod.go");
 
+    // set the env if build failed
+    // env::set_var("CGO_CFLAGS", "-Wno-undef-prefix");
+
     // Declare build args
     let mut dynamic = match env::var("LIBRARY_TYPE") {
         Ok(ty) => ty.to_lowercase() != "static",
         Err(_) => true,
     };
-    let out_dir = env::var("OUT_DIR").unwrap();
+
+    let out_dir =
+        match env::var("OUT_DIR") {
+            Ok(out_dir) => out_dir,
+            Err(_) => ".".to_string()
+        };
+
     go(&mut dynamic, &out_dir);
 
     // Post-check

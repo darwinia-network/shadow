@@ -8,8 +8,8 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/darwinia-network/shadow/pkg/shadow/log"
-	"github.com/darwinia-network/shadow/pkg/shadow/util"
+	"github.com/darwinia-network/shadow/ffi/pkg/shadow/log"
+	"github.com/darwinia-network/shadow/ffi/pkg/shadow/util"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"

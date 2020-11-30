@@ -4,7 +4,7 @@ import (
 	"os"
 	"reflect"
 
-	"github.com/darwinia-network/shadow/pkg/shadow/log"
+	"github.com/darwinia-network/shadow/ffi/pkg/shadow/log"
 )
 
 // Check if is empty

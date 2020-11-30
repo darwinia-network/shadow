@@ -9,7 +9,7 @@ fn main() {
     println!("cargo:rerun-if-changed=pkg/shadow/ffi/mod.go");
 
     // set the env if build failed
-    // env::set_var("CGO_CFLAGS", "-Wno-undef-prefix");
+    env::set_var("CGO_CFLAGS", "-Wno-undef-prefix");
 
     // Declare build args
     let mut dynamic = match env::var("LIBRARY_TYPE") {

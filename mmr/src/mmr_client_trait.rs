@@ -43,7 +43,7 @@ pub trait MmrClientTrait {
         // Check empty
         info!("Imported {} hashes from ethereum node", hashes_vec.len());
         if hashes_vec[0].is_empty() {
-            return Err(anyhow::anyhow!("Importing hashes from {:?} failed", geth_dir ).into());
+            return Err(anyhow::anyhow!("Importing hashes from {:?} failed, caused by empty", geth_dir ).into());
         }
 
         // Push

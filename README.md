@@ -11,7 +11,7 @@ The shadow service for relayers and verify workers to retrieve header data and g
 ## Usage
 
 ```sh
-shadow 0.2.5
+shadow 0.2.16
 
 USAGE:
     shadow <SUBCOMMAND>
@@ -21,10 +21,12 @@ FLAGS:
     -V, --version    Prints version information
 
 SUBCOMMANDS:
-    count    Current block height in mmr store
-    help     Prints this message or the help of the given subcommand(s)
-    run      Start shadow service
-    trim     Trim mmr from target leaf
+    count     Current block height in mmr store
+    export    Exports shadow's rocksdb
+    help      Prints this message or the help of the given subcommand(s)
+    import    Imports mmr from shadow backup or geth
+    run       Start shadow service
+    trim      Trim mmr from target leaf
 ```
 
 
@@ -65,6 +67,22 @@ $ cargo install darwinia-shadow
 
 Everytime you run `proof` in error, please delete `~/.ethashproof` and `~/.ethash` 
 and retry.
+
+## Sub commands
+
+### import
+
+1. create database 'mmr_store'. Any database name can be used.
+
+2. run sub command 'import'
+
+    example:
+    ```
+    shadow import \
+      -p /data/geth/chaindata \
+      -u mysql://root:@localhost:3306/mmr_store \
+      -t 11357653
+    ```
 
 ## Apis
 

@@ -54,16 +54,14 @@ func Receipt(api string, tx string) (*C.char, *C.char, *C.char) {
 //export Import
 func Import(datadir string, from int, to int) *C.char {
 	geth, _ := eth.NewGeth(datadir)
-
 	hashes := []string{}
 	for n := from; n < to; n++ {
 		header := geth.Header(uint64(n))
 		if header.Hash().String() == "0xc3bd2d00745c03048a5616146a96f5ff78e54efb9e5b04af208cdaff6f3830ee" {
-		    log.Error("Check if your geth is running and stop it.")
-		    return C.CString("")
+		    break
 		}
 		if header == nil || (header.Time == 0 && n != 0) {
-			log.Error("Import hash of header %d failed", n)
+            log.Error("Import hash of header %d failed", n)
 			return C.CString(strings.Join(hashes, ","))
 		}
 		if n&1000 == 0 {

@@ -74,10 +74,13 @@ and retry.
 
 #### rockdb
 
+If `-u` not set, the default rocksdb dir is ~/.shadow/cache/mmr
+
 example:
 ```
 shadow import \
   -p /data/geth/chaindata \
+  -u /path/to/rocksdb/dir \ 
   -t 11357653
 ```
 

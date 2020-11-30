@@ -6,7 +6,7 @@ use std::path::PathBuf;
 
 /// Import headers from backup or geth
 pub fn exec(path: String, to: u64, uri: Option<String>) -> Result<()> {
-    std::env::set_var("RUST_LOG", "info");
+    std::env::set_var("RUST_LOG", "info,darwinia_shadow");
 
     // Build mmr client
     let mut client = build_client(&database(uri)?)?;

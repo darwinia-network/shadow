@@ -14,6 +14,8 @@ type Geth struct {
 	db ethdb.Database
 }
 
+// datadir = "/absolute/path/to/geth/chaindata"
+// ancient = datadir + "/ancient"
 func NewGeth(datadir string) (Geth, error) {
 	if util.IsEmpty(datadir) {
 		return Geth{}, nil
@@ -23,7 +25,7 @@ func NewGeth(datadir string) (Geth, error) {
 		datadir,
 		768,
 		16,
-		path.Join(datadir, "chaindata/ancient"),
+		path.Join(datadir, "ancient"),
 		"",
 	)
 

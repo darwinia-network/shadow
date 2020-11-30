@@ -72,6 +72,17 @@ and retry.
 
 ### import
 
+#### rockdb
+
+example:
+```
+shadow import \
+  -p /data/geth/chaindata \
+  -t 11357653
+```
+
+#### mysql
+
 1. create database 'mmr_store'. Any database name can be used.
 
 2. run sub command 'import'

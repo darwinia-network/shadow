@@ -42,7 +42,8 @@ fn create_table_if_not_exists(pool: Pool) -> Result<()> {
                     `height` int(11) DEFAULT NULL,
                     PRIMARY KEY (`id`),
                     UNIQUE KEY `position` (`position`),
-                    UNIQUE KEY `hash` (`hash`)
+                    UNIQUE KEY `hash` (`hash`),
+                    KEY `leaf_index` (`leaf_index`)
                 ) ENGINE=InnoDB AUTO_INCREMENT=96 DEFAULT CHARSET=utf8;";
     if let Err(err) = conn.query_first::<u64, _>("SELECT 1 FROM mmr") {
         if err.to_string().contains(".mmr' doesn't exist") {

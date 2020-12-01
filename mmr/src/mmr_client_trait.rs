@@ -43,9 +43,12 @@ pub trait MmrClientTrait {
             info!("Importing ethereum headers from {:?}, size {} ...", geth_dir, size);
             self.batch_push(&hashes_vec)?;
             info!("Block {} ~ {}'s hash has been pushed into mmr store", from, from + size - 1);
+            info!("Done.");
+        } else {
+            info!("There is no block hash fetched between {} ~ {}", from, til_block);
         }
 
-        info!("Done.");
+
         Ok(())
     }
 

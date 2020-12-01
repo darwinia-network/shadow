@@ -38,16 +38,11 @@ pub trait MmrClientTrait {
         let hashes = ffi::import(geth_dir.to_str().unwrap(), from as i32, til_block as i32);
         let hashes_vec: Vec<&str> = hashes.split(',').collect::<Vec<&str>>();
 
-        const STEP: usize = 1000;
-        if hashes.trim().len() > 0 && hashes_vec.len() > 0 {
-            info!("Importing ethereum headers from {:?}, size {} ...", geth_dir, hashes_vec.len());
-            for (i, _) in hashes_vec.iter().step_by(STEP).enumerate() {
-                let start = i * STEP;
-                let stop = std::cmp::min(start + STEP, start + hashes_vec[start..].len());
-
-                self.batch_push(&hashes_vec[start..stop])?;
-                info!("Block {} ~ {}'s hash has been pushed into mmr store", from + start, from + stop - 1);
-            }
+        let size = hashes_vec.len();
+        if hashes.trim().len() > 0 && size > 0 {
+            info!("Importing ethereum headers from {:?}, size {} ...", geth_dir, size);
+            self.batch_push(&hashes_vec)?;
+            info!("Block {} ~ {}'s hash has been pushed into mmr store", from, from + size - 1);
         }
 
         info!("Done.");

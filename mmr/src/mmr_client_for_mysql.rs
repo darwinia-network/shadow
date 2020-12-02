@@ -2,7 +2,7 @@ use cmmr::MMR;
 use mysql::*;
 use mysql::prelude::*;
 
-use crate::{Result, MergeHash, H256, MmrClientTrait};
+use crate::{Result, MergeHash, H256, MmrClientTrait, mmr_size_to_last_leaf};
 use crate::MysqlStore;
 use std::path::PathBuf;
 
@@ -25,7 +25,8 @@ impl MmrClientTrait for MmrClientForMysql {
         let mut tx = conn.start_transaction(TxOpts::default())?;
 
         // push elem
-        let store = MysqlStore::new(self.db.clone(), &mut tx);
+        let mut batch: Vec<String> = vec![];
+        let store = MysqlStore::new(self.db.clone(), &mut tx, &mut batch);
         let mut mmr = MMR::<[u8; 32], MergeHash, _>::new(self.get_mmr_size()?, store);
         let elem = H256::from(elem)?;
         let position = mmr.push(elem)?;
@@ -54,31 +55,23 @@ impl MmrClientTrait for MmrClientForMysql {
         let mut tx = conn.start_transaction(TxOpts::default())?;
 
         // 1. push elems to mmr
-        let store = MysqlStore::new(self.db.clone(), &mut tx);
+        let mut batch: Vec<String> = vec![];
+        let store = MysqlStore::new(self.db.clone(), &mut tx, &mut batch);
         let mut mmr = MMR::<[u8; 32], MergeHash, _>::new(self.get_mmr_size()?, store);
-        let mut root_pos_list = vec![];
+        // let mut root_pos_list = vec![];
         for &elem in elems {
             let elem = H256::from(elem)?;
             let position = mmr.push(elem)?;
-            let root = H256::hex(&mmr.get_root()?);
-            root_pos_list.push((position, root));
+            // let root = H256::hex(&mmr.get_root()?);
+            // root_pos_list.push((position, root));
             result.push(position);
         }
         mmr.commit()?;
-
-        // 2. update mmr roots and leaf_index
-        // leaf index
-        let mut leaf_index = match self.get_last_leaf_index()? {
-            Some(last_leaf_index) => last_leaf_index + 1,
-            None => 0
-        };
-        //
-        let stmt = tx.prep("UPDATE mmr SET root=:root, leaf_index=:leaf_index WHERE position=:position").unwrap();
-        for (position, root) in root_pos_list {
-            // let height = pos_height_in_tree(position);
-            tx.exec_iter(&stmt, params! { root, leaf_index, position })?;
-            leaf_index += 1;
+        if !batch.is_empty() {
+            let sql = format!("INSERT INTO mmr (position, hash, leaf) VALUES {}", batch.join(","));
+            tx.query_drop(sql)?;
         }
+
         tx.commit()?;
 
         Ok(result)
@@ -98,15 +91,13 @@ impl MmrClientTrait for MmrClientForMysql {
     }
 
     fn get_last_leaf_index(&self) -> Result<Option<u64>> {
-        let mut conn = self.db.get_conn()?;
-        let mut leaf_index = None;
-        if let Some(result) = conn.query_first::<Option<u64>, _>("SELECT MAX(leaf_index) FROM mmr")? {
-            if let Some(max) = result {
-                leaf_index = Some(max);
-            }
-        };
-
-        Ok(leaf_index)
+        let mmr_size = self.get_mmr_size().unwrap();
+        if mmr_size == 0 {
+            Ok(None)
+        } else {
+            let last_leaf_index = mmr_size_to_last_leaf(mmr_size as i64);
+            Ok(Some(last_leaf_index as u64))
+        }
     }
 
     fn get_elem(&self, pos: u64) -> Result<Option<String>> {
@@ -116,21 +107,33 @@ impl MmrClientTrait for MmrClientForMysql {
     }
 
     fn get_leaf(&self, leaf_index: u64) -> Result<Option<String>> {
-        let mut conn = self.db.get_conn()?;
-        let result = conn.query_first::<String, _>(format!("SELECT hash FROM mmr WHERE leaf_index={}", leaf_index))?;
-        Ok(result)
+        self.get_elem(cmmr::leaf_index_to_pos(leaf_index))
     }
 
     fn get_mmr_root(&self, leaf_index: u64) -> Result<Option<String>> {
-        let mut conn = self.db.get_conn()?;
-        let result = conn.query_first::<String, _>(format!("SELECT root FROM mmr WHERE leaf_index={}", leaf_index))?;
-        Ok(result)
+        if let Some(last_leaf_index) = self.get_last_leaf_index()? {
+            if leaf_index > last_leaf_index {
+                Ok(None)
+            } else {
+                let mut conn = self.db.get_conn()?;
+                let mut tx = conn.start_transaction(TxOpts::default())?;
+                let mut batch: Vec<String> = vec![];
+                let store = MysqlStore::new(self.db.clone(), &mut tx, &mut batch);
+                let mmr_size = cmmr::leaf_index_to_mmr_size(leaf_index);
+                let mmr = MMR::<[u8; 32], MergeHash, _>::new(mmr_size, store);
+                let root = mmr.get_root()?;
+                Ok(Some(H256::hex(&root)))
+            }
+        } else {
+            Ok(None)
+        }
     }
 
     fn gen_proof(&self, member: u64, last_leaf: u64) -> Result<Vec<String>> {
         let mut conn = self.db.get_conn()?;
         let mut tx = conn.start_transaction(TxOpts::default())?;
-        let store = MysqlStore::new(self.db.clone(), &mut tx);
+        let mut batch: Vec<String> = vec![];
+        let store = MysqlStore::new(self.db.clone(), &mut tx, &mut batch);
         let mmr_size = cmmr::leaf_index_to_mmr_size(last_leaf);
         let mmr = MMR::<[u8; 32], MergeHash, _>::new(mmr_size, store);
         let proof = mmr.gen_proof(vec![cmmr::leaf_index_to_pos(member)])?;

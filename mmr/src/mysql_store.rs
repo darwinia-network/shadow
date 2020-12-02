@@ -4,19 +4,21 @@ use mysql::*;
 use mysql::prelude::*;
 
 /// Mysql MMR Store
-pub struct MysqlStore<'a, 't> {
+#[allow(dead_code)]
+pub struct MysqlStore<'a, 't, 'b> {
     /// Connection Pool
     pub db: Pool,
     pub(crate) tx: &'t mut Transaction<'a>,
+    pub batch: &'b mut Vec<String>,
 }
 
-impl<'a, 't> MysqlStore<'a, 't> {
-    pub fn new(db: Pool, tx: &'t mut Transaction<'a>) -> Self {
-        MysqlStore { db, tx }
+impl<'a, 't, 'b> MysqlStore<'a, 't, 'b> {
+    pub fn new(db: Pool, tx: &'t mut Transaction<'a>, batch: &'b mut Vec<String>) -> Self {
+        MysqlStore { db, tx, batch }
     }
 }
 
-impl MMRStore<[u8; 32]> for MysqlStore<'_, '_> {
+impl MMRStore<[u8; 32]> for MysqlStore<'_, '_, '_> {
     fn get_elem(&self, pos: u64) -> MMRResult<Option<[u8; 32]>> {
         let mut conn = self
             .db.get_conn()
@@ -35,21 +37,10 @@ impl MMRStore<[u8; 32]> for MysqlStore<'_, '_> {
 
     fn append(&mut self, pos: u64, elems: Vec<[u8; 32]>) -> MMRResult<()> {
         let pos = pos as usize;
-
-        self.tx.exec_batch(
-            r"INSERT INTO mmr (position, hash, leaf) VALUES (:position, :hash, :leaf)",
-            elems.into_iter().enumerate().map(|(i, elem)| {
-                let position = pos + i;
-                let params = params! {
-                    "position" => position,
-                    "hash" => H256::hex(&elem),
-                    "leaf" => i == 0,
-                };
-                params
-            })
-        )
-        .map_err(|err| cmmr::Error::StoreError(err.to_string()))?;
-
+        for (i, elem) in elems.into_iter().enumerate() {
+            let value = format!("({}, '{}', {})", pos + i, H256::hex(&elem), i == 0);
+            self.batch.push(value);
+        }
         Ok(())
     }
 }

@@ -1,6 +1,6 @@
 FROM ubuntu:latest as builder
 ARG DEBIAN_FRONTEND=noninteractive
-ENV TZ=America/Los_Angeles
+
 COPY . shadow
 RUN apt-get update && apt-get -y upgrade \
     && apt-get -y install golang cargo libssl-dev clang-tools \
@@ -23,4 +23,3 @@ RUN apt-get update -y \
     && ldconfig
 
 ENTRYPOINT ["shadow"]
-

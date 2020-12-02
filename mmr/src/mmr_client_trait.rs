@@ -39,7 +39,7 @@ pub trait MmrClientTrait {
         let hashes_vec: Vec<&str> = hashes.split(',').collect::<Vec<&str>>();
 
         let size = hashes_vec.len();
-        if hashes.trim().len() > 0 && size > 0 {
+        if !hashes.trim().is_empty() && size > 0 {
             info!("Importing ethereum headers from {:?}, size {} ...", geth_dir, size);
             self.batch_push(&hashes_vec)?;
             info!("Block {} ~ {}'s hash has been pushed into mmr store", from, from + size - 1);

@@ -49,7 +49,7 @@ fn create_table_if_not_exists(pool: Pool) -> Result<()> {
         if err.to_string().contains(".mmr' doesn't exist") {
             conn.query_drop(create_table_statement)?;
         } else {
-            Err(err)?;
+            return Err(err.into());
         }
     }
     Ok(())

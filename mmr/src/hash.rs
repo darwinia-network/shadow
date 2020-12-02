@@ -15,7 +15,7 @@ impl H256 {
 
     pub fn from_bytes(b: &[u8]) -> Result<[u8; 32]> {
         if b.len() != 32 {
-            Err(anyhow!("Length wrong"))?
+            Err(anyhow!("Length wrong").into())
         } else {
             let mut h = [0; 32];
             h.copy_from_slice(b);

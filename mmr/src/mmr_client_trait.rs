@@ -1,5 +1,6 @@
 use crate::error::Result;
 use std::path::PathBuf;
+use std::time::Instant;
 
 pub trait MmrClientTrait {
     fn push(&mut self, elem: &str) -> Result<u64>;
@@ -28,16 +29,23 @@ pub trait MmrClientTrait {
     fn import_from_backup(&mut self, backup_file: PathBuf) -> Result<()>;
 
     fn import_from_geth(&mut self, geth_dir: PathBuf, til_block: u64) -> Result<()> {
+        let start = Instant::now();
         let from = self.count()? as usize;
+        let elapsed = start.elapsed();
+        info!("count elapsed: {:?}", elapsed);
         if from >= til_block as usize {
             return Err(anyhow::anyhow!("The to position of mmr is {}, can not import mmr from {}, from must be less than to",
                 til_block, from
             ).into());
         }
 
+        let start = Instant::now();
         let hashes = ffi::import(geth_dir.to_str().unwrap(), from as i32, til_block as i32);
         let hashes_vec: Vec<&str> = hashes.split(',').collect::<Vec<&str>>();
+        let elapsed = start.elapsed();
+        info!("ffi::import elapsed: {:?}", elapsed);
 
+        let start = Instant::now();
         let size = hashes_vec.len();
         if !hashes.trim().is_empty() && size > 0 {
             info!("Importing ethereum headers from {:?}, size {} ...", geth_dir, size);
@@ -47,6 +55,8 @@ pub trait MmrClientTrait {
         } else {
             info!("There is no block hash fetched between {} ~ {}", from, til_block);
         }
+        let elapsed = start.elapsed();
+        info!("batch_push elapsed: {:?}", elapsed);
 
 
         Ok(())

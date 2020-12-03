@@ -291,6 +291,17 @@ func newDataset(epoch uint64) interface{} {
 	return &dataset{epoch: epoch}
 }
 
+func RemoveDatasetFile(dir string, epoch uint64) {
+    seed := seedHash(uint64(epoch)*epochLength + 1)
+    var endian string
+    if !isLittleEndian() {
+        endian = ".be"
+    }
+    path := filepath.Join(dir, fmt.Sprintf("full-R%d-%x%s", algorithmRevision, seed[:8], endian))
+    os.Remove(path)
+    log.New("epoch", epoch).Info("remmove dag file successed", "fullpath", path)
+}
+
 // generate ensures that the dataset content is generated before use.
 func (d *dataset) generate(dir string, limit int, test bool) {
 	d.once.Do(func() {

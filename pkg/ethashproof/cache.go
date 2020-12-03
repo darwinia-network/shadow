@@ -4,15 +4,21 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"log"
+    "log"
 	"os"
 	"os/user"
 	"path/filepath"
 
 	"github.com/darwinia-network/shadow/pkg/ethashproof/mtree"
+	"github.com/darwinia-network/shadow/pkg/ethashproof/ethash"
 )
 
 const CACHE_LEVEL uint64 = 15
+const MAX_CACHE_SIZE int = 5
+
+var (
+	DefaultDir = defaultDir()
+)
 
 type DatasetMerkleTreeCache struct {
 	Epoch       uint64         `json:"epoch"`
@@ -38,27 +44,47 @@ func (self *DatasetMerkleTreeCache) Print() {
 func getHomeDir() string {
 	usr, err := user.Current()
 	if err != nil {
-		log.Fatal(err)
+        log.Fatal(err)
 	}
 	return usr.HomeDir
 }
 
-func PersistCache(cache *DatasetMerkleTreeCache) error {
+func defaultDir() string {
+    return filepath.Join(getHomeDir(), ".ethashproof")
+}
+
+func PersistCache(dirPath string, cache *DatasetMerkleTreeCache) error {
 	content, err := json.Marshal(cache)
 	if err != nil {
 		return err
 	}
-	dirPath := filepath.Join(getHomeDir(), ".ethashproof")
 	err = os.MkdirAll(dirPath, 0777)
 	if err != nil {
 		return err
 	}
 	path := filepath.Join(dirPath, fmt.Sprintf("%d.json", cache.Epoch))
-	return ioutil.WriteFile(path, content, 0644)
+	err = ioutil.WriteFile(path, content, 0644)
+    if err == nil {
+        removeCache(dirPath, ethash.DefaultDir, cache.Epoch)
+    }
+    return err
 }
 
-func LoadCache(epoch int) (*DatasetMerkleTreeCache, error) {
-	path := filepath.Join(getHomeDir(), ".ethashproof", fmt.Sprintf("%d.json", epoch))
+func removeCache(cachedir, dagdir string, epoch uint64) {
+    for ep := uint64(0); ep + uint64(MAX_CACHE_SIZE) <= epoch; ep++ {
+        path := filepath.Join(cachedir, fmt.Sprintf("%d.json", ep))
+        _, err := os.Stat(path)
+        if err == nil {
+            err = os.Remove(path)
+        }
+        if err == nil || os.IsNotExist(err) {
+            ethash.RemoveDatasetFile(dagdir, ep)
+        }
+    }
+}
+
+func LoadCache(dirPath string, epoch int) (*DatasetMerkleTreeCache, error) {
+	path := filepath.Join(dirPath, fmt.Sprintf("%d.json", epoch))
 	content, err := ioutil.ReadFile(path)
 	if err != nil {
 		return nil, err

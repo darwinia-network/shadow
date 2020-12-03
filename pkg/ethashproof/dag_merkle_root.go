@@ -93,7 +93,7 @@ func CalculateDatasetMerkleRoot(epoch uint64, saveCache bool) (mtree.Hash, error
 			oneProof := proof[(uint64(branchDepth) - CACHE_LEVEL):]
 			result.Proofs = append(result.Proofs, oneProof)
 		}
-		err = PersistCache(result)
+		err = PersistCache(DefaultDir, result)
 		if err != nil {
 			return mtree.Hash{}, err
 		}

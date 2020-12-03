@@ -29,6 +29,9 @@ enum Opt {
         /// Verbose mode
         #[structopt(short, long)]
         verbose: bool,
+        /// Run mode, all, mmr, web
+        #[structopt(short, long, default_value = "all")]
+        mode: String,
     },
     /// Imports mmr from shadow backup or geth
     Import {
@@ -66,7 +69,7 @@ enum Opt {
 pub async fn exec() -> Result<()> {
     match Opt::from_args() {
         Opt::Count { uri } => count::exec(uri),
-        Opt::Run { port, verbose, uri } => run::exec(port, verbose, uri).await,
+        Opt::Run { port, verbose, uri, mode } => run::exec(port, verbose, uri, mode).await,
         Opt::Import { path, to, uri } => import::exec(path, to, uri),
         Opt::Trim { leaf, uri } => trim::exec(leaf, uri),
         Opt::Export { dist, uri } => export::exec(dist, uri),

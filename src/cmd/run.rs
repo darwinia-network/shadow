@@ -5,7 +5,7 @@ use primitives::rpc::EthereumRPC;
 use std::env;
 
 /// Run shadow service
-pub async fn exec(port: u16, verbose: bool, uri: Option<String>) -> Result<()> {
+pub async fn exec(port: u16, verbose: bool, uri: Option<String>, mode: String) -> Result<()> {
     if std::env::var("RUST_LOG").is_err() {
         if verbose {
             std::env::set_var("RUST_LOG", "info,darwinia_shadow");
@@ -19,14 +19,27 @@ pub async fn exec(port: u16, verbose: bool, uri: Option<String>) -> Result<()> {
     let mmr_db = database(uri)?;
     let eth = Arc::new(ethereum_rpc());
 
-    // Start Runner and Api Server
-    let runner = Runner::new(&eth, &mmr_db);
-    let (a, b) = join!(
-        runner.start(),
-        api::serve(port, &mmr_db, &eth),
-    );
-    a?;
-    b?;
+    match mode.as_str() {
+        "all" => {
+            let runner = Runner::new(&eth, &mmr_db);
+            let (a, b) = join!(
+                runner.start(),
+                api::serve(port, &mmr_db, &eth),
+            );
+            a?;
+            b?;
+        },
+        "mmr" => {
+            let runner = Runner::new(&eth, &mmr_db);
+            runner.start().await?;
+        },
+        "web" => {
+            api::serve(port, &mmr_db, &eth).await?;
+        },
+        _ => {
+            return Err(anyhow::anyhow!("Unsupported mode: {}, only can be one of all, mmr and web", mode).into());
+        }
+    }
 
     Ok(())
 }

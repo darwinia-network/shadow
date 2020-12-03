@@ -30,8 +30,8 @@ pub async fn serve(port: u16, mmr_db: &mmr::Database, eth: &Arc<EthereumRPC>) ->
             .service(web::resource("/version").to(root::version))
             .service(web::resource("/ethereum/count").route(web::get().to(ethereum::count)))
             .service(
-                web::resource("/ethereum/mmr_root/{block}")
-                    .route(web::get().to(ethereum::mmr_root)),
+                web::resource("/ethereum/parent_mmr_root/{block}")
+                    .route(web::get().to(ethereum::parent_mmr_root)),
             )
             .service(
                 web::resource("/ethereum/mmr_leaf/{block}")

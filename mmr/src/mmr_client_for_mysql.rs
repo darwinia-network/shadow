@@ -32,6 +32,10 @@ impl MmrClientTrait for MmrClientForMysql {
         let position = mmr.push(elem)?;
         let root = H256::hex(&mmr.get_root()?);
         mmr.commit()?;
+        if !batch.is_empty() {
+            let sql = format!("INSERT INTO mmr (position, hash, leaf) VALUES {}", batch.join(","));
+            tx.query_drop(sql)?;
+        }
 
         // update its mmr root and leaf_index
         // leaf index

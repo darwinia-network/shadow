@@ -14,7 +14,7 @@ pub trait MmrClientTrait {
     /// delete from leaf_index, include the leaf_index
     fn trim_from(&self, leaf_index: u64) -> Result<()>;
 
-    fn count(&self) -> Result<u64> {
+    fn get_leaf_count(&self) -> Result<u64> {
         let count = match self.get_last_leaf_index()? {
             None => 0,
             Some(last_leaf_index) => {
@@ -31,7 +31,7 @@ pub trait MmrClientTrait {
     fn import_from_geth(&mut self, geth_dir: PathBuf, til_block: u64) -> Result<()> {
         let start = Instant::now();
 
-        let from = self.count()? as usize;
+        let from = self.get_leaf_count()? as usize;
         if from >= til_block as usize {
             return Err(anyhow::anyhow!("The to position of mmr is {}, can not import mmr from {}, from must be less than to",
                 til_block, from

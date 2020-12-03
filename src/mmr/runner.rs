@@ -37,16 +37,10 @@ impl Runner {
                     panic!("rpc request is unreachable");
                 }
             }
-
-
         }
 
         // Leaf index to push into mmr store
-        let mut ptr: u64 =
-            match client.get_last_leaf_index()? {
-                Some(last_leaf_index) => last_leaf_index + 1,
-                None => 0
-            };
+        let mut ptr: u64 = client.get_leaf_count()?;
 
         // Using a cache rpc block number to optimize and reduce rpc call.
         let mut last_rpc_block_number = self.eth.block_number().await?;

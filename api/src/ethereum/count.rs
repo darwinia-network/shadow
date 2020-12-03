@@ -22,5 +22,5 @@ pub async fn handle(app_data: Data<AppData>) -> impl Responder {
 
 fn count(mmr_db: &Database) -> Result<String> {
     let client = build_client(mmr_db)?;
-    Ok(format!("{}", client.count()?))
+    Ok(format!("{}", client.get_leaf_count()?))
 }

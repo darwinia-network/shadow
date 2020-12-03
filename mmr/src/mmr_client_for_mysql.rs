@@ -26,7 +26,7 @@ impl MmrClientTrait for MmrClientForMysql {
         let mut tx = conn.start_transaction(TxOpts::default())?;
 
         // push elem
-        let leaf_count = self.count()?;
+        let leaf_count = self.get_leaf_count()?;
         let mut batch: Vec<(Position, Hash, IsLeaf)> = vec![];
         let store = MysqlStore::new(self.db.clone(), &mut tx, &mut batch);
         let mut mmr = MMR::<[u8; 32], MergeHash, _>::new(self.get_mmr_size()?, store);
@@ -61,7 +61,7 @@ impl MmrClientTrait for MmrClientForMysql {
         let mut tx = conn.start_transaction(TxOpts::default())?;
 
         // push elems to mmr
-        let leaf_count = self.count()?;
+        let leaf_count = self.get_leaf_count()?;
         let mut batch: Vec<(Position, Hash, IsLeaf)> = vec![];
         let store = MysqlStore::new(self.db.clone(), &mut tx, &mut batch);
         let mut mmr = MMR::<[u8; 32], MergeHash, _>::new(self.get_mmr_size()?, store);

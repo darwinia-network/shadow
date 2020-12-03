@@ -9,7 +9,7 @@ pub fn exec(uri: Option<String>) -> Result<()> {
 
     println!(
         "Current leaf count: {}",
-        client.count()?
+        client.get_leaf_count()?
     );
 
     Ok(())

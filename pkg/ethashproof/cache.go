@@ -4,13 +4,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-    "log"
 	"os"
 	"os/user"
 	"path/filepath"
 
 	"github.com/darwinia-network/shadow/pkg/ethashproof/mtree"
 	"github.com/darwinia-network/shadow/pkg/ethashproof/ethash"
+	"github.com/darwinia-network/shadow/pkg/log"
 )
 
 const CACHE_LEVEL uint64 = 15
@@ -43,9 +43,7 @@ func (self *DatasetMerkleTreeCache) Print() {
 
 func getHomeDir() string {
 	usr, err := user.Current()
-	if err != nil {
-        log.Fatal(err)
-	}
+    log.Assert(err)
 	return usr.HomeDir
 }
 

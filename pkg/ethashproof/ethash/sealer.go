@@ -33,7 +33,7 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/consensus"
 	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/log"
+	"github.com/darwinia-network/shadow/pkg/log"
 )
 
 const (
@@ -56,7 +56,7 @@ func (ethash *Ethash) Seal(chain consensus.ChainReader, block *types.Block, resu
 		select {
 		case results <- block.WithSeal(header):
 		default:
-			log.Warn("Sealing result is not read by miner", "mode", "fake", "sealhash", ethash.SealHash(block.Header()))
+			log.Warn("Sealing result is not read by miner mode=fake sealhash=%v", ethash.SealHash(block.Header()))
 		}
 		return nil
 	}
@@ -111,14 +111,14 @@ func (ethash *Ethash) Seal(chain consensus.ChainReader, block *types.Block, resu
 			select {
 			case results <- result:
 			default:
-				log.Warn("Sealing result is not read by miner", "mode", "local", "sealhash", ethash.SealHash(block.Header()))
+				log.Warn("Sealing result is not read by miner mode=local, sealhash=%v", ethash.SealHash(block.Header()))
 			}
 			close(abort)
 		case <-ethash.update:
 			// Thread count was changed on user request, restart
 			close(abort)
 			if err := ethash.Seal(chain, block, results, stop); err != nil {
-				log.Error("Failed to restart sealing after update", "err", err)
+				log.Error("Failed to restart sealing after update err %v", err)
 			}
 		}
 		// Wait for all miners to terminate and return the block
@@ -143,14 +143,13 @@ func (ethash *Ethash) mine(block *types.Block, id int, seed uint64, abort chan s
 		attempts = int64(0)
 		nonce    = seed
 	)
-	logger := log.New("miner", id)
-	logger.Trace("Started ethash search for new nonces", "seed", seed)
+	log.Trace("Started ethash search for new nonces seed %v", seed)
 search:
 	for {
 		select {
 		case <-abort:
 			// Mining terminated, update stats and abort
-			logger.Trace("Ethash nonce search aborted", "attempts", nonce-seed)
+			log.Trace("Ethash nonce search aborted, attempts %v", nonce-seed)
 			ethash.hashrate.Mark(attempts)
 			break search
 
@@ -172,9 +171,9 @@ search:
 				// Seal and return a block (if still needed)
 				select {
 				case found <- block.WithSeal(header):
-					logger.Trace("Ethash nonce found and reported", "attempts", nonce-seed, "nonce", nonce)
+					log.Trace("Ethash nonce found and reported, attempts = %v nonce=%v", nonce-seed, nonce)
 				case <-abort:
-					logger.Trace("Ethash nonce found but discarded", "attempts", nonce-seed, "nonce", nonce)
+					log.Trace("Ethash nonce found but discarded, attempts=%v, nonce=%v", nonce-seed, nonce)
 				}
 				break search
 			}
@@ -222,9 +221,8 @@ func (ethash *Ethash) remote(notify []string, noverify bool) {
 			go func(req *http.Request, url string) {
 				res, err := notifyClient.Do(req)
 				if err != nil {
-					log.Warn("Failed to notify remote miner", "err", err)
+					log.Warn("Failed to notify remote miner, err %v", err)
 				} else {
-					log.Trace("Notified remote miner", "miner", url, "hash", log.Lazy{Fn: func() common.Hash { return common.HexToHash(work[0]) }}, "target", work[2])
 					res.Body.Close()
 				}
 			}(notifyReqs[i], url)
@@ -254,13 +252,13 @@ func (ethash *Ethash) remote(notify []string, noverify bool) {
 	// any other error, like no pending work or stale mining result).
 	submitWork := func(nonce types.BlockNonce, mixDigest common.Hash, sealhash common.Hash) bool {
 		if currentBlock == nil {
-			log.Error("Pending work without block", "sealhash", sealhash)
+			log.Error("Pending work without block, sealhash %v", sealhash)
 			return false
 		}
 		// Make sure the work submitted is present
 		block := works[sealhash]
 		if block == nil {
-			log.Warn("Work submitted but none pending", "sealhash", sealhash, "curnumber", currentBlock.NumberU64())
+			log.Warn("Work submitted but none pending, sealhash %v, curnumber %v", sealhash, currentBlock.NumberU64())
 			return false
 		}
 		// Verify the correctness of submitted result.
@@ -271,7 +269,7 @@ func (ethash *Ethash) remote(notify []string, noverify bool) {
 		start := time.Now()
 		if !noverify {
 			if err := ethash.verifySeal(nil, header, true); err != nil {
-				log.Warn("Invalid proof-of-work submitted", "sealhash", sealhash, "elapsed", time.Since(start), "err", err)
+				log.Warn("Invalid proof-of-work submitted, sealhash %v elapsed %v err %v", sealhash, time.Since(start), err)
 				return false
 			}
 		}
@@ -280,7 +278,7 @@ func (ethash *Ethash) remote(notify []string, noverify bool) {
 			log.Warn("Ethash result channel is empty, submitted mining result is rejected")
 			return false
 		}
-		log.Trace("Verified correct proof-of-work", "sealhash", sealhash, "elapsed", time.Since(start))
+		log.Trace("Verified correct proof-of-work, sealhash %v, elapsed %v", sealhash, time.Since(start))
 
 		// Solutions seems to be valid, return to the miner and notify acceptance.
 		solution := block.WithSeal(header)
@@ -289,15 +287,15 @@ func (ethash *Ethash) remote(notify []string, noverify bool) {
 		if solution.NumberU64()+staleThreshold > currentBlock.NumberU64() {
 			select {
 			case results <- solution:
-				log.Debug("Work submitted is acceptable", "number", solution.NumberU64(), "sealhash", sealhash, "hash", solution.Hash())
+				log.Trace("Work submitted is acceptable, number %v sealhash %v hash %v", solution.NumberU64(), sealhash, solution.Hash())
 				return true
 			default:
-				log.Warn("Sealing result is not read by miner", "mode", "remote", "sealhash", sealhash)
+				log.Warn("Sealing result is not read by miner, mode=remote, sealhash %v", sealhash)
 				return false
 			}
 		}
 		// The submitted block is too old to accept, drop it.
-		log.Warn("Work submitted is too old", "number", solution.NumberU64(), "sealhash", sealhash, "hash", solution.Hash())
+		log.Warn("Work submitted is too old, number %v sealhash %v hash %v", solution.NumberU64(), sealhash, solution.Hash())
 		return false
 	}
 

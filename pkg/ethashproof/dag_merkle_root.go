@@ -8,6 +8,7 @@ import (
 
 	"github.com/darwinia-network/shadow/pkg/ethashproof/ethash"
 	"github.com/darwinia-network/shadow/pkg/ethashproof/mtree"
+	"github.com/darwinia-network/shadow/pkg/log"
 )
 
 func processDuringRead(f *os.File, startIn128Res int, fullSizeIn128Res uint32, mt *mtree.DagTree) error {
@@ -48,10 +49,10 @@ func processDuringRead(f *os.File, startIn128Res int, fullSizeIn128Res uint32, m
 // 4. Return merkle root
 func CalculateDatasetMerkleRoot(epoch uint64, saveCache bool) (mtree.Hash, error) {
 	blockno := epoch * 30000
-	fmt.Printf("Make the dag\n")
+    log.Info("Make the dag epoch %v", epoch)
 	ethash.MakeDAG(blockno, ethash.DefaultDir)
 
-	fmt.Printf("Init the tree\n")
+	log.Info("Init the tree")
 	dt := mtree.NewSHA256DagTree()
 
 	fullSize := ethash.DAGSize(blockno)
@@ -72,7 +73,7 @@ func CalculateDatasetMerkleRoot(epoch uint64, saveCache bool) (mtree.Hash, error
 	}
 
 	path := ethash.PathToDAG(uint64(blockno/30000), ethash.DefaultDir)
-	fmt.Printf("Calculating the proofs...\n")
+	log.Info("Calculating the proofs...")
 	f, err := os.Open(path)
 	if err != nil {
 		return mtree.Hash{}, err

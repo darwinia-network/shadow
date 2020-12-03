@@ -3,17 +3,21 @@ use cmmr::{MMRStore, Result as MMRResult};
 use mysql::*;
 use mysql::prelude::*;
 
+pub type Position = u64;
+pub type Hash = String;
+pub type IsLeaf = bool;
+
 /// Mysql MMR Store
 #[allow(dead_code)]
 pub struct MysqlStore<'a, 't, 'b> {
     /// Connection Pool
     pub db: Pool,
     pub(crate) tx: &'t mut Transaction<'a>,
-    pub batch: &'b mut Vec<String>,
+    pub batch: &'b mut Vec<(Position, Hash, IsLeaf)>,
 }
 
 impl<'a, 't, 'b> MysqlStore<'a, 't, 'b> {
-    pub fn new(db: Pool, tx: &'t mut Transaction<'a>, batch: &'b mut Vec<String>) -> Self {
+    pub fn new(db: Pool, tx: &'t mut Transaction<'a>, batch: &'b mut Vec<(Position, Hash, IsLeaf)>) -> Self {
         MysqlStore { db, tx, batch }
     }
 }
@@ -36,10 +40,14 @@ impl MMRStore<[u8; 32]> for MysqlStore<'_, '_, '_> {
     }
 
     fn append(&mut self, pos: u64, elems: Vec<[u8; 32]>) -> MMRResult<()> {
-        let pos = pos as usize;
         for (i, elem) in elems.into_iter().enumerate() {
-            let value = format!("({}, '{}', {})", pos + i, H256::hex(&elem), i == 0);
-            self.batch.push(value);
+            self.batch.push(
+                (
+                    pos + i as u64,
+                    H256::hex(&elem),
+                    i == 0
+                )
+            );
         }
         Ok(())
     }

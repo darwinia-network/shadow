@@ -28,6 +28,9 @@ pub enum Error {
 
     #[error("{0}")]
     Shadow(String),
+
+    #[error(transparent)]
+    AnyhowError(#[from] anyhow::Error),
 }
 
 /// Sup Result

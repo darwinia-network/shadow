@@ -1,5 +1,5 @@
 //! MMR Runner
-use mmr::{H256, Database, build_client};
+use mmr::{H256, Database, build_client, MmrClientTrait};
 use crate::result::Result;
 use primitives::rpc::{RPC, EthereumRPC};
 use std::time::Duration;
@@ -20,34 +20,21 @@ impl Runner {
     /// Start the runner
     pub async fn start(&self) -> Result<()> {
         let client = build_client(&self.database)?;
-        let mmr_size = client.get_mmr_size().unwrap();
 
-        // MMR variables
-        info!("last mmr size {}", mmr_size);
-
-        // Check if the correct ethereum node is connected
-        if mmr_size > 0 {
-            if let Some(valid_hash) = client.get_elem(0)? {
-                let hash_from_ethereum = self.eth.get_header_by_number(0).await?.hash;
-
-                if let Some(hash) = hash_from_ethereum {
-                    let rpc_hash = H256::hex(&hash);
-                    assert_eq!(valid_hash, rpc_hash, "RPC network should be {} but {}", Runner::network_name(&valid_hash), Runner::network_name(&rpc_hash));
-                } else {
-                    panic!("rpc request is unreachable");
-                }
-            }
-        }
+        // check network
+        let network = self.check_network(client.as_ref()).await?;
+        let delay_blocks = if &network == "Mainnet" { 12u64 } else { 100u64 };
 
         // Leaf index to push into mmr store
         let mut ptr: u64 = client.get_leaf_count()?;
+        info!("Start from leaf index: {}", ptr);
 
         // Using a cache rpc block number to optimize and reduce rpc call.
         let mut last_rpc_block_number = self.eth.block_number().await?;
 
         loop {
             // checking finalization, run too fast
-            if last_rpc_block_number < (ptr as u64 + 12) {
+            if last_rpc_block_number < (ptr + delay_blocks) {
                 trace!("Pause 10s due to finalization checking, prepare to push block {}, last block number from rpc is {}", ptr, last_rpc_block_number);
                 tokio::time::delay_for(Duration::from_millis(10)).await;
                 last_rpc_block_number = self.eth.block_number().await?;
@@ -77,6 +64,21 @@ impl Runner {
                 tokio::time::delay_for(Duration::from_millis(10)).await;
             }
         }
+    }
+
+    async fn check_network(&self, client: &dyn MmrClientTrait) -> Result<String> {
+        let hash_from_ethereum = self.eth.get_header_by_number(0).await?.hash.unwrap();
+        let hash_of_rpc = H256::hex(&hash_from_ethereum);
+        let network_of_rpc = Runner::network_name(&hash_of_rpc).to_string();
+
+        if let Some(first_leaf) = client.get_leaf(0)? {
+            if first_leaf != hash_of_rpc {
+                let network_of_mmr = Runner::network_name(&first_leaf);
+                return Err(anyhow::anyhow!("RPC network should be {} but {}", network_of_mmr, network_of_rpc).into());
+            }
+        };
+
+        Ok(network_of_rpc)
     }
 
     /// translate from hash to network name

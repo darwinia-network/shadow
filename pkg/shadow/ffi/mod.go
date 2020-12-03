@@ -61,7 +61,7 @@ func Import(datadir string, from int, to int) *C.char {
 			log.Error("Import hash of header %d failed", n)
 			return C.CString(strings.Join(hashes, ","))
 		}
-		if n&1000 == 0 {
+		if n % 1000 == 0 {
 			log.Info("Imported hash %d/%d", n, to)
 		}
 		hashes = append(hashes, header.Hash().String())

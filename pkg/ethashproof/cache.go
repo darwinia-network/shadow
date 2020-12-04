@@ -42,9 +42,9 @@ func (self *DatasetMerkleTreeCache) Print() {
 }
 
 func getHomeDir() string {
-	usr, err := user.Current()
+    usr, err := user.Current()
     log.Assert(err)
-	return usr.HomeDir
+    return usr.HomeDir
 }
 
 func defaultDir() string {

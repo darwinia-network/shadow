@@ -3,6 +3,7 @@ use tokio::join;
 use std::sync::Arc;
 use primitives::rpc::EthereumRPC;
 use std::env;
+use crate::epoch::EpochRunner;
 
 /// Run shadow service
 pub async fn exec(port: u16, verbose: bool, uri: Option<String>, mode: String) -> Result<()> {
@@ -22,9 +23,11 @@ pub async fn exec(port: u16, verbose: bool, uri: Option<String>, mode: String) -
     match mode.as_str() {
         "all" => {
             let runner = Runner::new(&eth, &mmr_db);
-            let (a, b) = join!(
+            let mut epoch_runner = EpochRunner::new(&eth);
+            let (a, b, _) = join!(
                 runner.start(),
                 api::serve(port, &mmr_db, &eth),
+                epoch_runner.start(),
             );
             a?;
             b?;
@@ -33,11 +36,15 @@ pub async fn exec(port: u16, verbose: bool, uri: Option<String>, mode: String) -
             let runner = Runner::new(&eth, &mmr_db);
             runner.start().await?;
         },
-        "web" => {
+        "api" => {
             api::serve(port, &mmr_db, &eth).await?;
         },
+        "epoch" => {
+            let mut epoch_runner = EpochRunner::new(&eth);
+            epoch_runner.start().await;
+        },
         _ => {
-            return Err(anyhow::anyhow!("Unsupported mode: {}, only can be one of all, mmr and web", mode).into());
+            return Err(anyhow::anyhow!("Unsupported mode: {}, only can be one of all, mmr, api, epoch", mode).into());
         }
     }
 

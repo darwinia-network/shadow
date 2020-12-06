@@ -23,7 +23,7 @@ actix-rt = "1.0"
 dirs = "2.0.2"
 log = "0.4.0"
 env_logger = "0.7.1"
-tokio = { version = "0.2.22", features = ["macros"] }
+tokio = { version = "0.2.22", features = ["macros", "fs"] }
 reqwest = { version = "0.10", features = ["json"] }
 structopt = "0.3.17"
 rocksdb = "0.15.0"

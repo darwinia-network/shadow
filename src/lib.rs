@@ -78,3 +78,4 @@ pub(crate) mod conf;
 pub mod cmd;
 pub mod mmr;
 pub mod result;
+mod epoch;

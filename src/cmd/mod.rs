@@ -29,7 +29,7 @@ enum Opt {
         /// Verbose mode
         #[structopt(short, long)]
         verbose: bool,
-        /// Run mode, all, mmr, web
+        /// Run mode, all, mmr, api, epoch
         #[structopt(short, long, default_value = "all")]
         mode: String,
     },

@@ -1,5 +1,5 @@
 use crate::{mmr::database, mmr::Runner, result::Result};
-use tokio::join;
+use tokio::select;
 use std::sync::Arc;
 use primitives::rpc::EthereumRPC;
 use std::env;
@@ -24,17 +24,21 @@ pub async fn exec(port: u16, verbose: bool, uri: Option<String>, mode: String) -
         "all" => {
             let runner = Runner::new(&eth, &mmr_db);
             let mut epoch_runner = EpochRunner::new(&eth);
-            let (a, b, _) = join!(
-                runner.start(),
-                api::serve(port, &mmr_db, &eth),
-                epoch_runner.start(),
-            );
-            a?;
-            b?;
+            select! {
+                _ = runner.start() => {
+                    info!("Mmr Runner completed");
+                },
+                r = api::serve(port, &mmr_db, &eth) => {
+                    error!("Api service completed: {:?}", r);
+                },
+                _ = epoch_runner.start() => {
+                    info!("Epoch Runner completed");
+                },
+            };
         },
         "mmr" => {
             let runner = Runner::new(&eth, &mmr_db);
-            runner.start().await?;
+            runner.start().await;
         },
         "api" => {
             api::serve(port, &mmr_db, &eth).await?;

@@ -18,7 +18,15 @@ impl Runner {
     }
 
     /// Start the runner
-    pub async fn start(&self) -> Result<()> {
+    pub async fn start(&self) {
+        while let Err(err) = self.run().await {
+            error!("{:?}", err);
+            tokio::time::delay_for(Duration::from_millis(10)).await;
+        }
+    }
+
+    /// Run
+    pub async fn run(&self) -> Result<()> {
         let client = build_client(&self.database)?;
 
         // check network

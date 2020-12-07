@@ -41,7 +41,7 @@ fn geth(path: String, to: i32) -> Result<(), Error> {
 
     let shared = ShadowShared::new(None);
 
-    let mmr_size = shared.db.iterator(IteratorMode::Start).count() as u64;
+    let mut mmr_size = shared.db.iterator(IteratorMode::Start).count() as u64;
     let from = if mmr_size == 0 {
         0
     } else {
@@ -58,32 +58,32 @@ fn geth(path: String, to: i32) -> Result<(), Error> {
 
     // Get hashes
     info!("Importing ethereum headers from {}...", &path);
-    let hashes = ethereum::import(&path, from as i32, to);
-    let hashes_vec = hashes.split(',').collect::<Vec<&str>>();
-
-    // Check empty
-    info!("Imported {} hashes from ethereum node", hashes_vec.len());
-    if hashes_vec[0].is_empty() {
-        error!("Importing hashes from {} failed", path);
-        return Ok(());
-    }
-
-    // Build mmr
     info!("mmr_size: {}, from: {}", mmr_size, from);
-    let mut mmr = MMR::<_, MergeHash, _>::new(mmr_size, &shared.store);
-
-    let mut ptr = from;
-    for hash in &hashes_vec {
-        if ptr % 1000 == 0 {
-            trace!("Start to push hash into mmr for block {:?}/{}", ptr as usize, to);
+    const BATCH: i32 = 1000;
+    let ret = ethereum::import(&path, from as i32, to, BATCH, |hashes| {
+        let hashes_vec = hashes.split(',').collect::<Vec<&str>>();
+        let veclen = hashes_vec.len();
+        info!("push mmr size{}, vec {}", mmr_size, veclen);
+        let mut mmr = MMR::<_, MergeHash, _>::new(mmr_size, &shared.store);
+        for hash in &hashes_vec {
+            if let Err(e) = mmr.push(H256::from(hash)) {
+                error!("push mmr failed, hash {} exception {}", hash, e);
+                return false
+            }
         }
-
-        ptr += 1;
-        mmr.push(H256::from(hash))?;
+        mmr_size = mmr.mmr_size();
+        match mmr.commit() {
+            Err(e) => {
+                error!("commit mmr failed exception{}", e);
+                false
+            },
+            _ => true,
+        }
+    });
+    info!("done");
+    if ret {
+        Ok(())
+    } else {
+        Err(Error::Primitive(String::from("import geth failed")))
     }
-
-    // Commit mmr
-    mmr.commit()?;
-    info!("done.");
-    Ok(())
 }

@@ -3,6 +3,7 @@ package eth
 import (
 	"path"
 
+	"github.com/darwinia-network/shadow/pkg/log"
 	"github.com/darwinia-network/shadow/pkg/shadow/util"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/rawdb"
@@ -15,7 +16,7 @@ type Geth struct {
 }
 
 func NewGeth(datadir string) (Geth, error) {
-	if util.IsEmpty(datadir) {
+	if log.IsEmpty(datadir) {
 		return Geth{}, nil
 	}
 
@@ -50,7 +51,7 @@ func (g *Geth) Header(block interface{}) *types.Header {
 			rawdb.ReadCanonicalHash(g.db, b),
 			b,
 		)
-		if util.IsEmpty(block) {
+		if log.IsEmpty(block) {
 			return &types.Header{}
 		}
 		return block.Header()

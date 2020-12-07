@@ -36,7 +36,7 @@ fn backup(path: String) -> Result<(), Error> {
 /// Import headers from geth
 fn geth(path: String, to: i32) -> Result<(), Error> {
     std::env::set_var("RUST_LOG", "info,darwinia_shadow");
-    std::env::set_var("GO_LOG", "ALL");
+    std::env::set_var("GO_LOG", "info");
     env_logger::init();
 
     let shared = ShadowShared::new(None);

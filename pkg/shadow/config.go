@@ -3,7 +3,7 @@ package shadow
 import (
 	"os"
 	"path/filepath"
-	"github.com/darwinia-network/shadow/pkg/shadow/util"
+	"github.com/darwinia-network/shadow/pkg/log"
 )
 
 type RawConfig struct {
@@ -29,7 +29,7 @@ func (c *Config) Load() error {
 // Get darwinia config root directory
 func RootDir() (string, error) {
 	home, err := os.UserHomeDir()
-	util.Assert(err)
+	log.Assert(err)
 
 	// Create root dir if not exist
 	root := filepath.Join(home, ".darwinia")

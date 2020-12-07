@@ -12,7 +12,7 @@ import (
 	"github.com/darwinia-network/shadow/pkg/shadow/util"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/darwinia-network/shadow/pkg/shadow/log"
+	"github.com/darwinia-network/shadow/pkg/log"
 )
 
 // Constants
@@ -65,7 +65,7 @@ func (o *ProofOutput) Format() []DoubleNodeWithMerkleProof {
 
 func Epoch(block uint64, config *shadow.Config) (*ethashproof.DatasetMerkleTreeCache, error) {
 	epoch := block / 30000
-	cache, err := ethashproof.LoadCache(int(epoch))
+	cache, err := ethashproof.LoadCache(ethashproof.DefaultDir, int(epoch))
 	if err != nil {
 		err = config.CreateLock(shadow.PROOF_LOCK, epoch)
 		if err != nil {
@@ -79,7 +79,7 @@ func Epoch(block uint64, config *shadow.Config) (*ethashproof.DatasetMerkleTreeC
 			return nil, errors.New("Calculate merkle root failed")
 		}
 
-		cache, err = ethashproof.LoadCache(int(epoch))
+		cache, err = ethashproof.LoadCache(ethashproof.DefaultDir, int(epoch))
 		if err != nil {
 			log.Error("epoch load cache failed error %v, epoch %v", err, epoch)
 			return nil, errors.New("Get ethash proof failed again, please retry")

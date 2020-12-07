@@ -13,6 +13,7 @@ import (
 	"github.com/ethereum/go-ethereum/consensus/ethash"
 	"github.com/ethereum/go-ethereum/crypto"
 	"golang.org/x/crypto/sha3"
+	"github.com/darwinia-network/shadow/pkg/log"
 )
 
 var (
@@ -99,8 +100,8 @@ func hashimotoIndices(hash []byte, nonce uint64, size uint64, lookup func(index 
 		binary.LittleEndian.PutUint32(digest[i*4:], val)
 	}
 	ethashResult := crypto.Keccak256(append(seed, digest...))
-	fmt.Printf("digest: %s\n", hexutil.Encode(digest))
-	fmt.Printf("ethash result: %s\n", hexutil.Encode(ethashResult))
+	log.Info("digest: %s", hexutil.Encode(digest))
+	log.Info("ethash result: %s", hexutil.Encode(ethashResult))
 
 	return result
 }

@@ -34,21 +34,50 @@ extern "C" {
     fn Proof(api: GoString, number: libc::c_uint) -> *const c_char;
     fn Receipt(api: GoString, tx: GoString) -> GoTuple;
     fn Epoch(input: libc::c_uint) -> bool;
+    fn Free(pointer: *const c_char);
+}
+
+struct WrapperCString {
+    data: *const c_char,
+}
+
+impl WrapperCString {
+    pub fn new(data: *const c_char) -> WrapperCString {
+        WrapperCString {
+            data,
+        }
+    }
+    fn to_string(&self) -> String {
+        unsafe {
+            CStr::from_ptr(self.data)
+                .to_string_lossy()
+                .to_string()
+        }
+    }
+}
+
+impl Drop for WrapperCString {
+    fn drop(&mut self) {
+        unsafe {
+            info!("free data");
+            Free(self.data);
+        }
+    }
 }
 
 /// Proof eth header by number
 pub fn proof(api: &str, block: u64) -> String {
     let c_api = CString::new(api).expect("CString::new failed");
     unsafe {
-        CStr::from_ptr(Proof(
-            GoString {
-                a: c_api.as_ptr(),
-                b: c_api.as_bytes().len() as i64,
-            },
-            block as u32,
-        ))
-        .to_string_lossy()
-        .to_string()
+        WrapperCString::new(
+            Proof(
+                GoString {
+                    a: c_api.as_ptr(),
+                    b: c_api.as_bytes().len() as i64,
+                },
+                block as u32,
+                )
+            ).to_string()
     }
 }
 
@@ -74,11 +103,9 @@ pub fn receipt(api: &str, tx: &str) -> (String, String, String) {
         );
 
         (
-            CStr::from_ptr(receipt.index).to_string_lossy().to_string(),
-            CStr::from_ptr(receipt.proof).to_string_lossy().to_string(),
-            CStr::from_ptr(receipt.header_hash)
-                .to_string_lossy()
-                .to_string(),
+            WrapperCString::new(receipt.index).to_string(),
+            WrapperCString::new(receipt.proof).to_string(),
+            WrapperCString::new(receipt.header_hash).to_string(),
         )
     }
 }

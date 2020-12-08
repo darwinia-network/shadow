@@ -61,12 +61,12 @@ func Receipt(api string, tx string) (*C.char, *C.char, *C.char) {
 //export Import
 func Import(datadir string, from int, to int, batch int, callback unsafe.Pointer, arg unsafe.Pointer) bool {
     f := C.get_header(callback)
-    geth, _ := eth.NewGeth(datadir)
+    geth, err := eth.NewGeth(datadir)
     hashes := make([]string, 0)
     for n := from; n < to; n++ {
         header := geth.Header(uint64(n))
         if header == nil || (header.Time == 0 && n != 0) {
-            log.Error("Import hash of header %d failed", n)
+            log.Error("Import hash of header %d failed err %v", n, err)
             return false
         }
         hashes = append(hashes, header.Hash().String())
@@ -88,6 +88,11 @@ func Import(datadir string, from int, to int, batch int, callback unsafe.Pointer
         return C.get_header_wrapper(f, hashstring, arg) != 0
     }
     return true
+}
+
+//export Free
+func Free(pointer unsafe.Pointer) {
+    C.free(pointer);
 }
 
 func main() {}

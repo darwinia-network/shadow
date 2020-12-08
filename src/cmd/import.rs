@@ -1,8 +1,8 @@
 use crate::{
     api::ethereum,
-    mmr::{helper, MergeHash, H256},
+    mmr::{helper, MergeHash, H256, BatchStore},
     result::Error,
-    ShadowShared,
+    ShadowUnsafe,
 };
 use cmmr::MMR;
 use rocksdb::{
@@ -39,9 +39,9 @@ fn geth(path: String, to: i32) -> Result<(), Error> {
     std::env::set_var("GO_LOG", "info");
     env_logger::init();
 
-    let shared = ShadowShared::new(None);
+    let shadow_unsafe= ShadowUnsafe::new(None);
 
-    let mut mmr_size = shared.db.iterator(IteratorMode::Start).count() as u64;
+    let mut mmr_size = shadow_unsafe.db.iterator(IteratorMode::Start).count() as u64;
     let from = if mmr_size == 0 {
         0
     } else {
@@ -59,12 +59,13 @@ fn geth(path: String, to: i32) -> Result<(), Error> {
     // Get hashes
     info!("Importing ethereum headers from {}...", &path);
     info!("mmr_size: {}, from: {}", mmr_size, from);
-    const BATCH: i32 = 1000;
+    const BATCH: i32 = 10240;
     let ret = ethereum::import(&path, from as i32, to, BATCH, |hashes| {
         let hashes_vec = hashes.split(',').collect::<Vec<&str>>();
         let veclen = hashes_vec.len();
-        info!("push mmr size{}, vec {}", mmr_size, veclen);
-        let mut mmr = MMR::<_, MergeHash, _>::new(mmr_size, &shared.store);
+        trace!("push mmr size-start {}, batch-length {}", mmr_size, veclen);
+        let bstore = BatchStore::with(shadow_unsafe.db.clone());
+        let mut mmr = MMR::<_, MergeHash, _>::new(mmr_size, &bstore);
         for hash in &hashes_vec {
             if let Err(e) = mmr.push(H256::from(hash)) {
                 error!("push mmr failed, hash {} exception {}", hash, e);
@@ -72,12 +73,19 @@ fn geth(path: String, to: i32) -> Result<(), Error> {
             }
         }
         mmr_size = mmr.mmr_size();
+
+        bstore.start_batch();
         match mmr.commit() {
             Err(e) => {
                 error!("commit mmr failed exception{}", e);
                 false
             },
-            _ => true,
+            _ => {
+                if let Err(_e) = bstore.commit_batch() {
+                    return false;
+                }
+                true
+            }
         }
     });
     info!("done");

@@ -1,5 +1,6 @@
 package main
 
+//#include <stdlib.h>
 //typedef int (*get_header) (char*, void*);
 //static int get_header_wrapper(get_header f, char* x, void* ctx) {
 //    return f(x, ctx);
@@ -72,7 +73,9 @@ func Import(datadir string, from int, to int, batch int, callback unsafe.Pointer
 
         if (n - from + 1) % batch == 0 {
             log.Info("Imported hash %d/%d", n, to)
-            ret := C.get_header_wrapper(f, C.CString(strings.Join(hashes, ",")), arg)
+            hashstring := C.CString(strings.Join(hashes, ","));
+            ret := C.get_header_wrapper(f, hashstring, arg)
+            C.free(unsafe.Pointer(hashstring))
             if ret == 0 {
                 return false
             }
@@ -80,7 +83,9 @@ func Import(datadir string, from int, to int, batch int, callback unsafe.Pointer
         }
     }
     if len(hashes) > 0 {
-        return C.get_header_wrapper(f, C.CString(strings.Join(hashes, ",")), arg) != 0
+        hashstring := C.CString(strings.Join(hashes, ","));
+        defer C.free(unsafe.Pointer(hashstring))
+        return C.get_header_wrapper(f, hashstring, arg) != 0
     }
     return true
 }

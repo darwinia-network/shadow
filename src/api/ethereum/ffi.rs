@@ -59,7 +59,6 @@ impl WrapperCString {
 impl Drop for WrapperCString {
     fn drop(&mut self) {
         unsafe {
-            info!("free data");
             Free(self.data);
         }
     }

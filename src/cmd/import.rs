@@ -7,7 +7,6 @@ use crate::{
 use cmmr::MMR;
 use rocksdb::{
     backup::{BackupEngine, BackupEngineOptions, RestoreOptions},
-    IteratorMode,
 };
 use std::{env, fs::File};
 
@@ -41,7 +40,7 @@ fn geth(path: String, to: i32) -> Result<(), Error> {
 
     let shadow_unsafe= ShadowUnsafe::new(None);
 
-    let mut mmr_size = shadow_unsafe.db.iterator(IteratorMode::Start).count() as u64;
+    let mut mmr_size = helper::mmr_size_from_store(&shadow_unsafe.db);
     let from = if mmr_size == 0 {
         0
     } else {

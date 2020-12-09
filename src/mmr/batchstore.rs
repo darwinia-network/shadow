@@ -40,7 +40,7 @@ where
 {
     fn get_elem(&self, pos: u64) -> MMRResult<Option<H>> {
         self.db
-            .get(pos.to_le_bytes())
+            .get(pos.to_be_bytes())
             .map_err(|err| {
                 cmmr::Error::StoreError(err.to_string())
             })
@@ -51,7 +51,7 @@ where
 
     fn append(&mut self, pos: u64, elems: Vec<H>) -> MMRResult<()> {
         for (i, elem) in elems.into_iter().enumerate() {
-            self.batch.borrow_mut().put((pos as usize + i).to_le_bytes(), elem);
+            self.batch.borrow_mut().put((pos as usize + i).to_be_bytes(), elem);
         }
         Ok(())
     }

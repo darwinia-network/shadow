@@ -1,7 +1,7 @@
 //! MMR store
-use crate::mmr::hash::H256;
+use crate::mmr::{hash::H256, helper};
 use cmmr::{Error, MMRStore, Result as MMRResult};
-use rocksdb::{IteratorMode, DB};
+use rocksdb::{DB};
 use std::sync::Arc;
 
 /// MMR Store
@@ -24,7 +24,7 @@ where
 {
     fn get_elem(&self, pos: u64) -> MMRResult<Option<H>> {
         self.db
-            .get(pos.to_le_bytes())
+            .get(pos.to_be_bytes())
             .map_err(|err| {
                 cmmr::Error::StoreError(err.to_string())
             })
@@ -35,15 +35,15 @@ where
 
     fn append(&mut self, pos: u64, elems: Vec<H>) -> MMRResult<()> {
         if cfg!(debug_assertions) {
-            let mmr_size = self.db.iterator(IteratorMode::Start).count();
-            if (pos as usize) != mmr_size {
+            let mmr_size = helper::mmr_size_from_store(&self.db);
+            if pos != mmr_size {
                 return Err(Error::InconsistentStore);
             }
         }
 
         // Insert into database
         for (i, elem) in elems.into_iter().enumerate() {
-            if let Err(e) = self.db.put((pos as usize + i).to_le_bytes(), elem) {
+            if let Err(e) = self.db.put((pos as usize + i).to_be_bytes(), elem) {
                 return Err(Error::StoreError(format!(
                     "Insert mmr of pos {} into database failed, {:?}",
                     pos as i64 + i as i64,

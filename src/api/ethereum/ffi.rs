@@ -2,8 +2,8 @@
 use std::{
     ffi::{CStr, CString},
     os::raw::{c_char, c_void},
+    fmt,
 };
-use std::mem;
 
 #[repr(C)]
 struct GoString {
@@ -19,8 +19,8 @@ struct GoTuple {
 }
 
 extern "C" fn geth_handler(x: *const c_char, arg: *mut c_void) -> bool {
-    let receiver: &mut &mut dyn FnMut(&str) -> bool = unsafe { mem::transmute(arg) };
     unsafe {
+        let receiver: &mut &mut dyn FnMut(&str) -> bool =  &mut *(arg as *mut &mut dyn FnMut(&str) -> bool);
         let result = &CStr::from_ptr(x)
               .to_string_lossy()
               .to_string();
@@ -47,11 +47,12 @@ impl WrapperCString {
             data,
         }
     }
-    fn to_string(&self) -> String {
+}
+
+impl fmt::Display for WrapperCString {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         unsafe {
-            CStr::from_ptr(self.data)
-                .to_string_lossy()
-                .to_string()
+            CStr::from_ptr(self.data).to_string_lossy().fmt(f)
         }
     }
 }

@@ -17,7 +17,7 @@ impl BatchStore {
     /// New batchstore with database
     pub fn with(db: Arc<DB>) -> BatchStore {
         BatchStore {
-            db: db,
+            db,
             batch: RefCell::new(WriteBatch::default()),
         }
     }

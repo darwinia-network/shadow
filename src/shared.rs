@@ -90,7 +90,7 @@ impl ShadowUnsafe {
         let path = db_path(&p);
         match DB::open_default(path.to_owned()) {
             Err(e) => {
-                panic!("open db failed! {:?}", e);
+                panic!("open db failed! dir {:?} {:?}", &path, e);
             }
             Ok(rocks) => {
                 let db = Arc::new(rocks);

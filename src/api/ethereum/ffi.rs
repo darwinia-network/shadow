@@ -113,7 +113,8 @@ pub fn receipt(api: &str, tx: &str) -> (String, String, String) {
 pub fn import<F>(path: &str, from: i32, to: i32, batch: i32, mut callback: F) -> bool
     where F: FnMut(&str) -> bool
 {
-    // reason for double indirection is described below
+    // reason for double indirection is that a "Trait Object" is a fat pointer, the size of
+    // which is incompatible with the C pointer *mut void
     let mut cb: &mut dyn FnMut(&str) -> bool = &mut callback;
     let cb = &mut cb;
     let c_path = CString::new(path).expect("CString::new failed");

@@ -63,6 +63,9 @@ func Import(datadir string, from int, to int, batch int, callback unsafe.Pointer
     f := C.get_header(callback)
     geth, err := eth.NewGeth(datadir)
     hashes := make([]string, 0)
+    // the whole import process is split into several batches
+    // each batch we process a number of `batch` blocks which saved in array `hashes`, and deliver it to callback
+    // the hashes should be cleared for next batch
     for n := from; n < to; n++ {
         header := geth.Header(uint64(n))
         if header == nil || (header.Time == 0 && n != 0) {

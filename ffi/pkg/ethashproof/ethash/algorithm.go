@@ -166,7 +166,7 @@ func generateCache(dest []uint32, epoch uint64, seed []byte) {
 			case <-done:
 				return
 			case <-time.After(3 * time.Second):
-				fmt.Printf("Generating ethash verification cache: %d%%, elapsed: %s\n", atomic.LoadUint32(&progress)*100/uint32(rows)/4, common.PrettyDuration(time.Since(start)))
+				fmt.Printf("Generating ethash verification cache: %d%%, elapsed: %s", atomic.LoadUint32(&progress)*100/uint32(rows)/4, common.PrettyDuration(time.Since(start)))
 			}
 		}
 	}()

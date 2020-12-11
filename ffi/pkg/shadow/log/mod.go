@@ -32,7 +32,7 @@ func emit(label string, ctx string) {
 		color.New(color.FgHiBlack).Sprintf("["),
 		t,
 		label,
-		strings.SplitAfter(file, "shadow::")[1],
+    "go::" + strings.SplitAfter(file, "pkg::")[1],
 		color.New(color.FgHiBlack).Sprintf("]"),
 		ctx,
 	))

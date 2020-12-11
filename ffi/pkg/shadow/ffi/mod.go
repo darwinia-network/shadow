@@ -1,10 +1,13 @@
 package main
 
+// #include <stdlib.h>
 import "C"
+
 import (
 	"github.com/darwinia-network/shadow/ffi/pkg/shadow"
 	"github.com/darwinia-network/shadow/ffi/pkg/shadow/eth"
-	"github.com/darwinia-network/shadow/ffi/pkg/shadow/log"
+  "github.com/darwinia-network/shadow/ffi/pkg/shadow/log"
+  "unsafe"
 	"strings"
 )
 
@@ -70,6 +73,11 @@ func Import(datadir string, from int, to int) *C.char {
 		hashes = append(hashes, header.Hash().String())
 	}
 	return C.CString(strings.Join(hashes, ","))
+}
+
+//export Free
+func Free(pointer unsafe.Pointer) {
+    C.free(pointer);
 }
 
 func main() {}

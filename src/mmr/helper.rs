@@ -2,6 +2,7 @@
 use crate::mmr::{MergeHash, Store, H256};
 use cmmr::MMR;
 use std::cmp::Ordering;
+use rocksdb::{DB};
 
 fn log2_floor(mut num: i64) -> i64 {
     let mut res = -1;
@@ -47,3 +48,20 @@ pub fn gen_proof(store: &Store, member: u64, last_leaf: u64) -> Vec<String> {
             .collect::<Vec<String>>(),
     }
 }
+
+// Now we have only mmr data stored in the database. 
+// We should add some prefix when some other data need to be saved.
+/// Read mmr size from db, the key(block number) must be stored as big-endian byte ordering.
+pub fn mmr_size_from_store(db: &DB) -> u64 {
+    let mut iter = db.raw_iterator();
+    iter.seek_to_last();
+    if iter.valid() {
+        if let Some(key) = iter.key() {
+            let mut pos = [0; 8];
+            pos.copy_from_slice(&key);
+            return u64::from_be_bytes(pos) + 1;
+        }
+    }
+    0
+}
+

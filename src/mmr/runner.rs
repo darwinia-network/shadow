@@ -8,7 +8,6 @@ use crate::{
 use cmmr::MMR;
 use cmmr::{MMRStore};
 use primitives::rpc::RPC;
-use rocksdb::IteratorMode;
 use std::{env, thread, time};
 
 /// MMR Runner
@@ -55,8 +54,7 @@ impl Runner {
 
     /// Start the runner
     pub async fn start(&mut self) -> Result<(), Error> {
-        // MMR variables
-        let mut mmr_size = self.as_mut().db.iterator(IteratorMode::Start).count() as u64;
+        let mut mmr_size = helper::mmr_size_from_store(&self.as_ref().db);
         info!("last mmr size {}", mmr_size);
 
         if mmr_size > 0 {

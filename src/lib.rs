@@ -82,3 +82,4 @@ pub mod mmr;
 pub mod result;
 
 pub use shared::ShadowShared;
+pub use shared::ShadowUnsafe;

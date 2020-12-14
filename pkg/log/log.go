@@ -32,14 +32,13 @@ func emit(label string, ctx string) {
 	_, file, _, _ := runtime.Caller(2)
 	file = file[:len(file)-3]
 	file = strings.ReplaceAll(file, "/", "::")
-
 	// prints log
 	l.Println(fmt.Sprintf(
 		"%s%s %v %s%s %s",
 		color.New(color.FgHiBlack).Sprintf("["),
 		t,
 		label,
-		strings.SplitAfter(file, "shadow::")[1],
+		"go::" + strings.SplitAfter(file, "pkg::")[1],
 		color.New(color.FgHiBlack).Sprintf("]"),
 		ctx,
 	))

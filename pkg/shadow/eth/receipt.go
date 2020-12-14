@@ -135,6 +135,8 @@ func BuildProofRecord(api string, r *Receipts) (ProofRecord, string, error) {
 			b, err := GetReceiptRlpEncode(api, hash[1])
 			if err == nil {
 				receiptsMap.Set(hash[0], b)
+			} else {
+				log.Error("get receipt rlp failed error %v", err)
 			}
 		}(hash)
 		wg.Done()

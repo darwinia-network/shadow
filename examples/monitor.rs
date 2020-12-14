@@ -8,6 +8,6 @@ fn main() {
         let hash: [u8; 32] = H256::from_bytes(&v.to_vec());
         let mut pos = [0; 8];
         pos.copy_from_slice(&k);
-        println!("| {} | 0x{} |", usize::from_le_bytes(pos), hex!(&hash));
+        println!("| {} | 0x{} |", usize::from_be_bytes(pos), hex!(&hash));
     }
 }

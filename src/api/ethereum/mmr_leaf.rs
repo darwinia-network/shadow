@@ -54,8 +54,8 @@ pub async fn handle(
     (&shared.store)
         .get_elem(cmmr::leaf_index_to_pos(num))
         .and_then(|elem: Option<[u8; 32]> | {
-            elem.ok_or(
-                cmmr::Error::StoreError(format!("No leaf of index {} found in store", num))
+            elem.ok_or_else(
+                || cmmr::Error::StoreError(format!("No leaf of index {} found in store", num))
             )
         })
         .map(|leaf| format!("0x{}", hex!(&leaf)))

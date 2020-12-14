@@ -1,13 +1,12 @@
 use crate::{
     api::ethereum,
-    mmr::{helper, MergeHash, H256},
+    mmr::{helper, MergeHash, H256, BatchStore},
     result::Error,
-    ShadowShared,
+    ShadowUnsafe,
 };
 use cmmr::MMR;
 use rocksdb::{
     backup::{BackupEngine, BackupEngineOptions, RestoreOptions},
-    IteratorMode,
 };
 use std::{env, fs::File};
 
@@ -39,9 +38,9 @@ fn geth(path: String, to: i32) -> Result<(), Error> {
     std::env::set_var("GO_LOG", "info");
     env_logger::init();
 
-    let shared = ShadowShared::new(None);
+    let shadow_unsafe= ShadowUnsafe::new(None);
 
-    let mmr_size = shared.db.iterator(IteratorMode::Start).count() as u64;
+    let mut mmr_size = helper::mmr_size_from_store(&shadow_unsafe.db);
     let from = if mmr_size == 0 {
         0
     } else {
@@ -58,32 +57,40 @@ fn geth(path: String, to: i32) -> Result<(), Error> {
 
     // Get hashes
     info!("Importing ethereum headers from {}...", &path);
-    let hashes = ethereum::import(&path, from as i32, to);
-    let hashes_vec = hashes.split(',').collect::<Vec<&str>>();
-
-    // Check empty
-    info!("Imported {} hashes from ethereum node", hashes_vec.len());
-    if hashes_vec[0].is_empty() {
-        error!("Importing hashes from {} failed", path);
-        return Ok(());
-    }
-
-    // Build mmr
     info!("mmr_size: {}, from: {}", mmr_size, from);
-    let mut mmr = MMR::<_, MergeHash, _>::new(mmr_size, &shared.store);
-
-    let mut ptr = from;
-    for hash in &hashes_vec {
-        if ptr % 1000 == 0 {
-            trace!("Start to push hash into mmr for block {:?}/{}", ptr as usize, to);
+    const BATCH: i32 = 10240;
+    let ret = ethereum::import(&path, from as i32, to, BATCH, |hashes| {
+        let hashes_vec = hashes.split(',').collect::<Vec<&str>>();
+        let veclen = hashes_vec.len();
+        trace!("push mmr size-start {}, batch-length {}", mmr_size, veclen);
+        let bstore = BatchStore::with(shadow_unsafe.db.clone());
+        let mut mmr = MMR::<_, MergeHash, _>::new(mmr_size, &bstore);
+        for hash in &hashes_vec {
+            if let Err(e) = mmr.push(H256::from(hash)) {
+                error!("push mmr failed, hash {} exception {}", hash, e);
+                return false
+            }
         }
+        mmr_size = mmr.mmr_size();
 
-        ptr += 1;
-        mmr.push(H256::from(hash))?;
+        bstore.start_batch();
+        match mmr.commit() {
+            Err(e) => {
+                error!("commit mmr failed exception{}", e);
+                false
+            },
+            _ => {
+                if let Err(_e) = bstore.commit_batch() {
+                    return false;
+                }
+                true
+            }
+        }
+    });
+    info!("done");
+    if ret {
+        Ok(())
+    } else {
+        Err(Error::Primitive(String::from("import geth failed")))
     }
-
-    // Commit mmr
-    mmr.commit()?;
-    info!("done.");
-    Ok(())
 }

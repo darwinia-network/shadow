@@ -6,6 +6,7 @@ use crate::{
 use actix_web::error;
 use cmmr::MMR;
 use primitives::{chain::ethereum::EthereumHeaderJson, rpc::RPC};
+use primitives::{chain::ethereum::EthReceiptBody};
 
 /// Web result
 pub type WebResult<R> = Result<R, error::Error>;
@@ -56,3 +57,16 @@ pub async fn header_by_hash(block: &str, shared: &ShadowShared) -> WebResult<Eth
             ))
         })
 }
+
+/// Get receipt json with web response
+pub async fn receipt(txhash: &str, shared: &ShadowShared) -> WebResult<EthReceiptBody> {
+    shared.eth.
+        get_receipt(txhash).await
+        .map_err(|err| {
+            error::ErrorInternalServerError(format!(
+                "Get receipt {} failed, caused by {}",
+                txhash, err.to_string()
+            ))
+        })
+}
+

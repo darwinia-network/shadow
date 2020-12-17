@@ -5,12 +5,10 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"os/user"
 	"path/filepath"
 
 	"github.com/darwinia-network/shadow/pkg/ethashproof/mtree"
 	"github.com/darwinia-network/shadow/pkg/ethashproof/ethash"
-	"github.com/darwinia-network/shadow/pkg/log"
 )
 
 type DatasetMerkleTreeCache struct {

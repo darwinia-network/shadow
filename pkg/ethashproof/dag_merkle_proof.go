@@ -7,8 +7,9 @@ import (
 	"github.com/darwinia-network/shadow/pkg/ethashproof/ethash"
 	"github.com/darwinia-network/shadow/pkg/ethashproof/mtree"
 )
+const CACHE_LEVEL uint64 = 15
 
-func CalculateProof(blockno uint64, index uint32, cache *DatasetMerkleTreeCache) (mtree.Word, []mtree.Hash, error) {
+func CalculateProof(dagdir string, blockno uint64, index uint32, cache *DatasetMerkleTreeCache) (mtree.Word, []mtree.Hash, error) {
 	dt := mtree.NewSHA256DagTree()
 
 	fullSize := ethash.DAGSize(blockno)
@@ -18,7 +19,7 @@ func CalculateProof(blockno uint64, index uint32, cache *DatasetMerkleTreeCache)
 	liveLevel := uint64(branchDepth) - CACHE_LEVEL
 	subtreeStart := index >> liveLevel << liveLevel
 	dt.RegisterIndex(index - subtreeStart)
-	path := ethash.PathToDAG(uint64(blockno/30000), ethash.DefaultDir)
+	path := ethash.PathToDAG(uint64(blockno/30000), dagdir)
 	f, err := os.Open(path)
 	if err != nil {
 		return mtree.Word{}, []mtree.Hash{}, err

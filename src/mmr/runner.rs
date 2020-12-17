@@ -1,6 +1,6 @@
 //! MMR Runner
 use crate::{
-    api::ethereum::epoch,
+    api::ethereum::{epoch, start as ethstart},
     mmr::{hash::MergeHash, helper, H256},
     result::Error,
     ShadowShared,
@@ -8,7 +8,7 @@ use crate::{
 use cmmr::MMR;
 use cmmr::{MMRStore};
 use primitives::rpc::RPC;
-use std::{env, thread, time};
+use std::{env, time};
 
 /// MMR Runner
 #[derive(Clone)]
@@ -33,14 +33,6 @@ impl From<ShadowShared> for Runner {
 }
 
 impl Runner {
-    /// Async epoch
-    pub fn epoch(block: u64) {
-        if !epoch(block) {
-            thread::sleep(time::Duration::from_secs(10));
-            Self::epoch(block);
-        }
-    }
-
     /// translate from hash to network name
     pub fn network_name(h: &str) -> &str {
         match h {
@@ -74,6 +66,8 @@ impl Runner {
 
         // Using a cache rpc block number to optimize and reduce rpc call.
         let mut last_rpc_block_number = self.0.eth.block_number().await?;
+        ethstart((last_leaf as u64)/30_000);
+        let mut epoched = last_leaf as u64;
 
         loop {
             // checking finalization
@@ -84,14 +78,9 @@ impl Runner {
                 continue;
             }
 
-            // Note:
-            //
-            // This trigger is ugly, need better solution in the future, ptr % 30000 is to compatible with existing production, can be removed later
-            // if (ptr + 15000) % 30000 == 0 || ptr % 30000 == 0 {
-            //     thread::spawn(move || Self::epoch((ptr + 15000) as u64))
-            //         .join()
-            //         .unwrap_or_default();
-            // }
+            if (ptr/30_000 * 30_000) as u64 + 30_000 > epoched && epoch(epoched) {
+                epoched += 30_000;
+            }
 
             match self.push(ptr, mmr_size).await {
                 Err(_e) => {

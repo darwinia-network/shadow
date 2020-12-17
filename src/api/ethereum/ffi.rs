@@ -35,6 +35,7 @@ extern "C" {
     fn Receipt(api: GoString, tx: GoString) -> GoTuple;
     fn Epoch(input: libc::c_uint) -> bool;
     fn Free(pointer: *const c_char);
+    fn Start(input: libc::c_uint);
 }
 
 struct WrapperCString {
@@ -84,6 +85,11 @@ pub fn proof(api: &str, block: u64) -> String {
 /// Proof eth header by number
 pub fn epoch(block: u64) -> bool {
     unsafe { Epoch(block as u32) }
+}
+
+/// Start ethproof with block
+pub fn start(epoch: u64) {
+    unsafe { Start(epoch as u32) }
 }
 
 /// Get receipt by tx hash

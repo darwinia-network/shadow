@@ -10,7 +10,7 @@ mod receipt;
 
 pub use self::{
     count::handle as count,
-    ffi::{epoch, import},
+    ffi::{epoch, import, start},
     mmr_leaf::handle as mmr_leaf,
     parent_mmr_root::handle as parent_mmr_root,
     parcel::handle as parcel,

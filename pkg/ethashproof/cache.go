@@ -13,13 +13,6 @@ import (
 	"github.com/darwinia-network/shadow/pkg/log"
 )
 
-const CACHE_LEVEL uint64 = 15
-const MAX_CACHE_SIZE int = 5
-
-var (
-	DefaultDir = defaultDir()
-)
-
 type DatasetMerkleTreeCache struct {
 	Epoch       uint64         `json:"epoch"`
 	ProofLength uint64         `json:"proof_length"`
@@ -47,42 +40,33 @@ func getHomeDir() string {
     return usr.HomeDir
 }
 
-func defaultDir() string {
-    return filepath.Join(getHomeDir(), ".ethashproof")
-}
-
 func PersistCache(dirPath string, cache *DatasetMerkleTreeCache) error {
-	content, err := json.Marshal(cache)
-	if err != nil {
-		return err
-	}
-	err = os.MkdirAll(dirPath, 0777)
-	if err != nil {
-		return err
-	}
-	path := filepath.Join(dirPath, fmt.Sprintf("%d.json", cache.Epoch))
-	err = ioutil.WriteFile(path, content, 0644)
-    if err == nil {
-        removeCache(dirPath, ethash.DefaultDir, cache.Epoch)
+    content, err := json.Marshal(cache)
+    if err != nil {
+        return err
     }
+    err = os.MkdirAll(dirPath, 0777)
+    if err != nil {
+        return err
+    }
+    path := CacheFilePath(dirPath, cache.Epoch)
+    err = ioutil.WriteFile(path, content, 0644)
     return err
 }
 
-func removeCache(cachedir, dagdir string, epoch uint64) {
-    for ep := uint64(0); ep + uint64(MAX_CACHE_SIZE) <= epoch; ep++ {
-        path := filepath.Join(cachedir, fmt.Sprintf("%d.json", ep))
-        _, err := os.Stat(path)
-        if err == nil {
-            err = os.Remove(path)
-        }
-        if err == nil || os.IsNotExist(err) {
-            ethash.RemoveDatasetFile(dagdir, ep)
-        }
+func RemoveEpochFile(cachedir, dagdir string, epoch uint64) {
+    path := CacheFilePath(cachedir, epoch)
+    _, err := os.Stat(path)
+    if err == nil {
+        err = os.Remove(path)
+    }
+    if err == nil || os.IsNotExist(err) {
+        ethash.RemoveDatasetFile(dagdir, epoch)
     }
 }
 
-func LoadCache(dirPath string, epoch int) (*DatasetMerkleTreeCache, error) {
-	path := filepath.Join(dirPath, fmt.Sprintf("%d.json", epoch))
+func LoadCache(dirPath string, epoch uint64) (*DatasetMerkleTreeCache, error) {
+	path := CacheFilePath(dirPath, epoch)
 	content, err := ioutil.ReadFile(path)
 	if err != nil {
 		return nil, err
@@ -93,4 +77,8 @@ func LoadCache(dirPath string, epoch int) (*DatasetMerkleTreeCache, error) {
 		return nil, err
 	}
 	return result, nil
+}
+
+func CacheFilePath(dirPath string, epoch uint64) string {
+    return filepath.Join(dirPath, fmt.Sprintf("%d.json", epoch))
 }

@@ -3,10 +3,7 @@ package ethash
 import (
 	"encoding/binary"
 	"fmt"
-	"os"
-	"os/user"
 	"path/filepath"
-	"runtime"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -18,19 +15,7 @@ import (
 
 var (
 	Instance   = New(Config{"", 3, 0, "", 1, 0, ModeNormal}, nil, false)
-	DefaultDir = defaultDir()
 )
-
-func defaultDir() string {
-	home := os.Getenv("HOME")
-	if user, err := user.Current(); err == nil {
-		home = user.HomeDir
-	}
-	if runtime.GOOS == "windows" {
-		return filepath.Join(home, "AppData", "Ethash")
-	}
-	return filepath.Join(home, ".ethash")
-}
 
 func DAGSize(blockNum uint64) uint64 {
 	return datasetSizes[blockNum/epochLength]

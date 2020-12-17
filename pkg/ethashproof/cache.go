@@ -34,12 +34,6 @@ func (self *DatasetMerkleTreeCache) Print() {
 	}
 }
 
-func getHomeDir() string {
-    usr, err := user.Current()
-    log.Assert(err)
-    return usr.HomeDir
-}
-
 func PersistCache(dirPath string, cache *DatasetMerkleTreeCache) error {
     content, err := json.Marshal(cache)
     if err != nil {

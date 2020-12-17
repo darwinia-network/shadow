@@ -112,7 +112,7 @@ func (proof *EthashProof) GenerateEpoch(epoch uint64) error {
     log.Info("start to create epoch cache epoch:%v", epoch)
     _, err := ethashproof.CalculateDatasetMerkleRoot(proof.ethashDir(), proof.ethashProofDir(), epoch, true)
     if err != nil {
-        log.Error("create cache failed", "err", err)
+        log.Error("create cache failed err %v", err)
         proof.Epoching = math.MaxUint64
         return err
     }
@@ -132,10 +132,16 @@ func (proof *EthashProof) clearEpoch() {
     defer proof.mu.Unlock()
     //todo use both epoch and timestamp
     if len(proof.SavedEpochs) > proof.limitSize {
-        for ep, _ := range proof.SavedEpochs {
-            clear_epoch(ep)
-            return
+        var minEpoch uint64 = math.MaxUint64
+        var minTime int64 = math.MaxInt64
+        for ep, timestamp := range proof.SavedEpochs {
+            if ep < minEpoch {
+                minEpoch = ep
+                minTime = timestamp
+            }
         }
+        log.Info("remove old epoch file, ep %v, timestamp %v", minEpoch, minTime)
+        clear_epoch(minEpoch)
     }
 }
 
@@ -148,7 +154,7 @@ func (proof *EthashProof) epochLoop() {
             switch v:= v.(type) {
             case error:
                 log.Info("epoch loop ended with error %v", v)
-                break;
+                return
             case uint64:
                 err := proof.GenerateEpoch(v)
                 if err != nil {
@@ -224,7 +230,7 @@ func (proof *EthashProof) Proof(header *types.Header, wait bool) (*Output, []Dou
 
     rlpheader, err := ethashproof.RLPHeader(header)
     if err != nil {
-        log.Error("Can't rlp encode the header", "err", err)
+        log.Error("Can't rlp encode the header err %v", err)
         return nil, nil, err
     }
 
@@ -239,7 +245,7 @@ func (proof *EthashProof) Proof(header *types.Header, wait bool) (*Output, []Dou
     for _, index := range indices {
         element, proof, err := ethashproof.CalculateProof(proof.ethashDir(), blockno, index, cache)
         if err != nil {
-            log.Error("calculating the proofs failed", "index", index, "error", err)
+            log.Error("calculating the proofs failed index %v err %v", index, err)
             return nil, nil, err
         }
         es := element.ToUint256Array()

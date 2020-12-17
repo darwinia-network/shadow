@@ -150,7 +150,10 @@ func (proof *EthashProof) epochLoop() {
                 log.Info("epoch loop ended with error %v", v)
                 break;
             case uint64:
-                proof.GenerateEpoch(v)
+                err := proof.GenerateEpoch(v)
+                if err != nil {
+                    log.Info("generate epoch failed err %v", err)
+                }
             case *NotifyWaitInfo:
                 err := proof.GenerateEpoch(v.Epoch)
                 v.Error <-err

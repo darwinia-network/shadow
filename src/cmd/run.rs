@@ -4,6 +4,7 @@ use std::sync::Arc;
 use primitives::rpc::EthereumRPC;
 use std::env;
 use crate::epoch::EpochRunner;
+use crate::darwinia::{Darwinia, DarwiniaEventListener};
 
 /// Run shadow service
 pub async fn exec(port: u16, verbose: bool, uri: Option<String>, mode: String) -> Result<()> {
@@ -19,6 +20,9 @@ pub async fn exec(port: u16, verbose: bool, uri: Option<String>, mode: String) -
     // Shared data
     let mmr_db = database(uri)?;
     let eth = Arc::new(ethereum_rpc());
+
+    // Darwinia
+    let darwinia = Arc::new(Darwinia::new("ws://t1.hkg.itering.com:9944").await?);
 
     match mode.as_str() {
         "all" => {
@@ -47,6 +51,10 @@ pub async fn exec(port: u16, verbose: bool, uri: Option<String>, mode: String) -
             let mut epoch_runner = EpochRunner::new(&eth);
             epoch_runner.start().await;
         },
+        "darwinia" => {
+            let mut sub = DarwiniaEventListener::new(darwinia).await?;
+            sub.start().await?;
+        }
         _ => {
             return Err(anyhow::anyhow!("Unsupported mode: {}, only can be one of all, mmr, api, epoch", mode).into());
         }

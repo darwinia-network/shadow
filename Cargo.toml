@@ -28,12 +28,17 @@ reqwest = { version = "0.10", features = ["json"] }
 structopt = "0.3.17"
 rocksdb = "0.15.0"
 mysql = "*"
+
 thiserror = "1.0"
 anyhow = "1.0.34"
-substrate-subxt = "0.13.0"
+
 mmr = { path = "./mmr" }
 ffi = { path = "./ffi" }
 api = { path = "./api" }
+
+jsonrpsee = "0.1.0"
+substrate-subxt = "0.13.0"
+web3 = { version = "0.14.0", git = "https://github.com/tomusdrw/rust-web3.git" }
 
 [dependencies.primitives]
 package = "darwinia-bridge-primitives"

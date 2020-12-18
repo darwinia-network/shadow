@@ -1,37 +1,40 @@
 //! Darwinia Subscribe
-use crate::darwinia::darwinia::Darwinia;
+use crate::darwinia::client::Client;
 use crate::result::Error;
 use crate::result::Result;
 use primitives::{
-    frame::bridge::relay_authorities::{AuthoritiesSetSigned, NewAuthorities, NewMMRRoot},
     runtime::DarwiniaRuntime,
 };
 use std::sync::Arc;
-use substrate_subxt::sp_core::Decode;
 use substrate_subxt::EventSubscription;
 
+use mysql::*;
+
 /// Dawrinia Subscribe
-pub struct DarwiniaEventListener {
-    darwinia: Arc<Darwinia>,
+pub struct EventSubscriber {
+    darwinia: Arc<Client>,
     sub: EventSubscription<DarwiniaRuntime>,
     stop: bool,
+    db: Pool,
 }
 
-impl DarwiniaEventListener {
+impl EventSubscriber {
     /// New redeem service
     pub async fn new(
-        darwinia: Arc<Darwinia>,
-    ) -> Result<DarwiniaEventListener> {
+        darwinia: Arc<Client>,
+        db: Pool,
+    ) -> Result<EventSubscriber> {
         let sub = darwinia.build_event_subscription().await?;
-        Ok(DarwiniaEventListener {
+        Ok(EventSubscriber {
             darwinia,
             sub,
             stop: false,
+            db
         })
     }
 
     /// start
-    pub async fn start(&mut self) -> Result<DarwiniaEventListener> {
+    pub async fn start(&mut self) -> Result<EventSubscriber> {
         info!("Darwinia Event Listener Started");
         loop {
             if let Err(e) = self.process_next_event().await {
@@ -59,6 +62,7 @@ impl DarwiniaEventListener {
         if let Some(raw) = self.sub.next().await {
             match raw {
                 Ok(event) => {
+
                     self.handle_event(&event.module, &event.variant, event.data)
                         .await?;
                 },
@@ -85,17 +89,22 @@ impl DarwiniaEventListener {
                 return Err(Error::Shadow("CodeUpdated".to_string()).into());
             }
 
-            // call ethereum_relay_authorities.request_authority and then sudo call
-            // EthereumRelayAuthorities.add_authority will emit the event
-            ("EthereumRelayAuthorities", "NewAuthorities") => {
-            }
-
-            // authority set changed will emit this event
-            ("EthereumRelayAuthorities", "AuthoritiesSetSigned") => {
-            }
-
-            // call ethereum_backing.lock will emit the event
-            ("EthereumRelayAuthorities", "NewMMRRoot") => {
+            ("EthereumRelayAuthorities", "MMRRootSigned") => {
+                // if let Ok(decoded) = MMRRootSigned::<DarwiniaRuntime>::decode(&mut &event_data[..]) {
+                    // write to db
+                    // let sql = format!(
+                    //     "INSERT INTO darwinia_signed_mmr_roots (block_number, mmr_root, signatures, created_at) VALUES ({}, '{}', '{}', '{}')",
+                    //     decoded.block_number,
+                    //     decoded.mmr_root,
+                    //     decoded.signatures
+                    //         .iter()
+                    //         .map(|s| format!("{:x?}", s.1.0))
+                    //         .collect::<Vec<_>>()
+                    //         .join(&[][..]),
+                    //
+                    // );
+                    // tx.query_drop(sql)?;
+                // }
             }
 
             _ => {}

@@ -1,5 +1,7 @@
-mod darwinia_event_listener;
-mod darwinia;
+mod event_subscriber;
+mod client;
+mod block_subscriber;
 
-pub use darwinia_event_listener::DarwiniaEventListener;
-pub use darwinia::Darwinia;
+pub use event_subscriber::EventSubscriber;
+pub use block_subscriber::BlockSubscriber;
+pub use client::Client;

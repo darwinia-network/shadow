@@ -1,61 +1,43 @@
 //! Darwinia API
 use crate::result::{Result, Error};
-use core::marker::PhantomData;
 use primitives::{
-    chain::{
-        ethereum::{EthereumReceiptProofThing, EthereumRelayHeaderParcel, RedeemFor},
-        proxy_type::ProxyType,
-    },
     frame::{
         ethereum::{
             backing::{
-                Redeem,
-                RedeemCallExt,
-                VerifiedProofStoreExt,
                 EthereumBackingEventsDecoder
             },
-            game::{AffirmationsStoreExt, EthereumRelayerGame, EthereumRelayerGameEventsDecoder},
+            game::EthereumRelayerGameEventsDecoder,
             relay::{
-                Affirm, AffirmCallExt, ConfirmedBlockNumbersStoreExt, EthereumRelay,
-                PendingRelayHeaderParcelsStoreExt, SetConfirmedParcel,
-                VotePendingRelayHeaderParcelCallExt,
-                VotePendingRelayHeaderParcel,
+                ConfirmedBlockNumbersStoreExt, EthereumRelay,
+                PendingRelayHeaderParcelsStoreExt,
                 EthereumRelayEventsDecoder
             },
         },
-        proxy::ProxyCallExt,
-        sudo::SudoCallExt,
         bridge::relay_authorities::{
             EthereumRelayAuthoritiesEventsDecoder,
-            SubmitSignedAuthorities,
-            SubmitSignedAuthoritiesCallExt,
-            SubmitSignedMmrRoot,
-            SubmitSignedMmrRootCallExt,
         }
     },
-    runtime::{DarwiniaRuntime, EcdsaMessage},
+    runtime::DarwiniaRuntime,
 };
-use std::collections::HashMap;
-use substrate_subxt::{system::System, BlockNumber, Client, ClientBuilder, EventSubscription, EventsDecoder};
-use web3::types::H256;
+use web3::types::H256 as EthH256;
 use substrate_subxt::sp_runtime::traits::Header;
+use substrate_subxt::sp_core::{twox_128, H256};
+use substrate_subxt::sp_core::storage::StorageKey;
+use substrate_subxt::events::Raw;
+use substrate_subxt::{BlockNumber, Client, ClientBuilder, EventSubscription, RawEvent, EventsDecoder};
 
 // Types
 type PendingRelayHeaderParcel = <DarwiniaRuntime as EthereumRelay>::PendingRelayHeaderParcel;
-type RelayAffirmation = <DarwiniaRuntime as EthereumRelayerGame>::RelayAffirmation;
-type AffirmationsReturn = HashMap<u64, HashMap<u32, Vec<RelayAffirmation>>>;
-/// AccountId
-pub type AccountId = <DarwiniaRuntime as System>::AccountId;
 
 /// Dawrinia API
-pub struct Darwinia {
+pub struct Client {
     /// client
     pub client: Client<DarwiniaRuntime>,
 }
 
-impl Darwinia {
+impl Client {
     /// New darwinia API
-    pub async fn new(node_url: &str) -> Result<Darwinia> {
+    pub async fn new(node_url: &str) -> Result<Client> {
         let client =
             jsonrpsee::ws_client(node_url).await
                 .map_err(|e| {
@@ -69,7 +51,7 @@ impl Darwinia {
             .build()
             .await?;
 
-        Ok(Darwinia {
+        Ok(Client {
             client,
         })
     }
@@ -95,7 +77,7 @@ impl Darwinia {
         Ok(self.client.pending_relay_header_parcels(None).await?)
     }
 
-    async fn get_mmr_root(&self, leaf_index: u32) -> Result<H256> {
+    async fn get_mmr_root(&self, leaf_index: u32) -> Result<EthH256> {
         // Get mmr_root from block number == leaf_index + 1
         let block_number = leaf_index + 1;
 
@@ -153,5 +135,35 @@ impl Darwinia {
         // Build subscriber
         let sub = EventSubscription::<DarwiniaRuntime>::new(scratch, decoder);
         Ok(sub)
+    }
+
+    pub async fn get_raw_events(&self, header_hash: H256) -> Result<Vec<RawEvent>> {
+        let mut events = vec![];
+
+        let mut storage_key = twox_128(b"System").to_vec();
+        storage_key.extend(twox_128(b"Events").to_vec());
+        let keys = vec![StorageKey(storage_key)];
+
+        let change_sets = self.client.query_storage(keys, header_hash, None).await?;
+        for change_set in change_sets {
+            for (_key, data) in change_set.changes {
+                if let Some(data) = data {
+                    let decoder = EventsDecoder::<DarwiniaRuntime>::new(self.client.metadata().clone());
+                    let raw_events = decoder.decode_events(&mut &data.0[..])?;
+                    for (_, raw) in raw_events {
+                        match raw {
+                            Raw::Event(event) => {
+                                events.push(event);
+                            },
+                            Raw::Error(err) => {
+                                error!("{:#?}", err);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        Ok(events)
     }
 }

@@ -4,7 +4,7 @@ use std::sync::Arc;
 use primitives::rpc::EthereumRPC;
 use std::env;
 use crate::epoch::EpochRunner;
-use crate::darwinia::{Darwinia, DarwiniaEventListener};
+use crate::darwinia::{Client as DarwiniaClient, BlockSubscriber};
 
 /// Run shadow service
 pub async fn exec(port: u16, verbose: bool, uri: Option<String>, mode: String) -> Result<()> {
@@ -22,7 +22,7 @@ pub async fn exec(port: u16, verbose: bool, uri: Option<String>, mode: String) -
     let eth = Arc::new(ethereum_rpc());
 
     // Darwinia
-    let darwinia = Arc::new(Darwinia::new("ws://t1.hkg.itering.com:9944").await?);
+    let darwinia_client = DarwiniaClient::new("ws://t1.hkg.itering.com:9944").await?;
 
     match mode.as_str() {
         "all" => {
@@ -52,7 +52,7 @@ pub async fn exec(port: u16, verbose: bool, uri: Option<String>, mode: String) -
             epoch_runner.start().await;
         },
         "darwinia" => {
-            let mut sub = DarwiniaEventListener::new(darwinia).await?;
+            let sub = BlockSubscriber::new(darwinia_client).await;
             sub.start().await?;
         }
         _ => {

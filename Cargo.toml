@@ -30,11 +30,24 @@ rocksdb = "0.15.0"
 mysql = "*"
 thiserror = "1.0"
 anyhow = "1.0.34"
+substrate-subxt = "0.13.0"
 mmr = { path = "./mmr" }
 ffi = { path = "./ffi" }
 api = { path = "./api" }
 
 [dependencies.primitives]
 package = "darwinia-bridge-primitives"
-version = "=0.1.5-alpha.3"
-features = ["rpc"]
+version = "0.1.13"
+path = "./primitives"
+features = ["runtime", "rpc"]
+
+[patch.crates-io]
+# jsonrpsee = { path = "../jsonrpsee", features = ["ws"] }
+# substrate-subxt = { path = "../substrate-subxt" }
+jsonrpsee = { git = "https://github.com/AurevoirXavier/jsonrpsee", branch = "xavier-send-error", features = ["ws"] }
+substrate-subxt = { git = "https://github.com/AurevoirXavier/substrate-subxt", branch = "xavier-send-error" }
+[patch.'https://github.com/paritytech/jsonrpsee']
+# jsonrpsee = { path = "../jsonrpsee", features = ["ws"] }
+# substrate-subxt = { path = "../substrate-subxt" }
+jsonrpsee = { git = "https://github.com/AurevoirXavier/jsonrpsee", branch = "xavier-send-error", features = ["ws"] }
+substrate-subxt = { git = "https://github.com/AurevoirXavier/substrate-subxt", branch = "xavier-send-error" }

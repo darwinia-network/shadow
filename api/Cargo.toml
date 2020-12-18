@@ -21,8 +21,9 @@ ffi = { path = "../ffi" }
 
 [dependencies.primitives]
 package = "darwinia-bridge-primitives"
-version = "=0.1.5-alpha.3"
-features = ["rpc"]
+version = "0.1.13"
+path = "../primitives"
+features = ["runtime", "rpc"]
 
 [dependencies.scale]
 package = "parity-scale-codec"

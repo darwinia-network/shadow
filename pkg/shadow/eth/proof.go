@@ -133,15 +133,26 @@ func (proof *EthashProof) clearEpoch() {
     //todo use both epoch and timestamp
     if len(proof.SavedEpochs) > proof.limitSize {
         var minEpoch uint64 = math.MaxUint64
+        var secondMinEpoch uint64 = minEpoch
         var minTime int64 = math.MaxInt64
+        var secondMinTime int64 = math.MaxInt64
         for ep, timestamp := range proof.SavedEpochs {
             if ep < minEpoch {
+                secondMinEpoch = minEpoch
+                secondMinTime = minTime
                 minEpoch = ep
                 minTime = timestamp
+            } else if ep < secondMinEpoch {
+                secondMinEpoch = ep
+                secondMinTime = timestamp
             }
         }
-        log.Info("remove old epoch file, ep %v, timestamp %v", minEpoch, minTime)
-        clear_epoch(minEpoch)
+        log.Info("remove old epoch file, ep %v, timestamp %v, second ep %v, second time %v", minEpoch, minTime, secondMinEpoch, secondMinTime)
+        if secondMinTime < minTime {
+            clear_epoch(secondMinEpoch)
+        } else {
+            clear_epoch(minEpoch)
+        }
     }
 }
 

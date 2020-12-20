@@ -144,7 +144,7 @@ impl Client {
         storage_key.extend(twox_128(b"Events").to_vec());
         let keys = vec![StorageKey(storage_key)];
 
-        let change_sets = self.client.query_storage(keys, header_hash, None).await?;
+        let change_sets = self.client.query_storage(keys, header_hash.clone(), Some(header_hash)).await?;
         for change_set in change_sets {
             for (_key, data) in change_set.changes {
                 if let Some(data) = data {

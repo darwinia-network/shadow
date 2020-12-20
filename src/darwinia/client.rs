@@ -148,7 +148,11 @@ impl Client {
         for change_set in change_sets {
             for (_key, data) in change_set.changes {
                 if let Some(data) = data {
-                    let decoder = EventsDecoder::<DarwiniaRuntime>::new(self.client.metadata().clone());
+                    let mut decoder = EventsDecoder::<DarwiniaRuntime>::new(self.client.metadata().clone());
+                    decoder.register_type_size::<u128>("Balance");
+                    decoder.register_type_size::<u128>("RingBalance");
+                    decoder.register_type_size::<u128>("KtonBalance");
+                    decoder.register_type_size::<[u8; 20]>("EcdsaAddress");
                     let raw_events = decoder.decode_events(&mut &data.0[..])?;
                     for (_, raw) in raw_events {
                         match raw {

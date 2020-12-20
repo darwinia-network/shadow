@@ -1,10 +1,11 @@
 use crate::{mmr::database, mmr::Runner, result::Result};
+use mmr::Database;
 use tokio::select;
 use std::sync::Arc;
 use primitives::rpc::EthereumRPC;
 use std::env;
 use crate::epoch::EpochRunner;
-use crate::darwinia::{Client as DarwiniaClient, BlockSubscriber};
+use crate::darwinia::{DarwiniaClient, BlockSubscriber, EventHandler, DatabaseService};
 
 /// Run shadow service
 pub async fn exec(port: u16, verbose: bool, uri: Option<String>, mode: String) -> Result<()> {
@@ -52,8 +53,12 @@ pub async fn exec(port: u16, verbose: bool, uri: Option<String>, mode: String) -
             epoch_runner.start().await;
         },
         "darwinia" => {
-            let sub = BlockSubscriber::new(darwinia_client).await;
-            sub.start().await?;
+            if let Database::Mysql(pool) = mmr_db {
+                let db = DatabaseService::new(pool);
+                let event_handler = EventHandler::new(db);
+                let sub = BlockSubscriber::new(darwinia_client, event_handler).await;
+                sub.start().await?;
+            } 
         }
         _ => {
             return Err(anyhow::anyhow!("Unsupported mode: {}, only can be one of all, mmr, api, epoch", mode).into());

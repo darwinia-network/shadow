@@ -30,14 +30,14 @@ use substrate_subxt::{BlockNumber, Client, ClientBuilder, EventSubscription, Raw
 type PendingRelayHeaderParcel = <DarwiniaRuntime as EthereumRelay>::PendingRelayHeaderParcel;
 
 /// Dawrinia API
-pub struct Client {
+pub struct DarwiniaClient {
     /// client
     pub client: Client<DarwiniaRuntime>,
 }
 
-impl Client {
+impl DarwiniaClient {
     /// New darwinia API
-    pub async fn new(node_url: &str) -> Result<Client> {
+    pub async fn new(node_url: &str) -> Result<DarwiniaClient> {
         let client =
             jsonrpsee::ws_client(node_url).await
                 .map_err(|e| {
@@ -51,7 +51,7 @@ impl Client {
             .build()
             .await?;
 
-        Ok(Client {
+        Ok(DarwiniaClient {
             client,
         })
     }

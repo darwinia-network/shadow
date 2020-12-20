@@ -1,5 +1,5 @@
 //! Darwinia Subscribe
-use crate::darwinia::client::Client;
+use crate::darwinia::client::DarwiniaClient;
 use crate::result::Error;
 use crate::result::Result;
 use primitives::{
@@ -12,7 +12,7 @@ use mysql::*;
 
 /// Dawrinia Subscribe
 pub struct EventSubscriber {
-    darwinia: Arc<Client>,
+    darwinia: Arc<DarwiniaClient>,
     sub: EventSubscription<DarwiniaRuntime>,
     stop: bool,
     db: Pool,
@@ -21,7 +21,7 @@ pub struct EventSubscriber {
 impl EventSubscriber {
     /// New redeem service
     pub async fn new(
-        darwinia: Arc<Client>,
+        darwinia: Arc<DarwiniaClient>,
         db: Pool,
     ) -> Result<EventSubscriber> {
         let sub = darwinia.build_event_subscription().await?;
@@ -80,9 +80,9 @@ impl EventSubscriber {
         variant: &str,
         event_data: Vec<u8>,
     ) -> Result<()> {
-        // if module != "System" {
+        if module != "System" {
             debug!(">> Event - {}::{}", module, variant);
-        // }
+        }
 
         match (module, variant) {
             ("System", "CodeUpdated") => {

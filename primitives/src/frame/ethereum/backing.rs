@@ -13,6 +13,13 @@ use substrate_subxt_proc_macro::{module, Call, Event, Store};
 pub trait EthereumBacking: System + Balances {
     /// Ethereum transaction index
     type EthereumTransactionIndex: 'static + Encode + Decode + Send + Default + Clone + Sync;
+
+    /// Relay authority signer
+    type RelayAuthoritySigner: 'static + Encode + Decode + Send + Default;
+    /// RingBalance
+    type RingBalance: 'static + Encode + Decode + Send + Default;
+    /// KtonBalance
+    type KtonBalance: 'static + Encode + Decode + Send + Default;
 }
 
 //////
@@ -76,11 +83,11 @@ pub struct LockRing<T: EthereumBacking> {
     /// Account Id
     pub account_id: <T as System>::AccountId,
     /// Ecdsa address
-    pub ecdsa_address: EcdsaAddress,
+    pub ecdsa_address: T::RelayAuthoritySigner,
     /// Asset type
     pub asset_type: u8,
     /// amount
-    pub amount: <T as Balances>::Balance
+    pub amount: T::RingBalance,
 }
 
 /// Someone lock some *KTON*. [account, ecdsa address, asset type, amount]
@@ -89,11 +96,11 @@ pub struct LockKton<T: EthereumBacking> {
     /// Account Id
     pub account_id: <T as System>::AccountId,
     /// Ecdsa address
-    pub ecdsa_address: EcdsaAddress,
+    pub ecdsa_address: T::RelayAuthoritySigner,
     /// Asset type
     pub asset_type: u8,
     /// amount
-    pub amount: <T as Balances>::Balance
+    pub amount: T::KtonBalance
 }
 
 //////

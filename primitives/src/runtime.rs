@@ -77,6 +77,9 @@ impl EthereumRelayerGame for DarwiniaRuntime {
 
 impl EthereumBacking for DarwiniaRuntime {
     type EthereumTransactionIndex = u64;
+    type RelayAuthoritySigner = EcdsaAddress;
+    type RingBalance = u128;
+    type KtonBalance = u128;
 }
 
 impl Proxy for DarwiniaRuntime {

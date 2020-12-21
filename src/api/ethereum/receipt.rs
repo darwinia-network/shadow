@@ -30,11 +30,11 @@ impl From<(String, String, String)> for ReceiptProof {
 async fn get_receipt_proof(txhash: &str, shared: &ShadowShared) -> super::helper::WebResult<ReceiptProof> {
     let receipt = super::helper::receipt(txhash, shared).await?;
     let index = u64::from_str_radix(&receipt.transaction_index.as_str()[2..], 16).unwrap_or_default();
-    let header = super::helper::header_by_hash(&receipt.block_hash, shared).await?;
+    let block = super::helper::block_by_hash(&receipt.block_hash, shared).await?;
 
     let receipts_ref = Arc::new(Mutex::new(HashMap::new()));
     let wg = WaitGroup::new();
-    for hash in &header.transactions {
+    for hash in &block.transactions {
         let w = wg.worker();
         let s = shared.clone();
         let h = hash.to_string();
@@ -52,11 +52,11 @@ async fn get_receipt_proof(txhash: &str, shared: &ShadowShared) -> super::helper
     }
     wg.wait().await;
     let receipts = receipts_ref.lock().unwrap();
-    if receipts.len() != header.transactions.len() {
+    if receipts.len() != block.transactions.len() {
         return Err(error::ErrorInternalServerError(format!(
             "get receipts failed: {}, last_leaf_index: {}",
             receipts.len(),
-            header.transactions.len()
+            block.transactions.len()
         )));
     }
 

@@ -5,8 +5,7 @@ use crate::{
 };
 use actix_web::error;
 use cmmr::MMR;
-use primitives::{chain::ethereum::EthereumHeaderJson, rpc::RPC};
-use primitives::{chain::ethereum::EthReceiptBody};
+use primitives::{chain::ethereum::{EthereumHeaderJson, EthReceiptBody, EthereumBlockRPC}, rpc::RPC};
 
 /// Web result
 pub type WebResult<R> = Result<R, error::Error>;
@@ -50,6 +49,18 @@ pub async fn header_by_hash(block: &str, shared: &ShadowShared) -> WebResult<Eth
     shared.eth.
         get_header_by_hash(block).await
         .map(|header| header.into())
+        .map_err(|err| {
+            error::ErrorInternalServerError(format!(
+                "Get block header {} failed, caused by {}",
+                block, err.to_string()
+            ))
+        })
+}
+
+/// Get header json with web response
+pub async fn block_by_hash(block: &str, shared: &ShadowShared) -> WebResult<EthereumBlockRPC> {
+    shared.eth.
+        get_block_by_hash(block).await
         .map_err(|err| {
             error::ErrorInternalServerError(format!(
                 "Get block header {} failed, caused by {}",

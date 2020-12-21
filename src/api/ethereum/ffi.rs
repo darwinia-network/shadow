@@ -93,8 +93,9 @@ pub fn start(epoch: u64) {
     unsafe { Start(epoch as u32) }
 }
 
+/// Stop ethproof
 pub fn stop() {
-    unsafe { Stop() }
+    unsafe { Stop(); }
 }
 
 /// Get receipt by tx hash

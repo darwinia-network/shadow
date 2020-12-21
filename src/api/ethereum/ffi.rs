@@ -36,6 +36,7 @@ extern "C" {
     fn Epoch(input: libc::c_uint) -> bool;
     fn Free(pointer: *const c_char);
     fn Start(input: libc::c_uint);
+    fn Stop();
 }
 
 struct WrapperCString {
@@ -92,6 +93,10 @@ pub fn start(epoch: u64) {
     unsafe { Start(epoch as u32) }
 }
 
+pub fn stop() {
+    unsafe { Stop() }
+}
+
 /// Get receipt by tx hash
 pub fn receipt(api: &str, tx: &str) -> (String, String, String) {
     let c_api = CString::new(api).expect("CString::new failed");
@@ -144,10 +149,12 @@ pub fn import<F>(path: &str, from: i32, to: i32, batch: i32, mut callback: F) ->
 mod test {
     #[test]
     fn test_proof() {
+        super::start(0);
         super::proof(
             "https://ropsten.infura.io/v3/0bfb9acbb13c426097aabb1d81a9d016",
             1,
         );
+        super::stop();
     }
 
     #[test]

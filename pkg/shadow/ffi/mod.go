@@ -35,6 +35,11 @@ func Start(epoch uint64) {
     ethproof.Start(epoch)
 }
 
+//export Stop
+func Stop() {
+    ethproof.Stop()
+}
+
 //export Epoch
 func Epoch(blockno uint64) bool {
     return ethproof.NotifyEpoch(blockno)

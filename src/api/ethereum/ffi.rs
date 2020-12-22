@@ -1,9 +1,11 @@
 //! Ethereum ffi bindgen
 use std::{
     ffi::{CStr, CString},
-    os::raw::{c_char, c_void},
+    os::raw::{c_char, c_void, c_int},
     fmt,
+    slice,
 };
+use std::convert::TryInto;
 
 #[repr(C)]
 struct GoString {
@@ -18,19 +20,24 @@ struct GoTuple {
     header_hash: *const c_char,
 }
 
-extern "C" fn geth_handler(x: *const c_char, arg: *mut c_void) -> bool {
+extern "C" fn geth_handler(x: *const c_char, size: c_int, arg: *mut c_void) -> bool {
     unsafe {
-        let receiver: &mut &mut dyn FnMut(&str) -> bool =  &mut *(arg as *mut &mut dyn FnMut(&str) -> bool);
-        let result = &CStr::from_ptr(x)
-              .to_string_lossy()
-              .to_string();
-        receiver(result)
+        let receiver: &mut &mut dyn FnMut(Vec<[u8; 32]>) -> bool =  &mut *(arg as *mut &mut dyn FnMut(Vec<[u8; 32]>) -> bool);
+
+        let mut results : Vec<[u8; 32]> = Vec::new();
+        let buf: &[u8] = slice::from_raw_parts(x as *mut u8, size as usize);
+        for i in 0..(size >> 5) {
+            let start = (i << 5) as usize;
+            let result: [u8; 32] = buf[start..start+32].try_into().expect("split header hash");
+            results.push(result);
+        }
+        receiver(results)
     }
 }
 
 #[link(name = "darwinia_shadow")]
 extern "C" {
-    fn Import(path: GoString, from: libc::c_int, to: libc::c_int, batch: libc::c_int, f: Option<extern "C" fn(x: *const c_char, arg: *mut c_void) -> bool>, arg: *mut c_void) -> bool;
+    fn Import(path: GoString, from: libc::c_int, to: libc::c_int, batch: libc::c_int, f: Option<extern "C" fn(x: *const c_char, len: c_int, arg: *mut c_void) -> bool>, arg: *mut c_void) -> bool;
     fn Proof(api: GoString, number: libc::c_uint) -> *const c_char;
     fn Receipt(api: GoString, tx: GoString) -> GoTuple;
     fn Epoch(input: libc::c_uint) -> bool;
@@ -112,11 +119,11 @@ pub fn receipt(api: &str, tx: &str) -> (String, String, String) {
 
 /// import from geth
 pub fn import<F>(path: &str, from: i32, to: i32, batch: i32, mut callback: F) -> bool
-    where F: FnMut(&str) -> bool
+    where F: FnMut(Vec<[u8; 32]>) -> bool
 {
     // reason for double indirection is that a "Trait Object" is a fat pointer, the size of
     // which is incompatible with the C pointer *mut void
-    let mut cb: &mut dyn FnMut(&str) -> bool = &mut callback;
+    let mut cb: &mut dyn FnMut(Vec<[u8; 32]>) -> bool = &mut callback;
     let cb = &mut cb;
     let c_path = CString::new(path).expect("CString::new failed");
     unsafe { 

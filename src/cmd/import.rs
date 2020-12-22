@@ -1,6 +1,6 @@
 use crate::{
     api::ethereum,
-    mmr::{helper, MergeHash, H256, BatchStore},
+    mmr::{helper, MergeHash, BatchStore},
     result::Error,
     ShadowUnsafe,
 };
@@ -59,15 +59,15 @@ fn geth(path: String, to: i32) -> Result<(), Error> {
     info!("Importing ethereum headers from {}...", &path);
     info!("mmr_size: {}, from: {}", mmr_size, from);
     const BATCH: i32 = 10240;
+    let mut leaf = from;
     let ret = ethereum::import(&path, from as i32, to, BATCH, |hashes| {
-        let hashes_vec = hashes.split(',').collect::<Vec<&str>>();
-        let veclen = hashes_vec.len();
-        trace!("push mmr size-start {}, batch-length {}", mmr_size, veclen);
+        //trace!("push mmr size-start {}, batch-length {}", mmr_size, hashes.len());
+        leaf += hashes.len();
         let bstore = BatchStore::with(shadow_unsafe.db.clone());
         let mut mmr = MMR::<_, MergeHash, _>::new(mmr_size, &bstore);
-        for hash in &hashes_vec {
-            if let Err(e) = mmr.push(H256::from(hash)) {
-                error!("push mmr failed, hash {} exception {}", hash, e);
+        for hash in &hashes {
+            if let Err(e) = mmr.push(*hash) {
+                error!("push mmr failed, exception {}", e);
                 return false
             }
         }
@@ -87,6 +87,7 @@ fn geth(path: String, to: i32) -> Result<(), Error> {
             }
         }
     });
+    info!("the latest leaf is {}", leaf);
     info!("done");
     if ret {
         Ok(())

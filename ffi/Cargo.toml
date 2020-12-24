@@ -11,7 +11,7 @@ include = [
     "src/**/*",
     "Cargo.toml",
 ]
-links = "darwinia-shadow"
+links = "darwinia_shadow"
 
 [dependencies]
 libc = "0.2.71"

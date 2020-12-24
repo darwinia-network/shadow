@@ -1,7 +1,7 @@
 name: Staging
 on:
   push:
-    branches: ["staging"]
+    branches: ["master"]
 
 jobs:
   build-and-deploy:

@@ -49,9 +49,10 @@ structopt = "0.3.17"
 uint = "0.8.3"
 hex = "0.3.2"
 waitgroup = "0.1.2"
-primitive-types = { default-features = false, features = ["codec", "rlp"], git = "https://github.com/darwinia-network/parity-common.git" }
-ethbloom        = { default-features = false, git = "https://github.com/darwinia-network/parity-common.git" }
-rlp             = { default-features = false, git = "https://github.com/darwinia-network/parity-common.git" }
+
+[dependencies.rlp]
+package = "rlp"
+version = "0.4.4"
 
 [dependencies.primitives]
 package = "darwinia-bridge-primitives"

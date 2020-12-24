@@ -6,8 +6,9 @@ use waitgroup::WaitGroup;
 use std::collections::HashMap;
 use std::sync::Arc;
 use std::sync::Mutex;
-use mpt::{trie::Trie, MerklePatriciaTrie, MemoryDB};
+use mpt::{trie::Trie, MerklePatriciaTrie, MemoryDB, Proof};
 use std::rc::Rc;
+use rlp::{RlpStream, Encodable};
 
 /// Receipt proof
 #[derive(Serialize)]
@@ -25,6 +26,17 @@ impl From<(String, String, String)> for ReceiptProof {
             header_hash: t.2,
         }
     }
+}
+
+struct ReceiptMerkleProof {
+    proof: Proof,
+}
+
+impl Encodable for ReceiptMerkleProof {
+	fn rlp_append(&self, s: &mut RlpStream) {
+		s.begin_list(1);
+		s.append_list::<Vec<u8>, Vec<u8>>(&self.proof.nodes);
+	}
 }
 
 async fn get_receipt_proof(txhash: &str, shared: &ShadowShared) -> super::helper::WebResult<ReceiptProof> {
@@ -72,7 +84,7 @@ async fn get_receipt_proof(txhash: &str, shared: &ShadowShared) -> super::helper
     let _root = trie.root().unwrap();
     let proof = trie.get_proof(&key).unwrap();
     //let value = MerklePatriciaTrie::verify_proof(root.clone(), &key, proof)
-    let hash_proof = String::from("0x") + &hex::encode(rlp::encode(&proof));
+    let hash_proof = String::from("0x") + &hex::encode(rlp::encode(&ReceiptMerkleProof{proof}));
 
     Ok(
         ReceiptProof {

@@ -15,6 +15,10 @@ import (
     "path/filepath"
 )
 
+const (
+    reorgDistance = 0x40
+)
+
 var (
     CONFIG shadow.Config = shadow.Config{}
 )
@@ -71,8 +75,11 @@ func Import(datadir string, from int, to int, batch int, callback unsafe.Pointer
     // each batch we process a number of `batch` blocks which saved in array `hashes`, and deliver it to callback
     // the hashes should be cleared for next batch
     if uint64(to) > blockReader.Head {
-        log.Info("import to %v is too large, change to max number %v", to, blockReader.Head)
+        log.Info("import to %v is too large, change to max number %v - %v", to, blockReader.Head, reorgDistance)
         to = int(blockReader.Head)
+        if to > reorgDistance {
+            to -= reorgDistance
+        }
     }
     for n := from; n < to; n++ {
         hash, err := blockReader.Read(uint64(n))

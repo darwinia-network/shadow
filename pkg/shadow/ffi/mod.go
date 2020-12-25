@@ -8,25 +8,41 @@ package main
 import "C"
 
 import (
-    "github.com/darwinia-network/shadow/pkg/shadow"
+    "github.com/darwinia-network/shadow/pkg/shadow/config"
     "github.com/darwinia-network/shadow/pkg/shadow/eth"
     "github.com/darwinia-network/shadow/pkg/log"
     "unsafe"
     "strings"
+    "runtime"
 )
 
 var (
-    CONFIG shadow.Config = shadow.Config{}
+    ethproof *eth.EthashProof
 )
 
 func init() {
-    _ = CONFIG.Load()
+    conf := &config.EthProof {
+        RootPath: "$HOME/.shadow",
+        Limitepochsize: 5,
+        LimitCPU: 3,
+    }
+    ethproof = eth.NewEthashProof(conf)
+    runtime.GOMAXPROCS(conf.LimitCPU)
+}
+
+//export Start
+func Start(epoch uint64) {
+    ethproof.Start(epoch)
+}
+
+//export Stop
+func Stop() {
+    ethproof.Stop()
 }
 
 //export Epoch
-func Epoch(block uint64) bool {
-    _, err := eth.Epoch(block, &CONFIG)
-    return err == nil
+func Epoch(blockno uint64) bool {
+    return ethproof.NotifyEpoch(blockno)
 }
 
 //export Proof
@@ -37,13 +53,13 @@ func Proof(api string, number uint64) *C.char {
         return C.CString("")
     }
 
-    proof, err := eth.Proof(&header, &CONFIG)
+    _, proof, err := ethproof.Proof(&header, true)
     if err != nil {
         log.Error("get ethashproof when get proof failed %v", err)
         return C.CString("")
     }
 
-    return C.CString(eth.EncodeProofArray(proof.Format()))
+    return C.CString(eth.EncodeProofArray(proof))
 }
 
 //export Receipt

@@ -35,6 +35,8 @@ extern "C" {
     fn Receipt(api: GoString, tx: GoString) -> GoTuple;
     fn Epoch(input: libc::c_uint) -> bool;
     fn Free(pointer: *const c_char);
+    fn Start(input: libc::c_uint);
+    fn Stop();
 }
 
 struct WrapperCString {
@@ -84,6 +86,16 @@ pub fn proof(api: &str, block: u64) -> String {
 /// Proof eth header by number
 pub fn epoch(block: u64) -> bool {
     unsafe { Epoch(block as u32) }
+}
+
+/// Start ethproof with block
+pub fn start(epoch: u64) {
+    unsafe { Start(epoch as u32) }
+}
+
+/// Stop ethproof
+pub fn stop() {
+    unsafe { Stop(); }
 }
 
 /// Get receipt by tx hash
@@ -138,10 +150,12 @@ pub fn import<F>(path: &str, from: i32, to: i32, batch: i32, mut callback: F) ->
 mod test {
     #[test]
     fn test_proof() {
+        super::start(0);
         super::proof(
             "https://ropsten.infura.io/v3/0bfb9acbb13c426097aabb1d81a9d016",
             1,
         );
+        super::stop();
     }
 
     #[test]

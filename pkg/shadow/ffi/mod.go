@@ -12,7 +12,6 @@ import (
     "github.com/darwinia-network/shadow/pkg/shadow/eth"
     "github.com/darwinia-network/shadow/pkg/log"
     "unsafe"
-    "strings"
     "runtime"
     "path/filepath"
 )

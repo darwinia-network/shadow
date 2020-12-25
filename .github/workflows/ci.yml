@@ -1,4 +1,4 @@
-name: shadow
+name: CI
 
 on:
   push:
@@ -7,7 +7,8 @@ on:
     branches: [ master ]
 
 jobs:
-  mmr:
+  build-and-test:
+    name: Build and Test
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -15,6 +16,7 @@ jobs:
     steps:
       - name: Checkout the source code
         uses: actions/checkout@v1
+
       - name: Cache MMR Library
         uses: actions/cache@v1
         env:
@@ -22,9 +24,12 @@ jobs:
         with:
           path: ./target
           key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('./Cargo.lock') }}
+
       - name: Build
         run: cargo build --release -vv
+
       - name: Check Binary
         run: ./target/release/shadow --version
+
       - name: Run tests
         run: cargo test --release -vv

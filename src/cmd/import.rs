@@ -38,6 +38,11 @@ fn geth(path: String, to: i32) -> Result<(), Error> {
     std::env::set_var("GO_LOG", "info");
     env_logger::init();
 
+    if !path.trim_end_matches("/").ends_with("chaindata") {
+        error!("invalid geth data path(must endwith chaindata) {}", path);
+        return Err(Error::Primitive(String::from("invalid geth data path")))
+    }
+
     let shadow_unsafe= ShadowUnsafe::new(None);
 
     let mut mmr_size = helper::mmr_size_from_store(&shadow_unsafe.db);

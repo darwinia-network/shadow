@@ -28,7 +28,7 @@ pub trait MmrClientTrait {
     fn backup(&self, dir: PathBuf) -> Result<()>;
     fn import_from_backup(&mut self, backup_file: PathBuf) -> Result<()>;
 
-    fn import_from_geth(&mut self, geth_dir: PathBuf, til_block: u64) -> Result<()> {
+    fn import_from_geth(&mut self, geth_dir: PathBuf, til_block: u64, batch: i32) -> Result<()> {
         let start = Instant::now();
 
         let from = self.get_leaf_count()? as usize;
@@ -38,21 +38,25 @@ pub trait MmrClientTrait {
             ).into());
         }
 
-        let hashes = ffi::import(geth_dir.to_str().unwrap(), from as i32, til_block as i32);
-        let hashes_vec: Vec<&str> = hashes.split(',').collect::<Vec<&str>>();
+        ffi::import(geth_dir.to_str().unwrap(), from as i32, til_block as i32, batch, |hashes| {
+            let hashes_vec: Vec<&str> = hashes.split(',').collect::<Vec<&str>>();
 
-        let size = hashes_vec.len();
-        if !hashes.trim().is_empty() && size > 0 {
-            info!("Importing ethereum headers from {:?}, size {} ...", geth_dir, size);
-            self.batch_push(&hashes_vec)?;
-            info!("Block {} ~ {}'s hash has been pushed into mmr store", from, from + size - 1);
-            info!("Done.");
+            let size = hashes_vec.len();
+            if !hashes.trim().is_empty() && size > 0 {
+                info!("Importing ethereum headers from {:?}, size {} ...", geth_dir, size);
+                self.batch_push(&hashes_vec).unwrap();
+                info!("Block {} ~ {}'s hash has been pushed into mmr store", from, from + size - 1);
+                info!("Done.");
 
-            let elapsed = start.elapsed();
-            info!("batch_push elapsed: {:?}", elapsed);
-        } else {
-            info!("There is no block hash fetched between {} ~ {}", from, til_block);
-        }
+                let elapsed = start.elapsed();
+                info!("batch_push elapsed: {:?}", elapsed);
+                true
+            } else {
+                info!("There is no block hash fetched between {} ~ {}", from, til_block);
+                false
+            }
+        });
+
 
         Ok(())
     }

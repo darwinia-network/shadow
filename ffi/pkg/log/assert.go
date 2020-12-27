@@ -3,11 +3,6 @@ package log
 import (
 	"os"
 	"reflect"
-<<<<<<< HEAD:ffi/pkg/shadow/util/assert.go
-
-	"github.com/darwinia-network/shadow/ffi/pkg/shadow/log"
-=======
->>>>>>> master:ffi/pkg/log/assert.go
 )
 
 // Check if is empty

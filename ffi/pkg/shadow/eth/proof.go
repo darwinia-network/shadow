@@ -11,11 +11,11 @@ import (
     "path/filepath"
     "github.com/ethereum/go-ethereum/core/types"
     "github.com/ethereum/go-ethereum/common/hexutil"
-    "github.com/darwinia-network/shadow/pkg/ethashproof"
-    "github.com/darwinia-network/shadow/pkg/ethashproof/ethash"
-    "github.com/darwinia-network/shadow/pkg/ethashproof/mtree"
-    "github.com/darwinia-network/shadow/pkg/log"
-    "github.com/darwinia-network/shadow/pkg/shadow/config"
+    "github.com/darwinia-network/shadow/ffi/pkg/ethashproof"
+    "github.com/darwinia-network/shadow/ffi/pkg/ethashproof/ethash"
+    "github.com/darwinia-network/shadow/ffi/pkg/ethashproof/mtree"
+    "github.com/darwinia-network/shadow/ffi/pkg/log"
+    "github.com/darwinia-network/shadow/ffi/pkg/shadow/config"
 )
 
 type EthashProof struct {

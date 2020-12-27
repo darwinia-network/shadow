@@ -38,11 +38,7 @@ func emit(label string, ctx string) {
 		color.New(color.FgHiBlack).Sprintf("["),
 		t,
 		label,
-<<<<<<< HEAD:ffi/pkg/shadow/log/mod.go
-    "go::" + strings.SplitAfter(file, "pkg::")[1],
-=======
 		"go::" + strings.SplitAfter(file, "pkg::")[1],
->>>>>>> master:ffi/pkg/log/log.go
 		color.New(color.FgHiBlack).Sprintf("]"),
 		ctx,
 	))

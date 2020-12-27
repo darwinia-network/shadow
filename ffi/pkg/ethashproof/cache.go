@@ -7,8 +7,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/darwinia-network/shadow/pkg/ethashproof/mtree"
-	"github.com/darwinia-network/shadow/pkg/ethashproof/ethash"
+	"github.com/darwinia-network/shadow/ffi/pkg/ethashproof/mtree"
+	"github.com/darwinia-network/shadow/ffi/pkg/ethashproof/ethash"
 )
 
 type DatasetMerkleTreeCache struct {

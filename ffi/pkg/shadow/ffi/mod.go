@@ -8,9 +8,9 @@ package main
 import "C"
 
 import (
-    "github.com/darwinia-network/shadow/pkg/shadow/config"
-    "github.com/darwinia-network/shadow/pkg/shadow/eth"
-    "github.com/darwinia-network/shadow/pkg/log"
+    "github.com/darwinia-network/shadow/ffi/pkg/shadow/config"
+    "github.com/darwinia-network/shadow/ffi/pkg/shadow/eth"
+    "github.com/darwinia-network/shadow/ffi/pkg/log"
     "unsafe"
     "strings"
     "runtime"

@@ -10,7 +10,7 @@ import (
 	"github.com/ethereum/go-ethereum/consensus/ethash"
 	"github.com/ethereum/go-ethereum/crypto"
 	"golang.org/x/crypto/sha3"
-	"github.com/darwinia-network/shadow/pkg/log"
+	"github.com/darwinia-network/shadow/ffi/pkg/shadow/log"
 )
 
 var (

@@ -33,7 +33,7 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/consensus"
 	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/darwinia-network/shadow/pkg/log"
+	"github.com/darwinia-network/shadow/ffi/pkg/log"
 )
 
 const (

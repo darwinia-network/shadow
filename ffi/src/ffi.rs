@@ -1,7 +1,7 @@
 //! Ethereum ffi bindgen
 use std::{
     ffi::{CStr, CString},
-	os::raw::c_char,
+    os::raw::{c_char, c_void},
     fmt,
 };
 
@@ -18,13 +18,25 @@ struct GoTuple {
     header_hash: *const c_char,
 }
 
+extern "C" fn geth_handler(x: *const c_char, arg: *mut c_void) -> bool {
+    unsafe {
+        let receiver: &mut &mut dyn FnMut(&str) -> bool =  &mut *(arg as *mut &mut dyn FnMut(&str) -> bool);
+        let result = &CStr::from_ptr(x)
+              .to_string_lossy()
+              .to_string();
+        receiver(result)
+    }
+}
+
 #[link(name = "darwinia_shadow")]
 extern "C" {
-    fn Import(path: GoString, from: libc::c_int, to: libc::c_int) -> *const c_char;
+    fn Import(path: GoString, from: libc::c_int, to: libc::c_int, batch: libc::c_int, f: Option<extern "C" fn(x: *const c_char, arg: *mut c_void) -> bool>, arg: *mut c_void) -> bool;
     fn Proof(api: GoString, number: libc::c_uint) -> *const c_char;
     fn Receipt(api: GoString, tx: GoString) -> GoTuple;
     fn Epoch(input: libc::c_uint) -> bool;
-	fn Free(pointer: *const c_char);
+    fn Free(pointer: *const c_char);
+    fn Start(input: libc::c_uint);
+    fn Stop();
 }
 
 struct WrapperCString {
@@ -59,7 +71,7 @@ impl Drop for WrapperCString {
 pub fn proof(api: &str, block: u64) -> String {
     let c_api = CString::new(api).expect("CString::new failed");
     unsafe {
-		WrapperCString::new(
+        WrapperCString::new(
             Proof(
                 GoString {
                     a: c_api.as_ptr(),
@@ -74,6 +86,16 @@ pub fn proof(api: &str, block: u64) -> String {
 /// Proof eth header by number
 pub fn epoch(block: u64) -> bool {
     unsafe { Epoch(block as u32) }
+}
+
+/// Start ethproof with block
+pub fn start(epoch: u64) {
+    unsafe { Start(epoch as u32) }
+}
+
+/// Stop ethproof
+pub fn stop() {
+    unsafe { Stop(); }
 }
 
 /// Get receipt by tx hash
@@ -93,26 +115,34 @@ pub fn receipt(api: &str, tx: &str) -> (String, String, String) {
         );
 
         (
-			WrapperCString::new(receipt.index).to_string(),
+            WrapperCString::new(receipt.index).to_string(),
             WrapperCString::new(receipt.proof).to_string(),
             WrapperCString::new(receipt.header_hash).to_string(),
         )
     }
 }
 
-/// Get receipt by tx hash
-pub fn import(path: &str, from: i32, to: i32) -> String {
-    unsafe {
-        let c_path = CString::new(path).expect("CString::new failed");
-        WrapperCString::new(Import(
+/// import from geth
+pub fn import<F>(path: &str, from: i32, to: i32, batch: i32, mut callback: F) -> bool
+    where F: FnMut(&str) -> bool
+{
+    // reason for double indirection is that a "Trait Object" is a fat pointer, the size of
+    // which is incompatible with the C pointer *mut void
+    let mut cb: &mut dyn FnMut(&str) -> bool = &mut callback;
+    let cb = &mut cb;
+    let c_path = CString::new(path).expect("CString::new failed");
+    unsafe { 
+        Import(
             GoString {
                 a: c_path.as_ptr(),
                 b: c_path.as_bytes().len() as i64,
             },
             from,
             to,
-        ))
-        .to_string()
+            batch,
+            Some(geth_handler),
+            cb as *mut _ as *mut c_void
+        )
     }
 }
 
@@ -120,10 +150,12 @@ pub fn import(path: &str, from: i32, to: i32) -> String {
 mod test {
     #[test]
     fn test_proof() {
+        super::start(0);
         super::proof(
             "https://ropsten.infura.io/v3/0bfb9acbb13c426097aabb1d81a9d016",
             1,
         );
+        super::stop();
     }
 
     #[test]

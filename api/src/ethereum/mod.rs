@@ -7,6 +7,7 @@ mod receipt;
 
 pub use self::{
     count::handle as count,
+    ffi::{epoch, import, start, stop},
     parent_mmr_root::handle as parent_mmr_root,
     mmr_leaf::handle as mmr_leaf,
     proof::{handle as proof, ProposalReq},

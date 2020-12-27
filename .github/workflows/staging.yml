@@ -1,7 +1,7 @@
 name: Staging
 on:
   push:
-    branches: ["staging", "multistore"]
+    branches: ["master"]
 
 jobs:
   build-and-deploy:
@@ -29,4 +29,3 @@ jobs:
           docker_registry: quay.io
           trigger_token: ${{ secrets.ITERING_DEPLOYMENT_TRIGGER_TOKEN }}
           trigger_endpoint: ${{ secrets.ITERING_DEPLOYMENT_TRIGGER_ENDPOINT }}
-          skip_deploy: true # for now

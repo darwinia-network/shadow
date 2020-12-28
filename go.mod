@@ -9,6 +9,7 @@ require (
 	github.com/fatih/color v1.3.0
 	github.com/go-logfmt/logfmt v0.4.0 // indirect
 	github.com/golang/protobuf v1.3.3 // indirect
+	github.com/golang/snappy v0.0.1
 	github.com/hashicorp/golang-lru v0.5.4
 	github.com/huandu/xstrings v1.3.2
 	github.com/mattn/go-isatty v0.0.12 // indirect
@@ -18,6 +19,7 @@ require (
 	github.com/prometheus/tsdb v0.7.1 // indirect
 	github.com/regcostajr/go-web3 v0.0.0-20180609031449-555e83b623dd
 	github.com/shopspring/decimal v1.2.0
+	github.com/syndtr/goleveldb v1.0.1-0.20190923125748-758128399b1d
 	github.com/ttacon/builder v0.0.0-20170518171403-c099f663e1c2 // indirect
 	github.com/ttacon/libphonenumber v1.1.0
 	github.com/tuvistavie/securerandom v0.0.0-20140719024926-15512123a948

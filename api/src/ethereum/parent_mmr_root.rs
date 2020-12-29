@@ -18,13 +18,13 @@ pub enum MMRRootResult {
 /// Get target mmr
 #[allow(clippy::eval_order_dependence)]
 pub async fn handle(block: Path<String>, app_data: Data<AppData>) -> impl Responder {
-    match mmr_root(block, &app_data.mmr_db) {
+    match parent_mmr_root(block, &app_data.mmr_db) {
         Ok(root) => Json(MMRRootResult::MmrRoot { mmr_root: format!("0x{}", root) }),
         Err(err) => Json(MMRRootResult::Error { error: err.to_string() })
     }
 }
 
-fn mmr_root(block: Path<String>, mmr_db: &Database) -> Result<String> {
+fn parent_mmr_root(block: Path<String>, mmr_db: &Database) -> Result<String> {
     let block: u64 = block.to_string().parse()?;
     let leaf_index = block - 1;
     let client = build_client(mmr_db)?;

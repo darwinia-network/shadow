@@ -27,7 +27,6 @@ import (
 	"path/filepath"
 	"reflect"
 	"runtime"
-	"strconv"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -115,7 +114,7 @@ func memoryMapAndGenerate(path string, size uint64, generator func(buffer []uint
 		return nil, nil, nil, err
 	}
 	// Create a huge temporary empty file to fill with data
-	temp := path + "." + strconv.Itoa(rand.Int())
+	temp := path + ".tmp"
 
 	dump, err := os.Create(temp)
 	if err != nil {
@@ -289,6 +288,23 @@ type dataset struct {
 // interface to be usable in an LRU cache.
 func newDataset(epoch uint64) interface{} {
 	return &dataset{epoch: epoch}
+}
+
+func RemoveDatasetFile(dir string, epoch uint64) {
+    seed := seedHash(uint64(epoch)*epochLength + 1)
+    var endian string
+    if !isLittleEndian() {
+        endian = ".be"
+    }
+    path := filepath.Join(dir, fmt.Sprintf("full-R%d-%x%s", algorithmRevision, seed[:8], endian))
+    os.Remove(path)
+    log.New("epoch", epoch).Info("remmove dag file successed", "fullpath", path)
+}
+
+func RemoveTempFile(dir string, epoch uint64) {
+    dagFile := PathToDAG(epoch, dir)
+    tmpFile := dagFile + ".tmp"
+    os.Remove(tmpFile)
 }
 
 // generate ensures that the dataset content is generated before use.

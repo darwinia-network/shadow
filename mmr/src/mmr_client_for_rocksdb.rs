@@ -2,10 +2,11 @@ use cmmr::{MMR, MMRStore};
 use rocksdb::{IteratorMode, DB};
 
 use crate::{Result, MergeHash, H256, MmrClientTrait, mmr_size_to_last_leaf};
-use crate::RocksdbStore;
+use crate::{RocksdbStore, RocksBatchStore};
 use std::sync::Arc;
 use rocksdb::backup::{BackupEngine, BackupEngineOptions, RestoreOptions};
 use std::path::PathBuf;
+use std::time::Instant;
 use std::{io, fs, env};
 use std::io::{Write, stdout};
 use tar::Builder;
@@ -23,22 +24,22 @@ impl MmrClientForRocksdb {
 }
 
 impl MmrClientTrait for MmrClientForRocksdb {
-    fn push(&mut self, elem: &str) -> Result<u64> {
+    fn push(&mut self, elem: &[u8; 32]) -> Result<u64> {
         let store = RocksdbStore::with(self.db.clone());
         let mut mmr = MMR::<[u8; 32], MergeHash, _>::new(self.get_mmr_size()?, store);
-        let elem = H256::from(elem)?;
-        let position = mmr.push(elem)?;
+        //let elem = H256::from(elem)?;
+        let position = mmr.push(*elem)?;
         mmr.commit()?;
         Ok(position)
     }
 
-    fn batch_push(&mut self, elems: &[&str]) -> Result<Vec<u64>> {
+    fn batch_push(&mut self, elems: &Vec<[u8; 32]>) -> Result<Vec<u64>> {
         let mut result = vec![];
 
         let store = RocksdbStore::with(self.db.clone());
         let mut mmr = MMR::<[u8; 32], MergeHash, _>::new(self.get_mmr_size()?, store);
         for &elem in elems {
-            let elem = H256::from(elem)?;
+            //let elem = H256::from(elem)?;
             let position = mmr.push(elem)?;
             result.push(position);
         }
@@ -107,7 +108,7 @@ impl MmrClientTrait for MmrClientForRocksdb {
     fn trim_from(&self, leaf_index: u64) -> Result<()> {
         let mmr_size = self.get_mmr_size().unwrap();
         for i in cmmr::leaf_index_to_pos(leaf_index)..mmr_size {
-            self.db.delete(i.to_le_bytes())?;
+            self.db.delete(i.to_be_bytes())?;
         }
 
         trace!("Trimed leaves greater and equal than {}", leaf_index);
@@ -160,6 +161,50 @@ impl MmrClientTrait for MmrClientForRocksdb {
         //
         let mut engine = BackupEngine::open(&BackupEngineOptions::default(), &wal_dir)?;
         engine.restore_from_latest_backup(self.db.path(), wal_dir, &RestoreOptions::default())?;
+        Ok(())
+    }
+
+    fn import_from_geth(&mut self, geth_dir: PathBuf, til_block: u64) -> Result<()> {
+        const BATCH: i32 = 10240;
+        let start = Instant::now();
+        let from = self.get_leaf_count()? as usize;
+        let mut leaf = from;
+        if from >= til_block as usize {
+            return Err(anyhow::anyhow!("The to position of mmr is {}, can not import mmr from {}, from must be less than to",
+                                       til_block, from
+                                      ).into());
+        }
+        let mut mmr_size = self.get_mmr_size()?;
+        info!("Importing ethereum headers from {:?}", geth_dir);
+        ffi::import(geth_dir.to_str().unwrap(), from as i32, til_block as i32, BATCH, |hashes| {
+            leaf += hashes.len();
+            let bstore = RocksBatchStore::with(self.db.clone());
+            let mut mmr = MMR::<_, MergeHash, _>::new(mmr_size, &bstore);
+            for hash in &hashes {
+                if let Err(e) = mmr.push(*hash) {
+                    error!("push mmr failed, exception {}", e);
+                    return false
+                }
+            }
+            mmr_size = mmr.mmr_size();
+            bstore.start_batch();
+            match mmr.commit() {
+                Err(e) => {
+                    error!("commit mmr failed exception{}", e);
+                    false
+                },
+                _ => {
+                    if let Err(_e) = bstore.commit_batch() {
+                        return false;
+                    }
+                    true
+                }
+            }
+        });
+        let elapsed = start.elapsed();
+        info!("the latest leaf is {}", leaf);
+        info!("batch_push elapsed: {:?}", elapsed);
+        info!("Done.");
         Ok(())
     }
 }

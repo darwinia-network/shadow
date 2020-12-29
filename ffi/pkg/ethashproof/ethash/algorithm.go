@@ -18,7 +18,6 @@ package ethash
 
 import (
 	"encoding/binary"
-	"fmt"
 	"hash"
 	"math/big"
 	"reflect"
@@ -32,6 +31,7 @@ import (
 	"github.com/ethereum/go-ethereum/common/bitutil"
 	"github.com/ethereum/go-ethereum/crypto"
 	"golang.org/x/crypto/sha3"
+	"github.com/darwinia-network/shadow/ffi/pkg/log"
 )
 
 const (
@@ -142,7 +142,7 @@ func generateCache(dest []uint32, epoch uint64, seed []byte) {
 	start := time.Now()
 	defer func() {
 		elapsed := time.Since(start)
-		fmt.Printf("Generated ethash verification cache: %s elapsed\n", common.PrettyDuration(elapsed).String())
+		log.Info("Generated ethash verification cache: %s elapsed", common.PrettyDuration(elapsed).String())
 	}()
 	// Convert our destination slice to a byte buffer
 	header := *(*reflect.SliceHeader)(unsafe.Pointer(&dest))
@@ -166,7 +166,7 @@ func generateCache(dest []uint32, epoch uint64, seed []byte) {
 			case <-done:
 				return
 			case <-time.After(3 * time.Second):
-				fmt.Printf("Generating ethash verification cache: %d%%, elapsed: %s", atomic.LoadUint32(&progress)*100/uint32(rows)/4, common.PrettyDuration(time.Since(start)))
+				log.Info("Generating ethash verification cache: %d%%, elapsed: %s", atomic.LoadUint32(&progress)*100/uint32(rows)/4, common.PrettyDuration(time.Since(start)))
 			}
 		}
 	}()
@@ -263,7 +263,7 @@ func generateDataset(dest []uint32, epoch uint64, cache []uint32) {
 	start := time.Now()
 	defer func() {
 		elapsed := time.Since(start)
-		fmt.Printf("Generated DAG: %s elapsed\n", common.PrettyDuration(elapsed).String())
+		log.Info("Generated DAG: %s elapsed", common.PrettyDuration(elapsed).String())
 	}()
 
 	// Figure out whether the bytes need to be swapped for the machine
@@ -307,7 +307,7 @@ func generateDataset(dest []uint32, epoch uint64, cache []uint32) {
 				copy(dataset[index*hashBytes:], item)
 
 				if status := atomic.AddUint64(&progress, 1); status%percent == 0 {
-					fmt.Printf("Generating DAG in progress: %d%%, elapsed: %s\n", uint64(status*100)/(size/hashBytes), common.PrettyDuration(time.Since(start)).String())
+					log.Info("Generating DAG in progress: %d%%, elapsed: %s", uint64(status*100)/(size/hashBytes), common.PrettyDuration(time.Since(start)).String())
 				}
 			}
 		}(i)

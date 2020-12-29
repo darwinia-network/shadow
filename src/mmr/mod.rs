@@ -54,4 +54,3 @@ fn create_table_if_not_exists(pool: Pool) -> Result<()> {
     }
     Ok(())
 }
-

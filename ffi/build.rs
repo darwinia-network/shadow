@@ -3,13 +3,12 @@ use std::{env, process::Command};
 fn main() {
     // Pre-check
     println!("cargo:rerun-if-changed=build.rs");
-    println!("cargo:rerun-if-changed=pkg/shadow/eth/receipt.go");
-    println!("cargo:rerun-if-changed=pkg/shadow/eth/proof.go");
-    println!("cargo:rerun-if-changed=pkg/shadow/lock.go");
+    println!("cargo:rerun-if-changed=pkg/shadow/ffi/eth/receipt.go");
+    println!("cargo:rerun-if-changed=pkg/shadow/ffi/eth/proof.go");
     println!("cargo:rerun-if-changed=pkg/shadow/ffi/mod.go");
 
     // set the env if build failed
-    env::set_var("CGO_CFLAGS", "-Wno-undef-prefix");
+    //env::set_var("CGO_CFLAGS", "-Wno-undef-prefix");
 
     // Declare build args
     let mut dynamic = match env::var("LIBRARY_TYPE") {

@@ -8,6 +8,7 @@ import (
 
 	"github.com/darwinia-network/shadow/ffi/pkg/ethashproof/ethash"
 	"github.com/darwinia-network/shadow/ffi/pkg/ethashproof/mtree"
+	"github.com/darwinia-network/shadow/ffi/pkg/log"
 )
 
 func processDuringRead(f *os.File, startIn128Res int, fullSizeIn128Res uint32, mt *mtree.DagTree) error {
@@ -46,57 +47,57 @@ func processDuringRead(f *os.File, startIn128Res int, fullSizeIn128Res uint32, m
 // 3. If saveCache is true, save root merkle tree of 10 levels
 //    to disk
 // 4. Return merkle root
-func CalculateDatasetMerkleRoot(epoch uint64, saveCache bool) (mtree.Hash, error) {
-	blockno := epoch * 30000
-	fmt.Printf("Make the dag\n")
-	ethash.MakeDAG(blockno, ethash.DefaultDir)
+func CalculateDatasetMerkleRoot(dagdir, cachedir string, epoch uint64, saveCache bool) (mtree.Hash, error) {
+    blockno := epoch * 30000
+    log.Info("Make the dag epoch %v", epoch)
+    ethash.MakeDAG(blockno, dagdir)
 
-	fmt.Printf("Init the tree\n")
-	dt := mtree.NewSHA256DagTree()
+    log.Info("Init the tree")
+    dt := mtree.NewSHA256DagTree()
 
-	fullSize := ethash.DAGSize(blockno)
-	fullSizeIn128Resolution := fullSize / 128
-	branchDepth := len(fmt.Sprintf("%b", fullSizeIn128Resolution-1))
-	dt.RegisterStoredLevel(uint32(branchDepth), uint32(0))
-	if saveCache {
-		indices := []uint32{}
-		for i := 0; i < 1<<CACHE_LEVEL; i++ {
-			eindex := i << (uint64(branchDepth) - CACHE_LEVEL)
-			if uint64(eindex) < fullSizeIn128Resolution {
-				indices = append(indices, uint32(eindex))
-			} else {
-				break
-			}
-		}
-		dt.RegisterIndex(indices...)
-	}
+    fullSize := ethash.DAGSize(blockno)
+    fullSizeIn128Resolution := fullSize / 128
+    branchDepth := len(fmt.Sprintf("%b", fullSizeIn128Resolution-1))
+    dt.RegisterStoredLevel(uint32(branchDepth), uint32(0))
+    if saveCache {
+	    indices := []uint32{}
+	    for i := 0; i < 1<<CACHE_LEVEL; i++ {
+	        eindex := i << (uint64(branchDepth) - CACHE_LEVEL)
+            if uint64(eindex) < fullSizeIn128Resolution {
+                indices = append(indices, uint32(eindex))
+            } else {
+                break
+            }
+        }
+        dt.RegisterIndex(indices...)
+    }
 
-	path := ethash.PathToDAG(uint64(blockno/30000), ethash.DefaultDir)
-	fmt.Printf("Calculating the proofs...\n")
-	f, err := os.Open(path)
-	if err != nil {
-		return mtree.Hash{}, err
-	}
-	defer f.Close()
-	_ = processDuringRead(f, 0, uint32(fullSizeIn128Resolution), dt)
-	dt.Finalize()
-	if saveCache {
-		result := &DatasetMerkleTreeCache{
-			Epoch:       epoch,
-			ProofLength: uint64(branchDepth),
-			CacheLength: CACHE_LEVEL,
-			RootHash:    dt.RootHash(),
-			Proofs:      [][]mtree.Hash{},
-		}
-		proofs := dt.ProofsForRegisteredIndices()
-		for _, proof := range proofs {
-			oneProof := proof[(uint64(branchDepth) - CACHE_LEVEL):]
-			result.Proofs = append(result.Proofs, oneProof)
-		}
-		err = PersistCache(result)
-		if err != nil {
-			return mtree.Hash{}, err
-		}
-	}
-	return dt.RootHash(), nil
+    path := ethash.PathToDAG(uint64(blockno/30000), dagdir)
+    log.Info("Calculating the proofs...")
+    f, err := os.Open(path)
+    if err != nil {
+        return mtree.Hash{}, err
+    }
+    defer f.Close()
+    _ = processDuringRead(f, 0, uint32(fullSizeIn128Resolution), dt)
+    dt.Finalize()
+    if saveCache {
+        result := &DatasetMerkleTreeCache{
+            Epoch:       epoch,
+            ProofLength: uint64(branchDepth),
+            CacheLength: CACHE_LEVEL,
+            RootHash:    dt.RootHash(),
+            Proofs:      [][]mtree.Hash{},
+        }
+        proofs := dt.ProofsForRegisteredIndices()
+        for _, proof := range proofs {
+            oneProof := proof[(uint64(branchDepth) - CACHE_LEVEL):]
+            result.Proofs = append(result.Proofs, oneProof)
+        }
+        err = PersistCache(cachedir, result)
+        if err != nil {
+            return mtree.Hash{}, err
+        }
+    }
+    return dt.RootHash(), nil
 }

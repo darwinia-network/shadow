@@ -23,16 +23,12 @@ pub async fn exec(port: u16, verbose: bool, uri: Option<String>, mode: String) -
     match mode.as_str() {
         "all" => {
             let runner = Runner::new(&eth, &mmr_db);
-            let mut epoch_runner = EpochRunner::new(&eth);
             select! {
                 _ = runner.start() => {
                     info!("Mmr Runner completed");
                 },
                 r = api::serve(port, &mmr_db, &eth) => {
                     error!("Api service completed: {:?}", r);
-                },
-                _ = epoch_runner.start() => {
-                    info!("Epoch Runner completed");
                 },
             };
         },

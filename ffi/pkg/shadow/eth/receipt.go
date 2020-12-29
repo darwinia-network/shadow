@@ -8,7 +8,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/darwinia-network/shadow/ffi/pkg/shadow/log"
+	"github.com/darwinia-network/shadow/ffi/pkg/log"
 	"github.com/darwinia-network/shadow/ffi/pkg/shadow/util"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
@@ -40,7 +40,7 @@ func RPC(api string, method string, params interface{}) (*dto.RequestResult, err
 	pointer := &dto.RequestResult{}
 	err := provider.SendRequest(pointer, method, params)
 	if err != nil {
-		log.Error("%v", err)
+		log.Error("rpc rquest api %v, method %v, %v", api, method, err)
 		return nil, err
 	}
 
@@ -110,7 +110,7 @@ type RedeemFor struct {
 func GetReceipt(api string, tx string) (ProofRecord, string, error) {
 	r, err := GetReceiptLog(tx, api)
 	if err != nil || r == nil {
-		log.Error("%s", err)
+		log.Error("get receipt failed with api %s, err %v", api, err)
 		return ProofRecord{}, "", err
 	}
 
@@ -137,7 +137,7 @@ func BuildProofRecord(api string, r *Receipts) (ProofRecord, string, error) {
 				receiptsMap.Set(hash[0], b)
 			} else {
 				log.Error("get receipt rlp failed error %v", err)
-      } 
+			}
 		}(hash)
 		wg.Done()
 	})

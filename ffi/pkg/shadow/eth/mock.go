@@ -7,7 +7,7 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/darwinia-network/shadow/ffi/pkg/shadow/log"
+	"github.com/darwinia-network/shadow/ffi/pkg/log"
 	"github.com/ethereum/go-ethereum/core/types"
 )
 
@@ -27,19 +27,19 @@ func UncleBlock(number uint64, api string) (types.Header, error) {
 	)
 
 	if err != nil {
-		log.Error("%v", err)
+		log.Error("get uncle block failed with rpc error %v", err)
 		return infuraResp.Result, err
 	}
 
 	err = json.NewDecoder(resp.Body).Decode(&infuraResp)
 	if err != nil {
-		log.Error("%v", err)
+		log.Error("get uncle block failed with decode err %v", err)
 		return infuraResp.Result, err
 	}
 
 	// Empty result
 	if reflect.DeepEqual(types.Header{}, infuraResp.Result) {
-		log.Error("%v", err)
+		log.Error("get uncle block failed with an empty result")
 		return infuraResp.Result, fmt.Errorf("The requesting block does not exist")
 	}
 

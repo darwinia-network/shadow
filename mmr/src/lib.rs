@@ -9,6 +9,7 @@ mod error;
 mod helper;
 mod mysql_store;
 mod rocksdb_store;
+mod rocksdb_batchstore;
 mod hash;
 mod mmr_client_for_mysql;
 mod mmr_client_trait;
@@ -18,6 +19,7 @@ pub use self::{
     error::{Result, MMRError as Error},
     hash::{MergeHash, H256},
     rocksdb_store::RocksdbStore,
+    rocksdb_batchstore::RocksBatchStore,
     mysql_store::MysqlStore,
     helper::mmr_size_to_last_leaf,
     mmr_client_trait::MmrClientTrait,

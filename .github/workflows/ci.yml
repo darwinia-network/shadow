@@ -9,15 +9,27 @@ on:
 jobs:
   build-and-test:
     name: Build and Test
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [macOS-latest, ubuntu-latest]
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout the source code
+        uses: actions/checkout@v1
 
-      - name: Install latest nightly
-        uses: actions-rs/toolchain@v1
+      - name: Cache MMR Library
+        uses: actions/cache@v1
+        env:
+          cache-name: mmr-cache
         with:
-          toolchain: nightly
-          target: wasm32-unknown-unknown
+          path: ./target
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('./Cargo.lock') }}
 
-      - name: Overall test
-        run: cargo test
+      - name: Build
+        run: cargo build --release -vv
+
+      - name: Check Binary
+        run: ./target/release/shadow --version
+
+      - name: Run tests
+        run: cargo test --release -vv

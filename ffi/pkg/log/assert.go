@@ -1,10 +1,8 @@
-package util
+package log
 
 import (
 	"os"
 	"reflect"
-
-	"github.com/darwinia-network/shadow/ffi/pkg/shadow/log"
 )
 
 // Check if is empty
@@ -18,7 +16,7 @@ func IsEmpty(x interface{}) bool {
 // Assert error and exit process
 func Assert(err error) {
 	if err != nil {
-		log.Error("%v", err)
+		Error("assert %v", err)
 		os.Exit(1)
 	}
 }
@@ -26,6 +24,6 @@ func Assert(err error) {
 // Assert error and exit process
 func AssertEmpty(v interface{}) {
 	if IsEmpty(v) {
-		log.Error("Empty interface")
+		Error("Empty interface")
 	}
 }

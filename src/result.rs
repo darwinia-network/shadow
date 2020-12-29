@@ -1,7 +1,6 @@
 //! MMR Errors
 use thiserror::Error as ThisError;
 use anyhow::Result as AnyResult;
-
 #[allow(missing_docs)]
 #[derive(ThisError, Debug)]
 pub enum Error {

@@ -46,7 +46,6 @@
 //! | ENV                | Desc                     | Example                            |
 //! |--------------------|--------------------------|------------------------------------|
 //! | `ETHEREUM_RPC`     | The rpc of ethereum node | ETHEREUM_RPC=http://localhost:8545 |
-//! | `ETHEREUM_ROPSTEN` | Enable ropsten source    | ETHEREUM_ROPSTEN=true              |
 //! | `MMR_LOG`          | The gap of mmr logs      | MMR_LOG=10000                      |
 //!
 //! ## Trouble Shooting

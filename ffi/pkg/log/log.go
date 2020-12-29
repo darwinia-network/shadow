@@ -15,6 +15,13 @@ const (
 	GO_LOG = "GO_LOG"
 )
 
+var LogLevel = map[string]int{
+    "trace": 0,
+    "info": 1,
+    "warn": 2,
+    "error": 3,
+}
+
 func emit(label string, ctx string) {
 	l.SetFlags(0)
 
@@ -25,47 +32,45 @@ func emit(label string, ctx string) {
 	_, file, _, _ := runtime.Caller(2)
 	file = file[:len(file)-3]
 	file = strings.ReplaceAll(file, "/", "::")
-
 	// prints log
 	l.Println(fmt.Sprintf(
 		"%s%s %v %s%s %s",
 		color.New(color.FgHiBlack).Sprintf("["),
 		t,
 		label,
-    "go::" + strings.SplitAfter(file, "pkg::")[1],
+		"go::" + strings.SplitAfter(file, "pkg::")[1],
 		color.New(color.FgHiBlack).Sprintf("]"),
 		ctx,
 	))
 }
 
-func checkMode(modes []string) bool {
-	for _, m := range modes {
-		if strings.Contains(strings.ToLower(os.Getenv(GO_LOG)), strings.ToLower(m)) {
-			return true
-		}
-	}
+func checkMode(l int) bool {
+    setted := strings.ToLower(os.Getenv(GO_LOG))
+    if setted == "" {
+        setted = "info"
+    }
+    level, ok := LogLevel[setted]
+    return ok && l >= level
+}
 
-	return false
+// Trace Logs
+func Trace(ctx string, a ...interface{}) {
+	if checkMode(LogLevel["trace"]) {
+		emit(color.New(color.FgHiBlack).Sprintf("TRACE"), fmt.Sprintf(ctx, a...))
+	}
 }
 
 // Info logs
 func Info(ctx string, a ...interface{}) {
-	if checkMode([]string{"INFO", "ALL"}) {
+	if checkMode(LogLevel["info"]) {
 		emit(color.GreenString("INFO "), fmt.Sprintf(ctx, a...))
 	}
 
 }
 
-// Trace Logs
-func Trace(ctx string, a ...interface{}) {
-	if checkMode([]string{"TRACE", "ALL"}) {
-		emit(color.New(color.FgHiBlack).Sprintf("TRACE"), fmt.Sprintf(ctx, a...))
-	}
-}
-
 // Warn Logs
 func Warn(ctx string, a ...interface{}) {
-	if checkMode([]string{"WARN", "ALL"}) {
+	if checkMode(LogLevel["warn"]) {
 		emit(color.YellowString("WARN "), fmt.Sprintf(ctx, a...))
 	}
 }

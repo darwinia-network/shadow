@@ -21,7 +21,7 @@ impl MmrClientForMysql {
 impl MmrClientTrait for MmrClientForMysql {
 
     /// push single element to mmr
-    fn push(&mut self, elem: &str) -> Result<u64> {
+    fn push(&mut self, elem: &[u8; 32]) -> Result<u64> {
         let mut conn = self.db.get_conn()?;
         let mut tx = conn.start_transaction(TxOpts::default())?;
 
@@ -30,8 +30,8 @@ impl MmrClientTrait for MmrClientForMysql {
         let mut batch: Vec<(Position, Hash, IsLeaf)> = vec![];
         let store = MysqlStore::new(self.db.clone(), &mut tx, &mut batch);
         let mut mmr = MMR::<[u8; 32], MergeHash, _>::new(self.get_mmr_size()?, store);
-        let elem = H256::from(elem)?;
-        let position = mmr.push(elem)?;
+        //let elem = H256::from(elem)?;
+        let position = mmr.push(*elem)?;
         mmr.commit()?;
         if !batch.is_empty() {
             let mut leaf_index = leaf_count;
@@ -54,7 +54,7 @@ impl MmrClientTrait for MmrClientForMysql {
     }
 
     /// push elements to mmr
-    fn batch_push(&mut self, elems: &[&str]) -> Result<Vec<u64>> {
+    fn batch_push(&mut self, elems: &Vec<[u8; 32]>) -> Result<Vec<u64>> {
         let mut result = vec![];
 
         let mut conn = self.db.get_conn()?;
@@ -68,7 +68,7 @@ impl MmrClientTrait for MmrClientForMysql {
 
         // let mut root_pos_list = vec![];
         for &elem in elems {
-            let elem = H256::from(elem)?;
+            //let elem = H256::from(elem)?;
             let position = mmr.push(elem)?;
             // let root = H256::hex(&mmr.get_root()?);
             // root_pos_list.push((position, root));

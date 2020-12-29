@@ -39,6 +39,8 @@ impl Runner {
 
         // Using a cache rpc block number to optimize and reduce rpc call.
         let mut last_rpc_block_number = self.eth.block_number().await?;
+        ffi::start(ptr/30_000);
+        let mut epoched = ptr;
 
         loop {
             // checking finalization, run too fast
@@ -49,14 +51,17 @@ impl Runner {
                 continue;
             }
 
+            if (ptr/30_000 * 30_000) as u64 + 30_000 > epoched && ffi::epoch(epoched) {
+                epoched += 30_000;
+            }
             let hash_from_ethereum = self.eth.get_header_by_number(ptr).await?.hash;
 
             if let Some(hash) = hash_from_ethereum {
-                let leaf = H256::hex(&hash);
+                //let leaf = H256::hex(&hash);
                 let client_type = self.database.clone();
                 let result = tokio::task::spawn_blocking(move || {
                     let mut client = build_client(&client_type)?;
-                    client.push(&leaf)
+                    client.push(&hash)
                 }).await?;
 
                 let leaf = H256::hex(&hash);

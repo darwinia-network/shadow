@@ -3,33 +3,19 @@ package ethash
 import (
 	"encoding/binary"
 	"fmt"
-	"os"
-	"os/user"
 	"path/filepath"
-	"runtime"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/consensus/ethash"
 	"github.com/ethereum/go-ethereum/crypto"
 	"golang.org/x/crypto/sha3"
+	"github.com/darwinia-network/shadow/ffi/pkg/log"
 )
 
 var (
 	Instance   = New(Config{"", 3, 0, "", 1, 0, ModeNormal}, nil, false)
-	DefaultDir = defaultDir()
 )
-
-func defaultDir() string {
-	home := os.Getenv("HOME")
-	if user, err := user.Current(); err == nil {
-		home = user.HomeDir
-	}
-	if runtime.GOOS == "windows" {
-		return filepath.Join(home, "AppData", "Ethash")
-	}
-	return filepath.Join(home, ".ethash")
-}
 
 func DAGSize(blockNum uint64) uint64 {
 	return datasetSizes[blockNum/epochLength]
@@ -99,8 +85,8 @@ func hashimotoIndices(hash []byte, nonce uint64, size uint64, lookup func(index 
 		binary.LittleEndian.PutUint32(digest[i*4:], val)
 	}
 	ethashResult := crypto.Keccak256(append(seed, digest...))
-	fmt.Printf("digest: %s\n", hexutil.Encode(digest))
-	fmt.Printf("ethash result: %s\n", hexutil.Encode(ethashResult))
+	log.Info("digest: %s", hexutil.Encode(digest))
+	log.Info("ethash result: %s", hexutil.Encode(ethashResult))
 
 	return result
 }

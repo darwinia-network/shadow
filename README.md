@@ -1,6 +1,6 @@
 # Shadow
 
-[![Shadow][workflow-badge]][github]
+[![CI](https://github.com/darwinia-network/shadow/workflows/CI/badge.svg)](https://github.com/darwinia-network/shadow)
 [![crate](https://img.shields.io/crates/v/darwinia-shadow.svg)](https://crates.io/crates/darwinia_shadow)
 [![doc](https://img.shields.io/badge/current-docs-brightgreen.svg)](https://docs.rs/darwinia_shadow/)
 [![LICENSE](https://img.shields.io/crates/l/darwinia-shadow.svg)](https://choosealicense.com/licenses/gpl-3.0/)

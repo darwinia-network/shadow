@@ -1,19 +1,21 @@
-use cmmr::MerkleProof;
-use darwinia_shadow::{
-    api::ethereum::{helper, ProposalReq},
-    mmr::{helper as mmr_helper, MergeHash, Runner, H256},
-    result::Error,
-    ShadowShared,
+use mmr::{
+    MerkleProof,
+    mmr_size_to_last_leaf,
+    MergeHash,
+    H256,
+    build_client,
+    MmrClientTrait
 };
-use primitives::rpc::RPC;
-use rocksdb::{IteratorMode, DB};
+use api::{ethereum::ProposalReq, Error};
+use primitives::rpc::{RPC, EthereumRPC};
+use darwinia_shadow::mmr::database;
 
-use std::env;
+use std::{env, sync::Arc};
 
-async fn stops_at(db: &DB, runner: &mut Runner, count: i64) -> Result<(), Error> {
-    let mut mmr_size = db.iterator(IteratorMode::Start).count() as u64;
+async fn stops_at(rpc: &Arc<EthereumRPC> , client: &mut Box<dyn MmrClientTrait>, count: i64) -> Result<(), Error> {
+    let mmr_size = client.get_mmr_size().unwrap();
     let mut ptr = {
-        let last_leaf = mmr_helper::mmr_size_to_last_leaf(mmr_size as i64);
+        let last_leaf = mmr_size_to_last_leaf(mmr_size as i64);
         if last_leaf == 0 {
             0
         } else {
@@ -25,8 +27,9 @@ async fn stops_at(db: &DB, runner: &mut Runner, count: i64) -> Result<(), Error>
         if ptr >= count {
             break;
         }
-        if let Ok(mmr_size_new) = runner.push(ptr, mmr_size).await {
-            mmr_size = mmr_size_new;
+        let hash_from_ethereum = rpc.get_header_by_number(ptr as u64).await?.hash;
+        if let Some(hash) = hash_from_ethereum {
+            client.push(&hash)?;
             ptr += 1;
         }
     }
@@ -36,13 +39,20 @@ async fn stops_at(db: &DB, runner: &mut Runner, count: i64) -> Result<(), Error>
 
 #[actix_rt::test]
 async fn test_proposal() {
-    env::set_var("ETHEREUM_RPC", r#"https://mainnet.infura.io/v3/0bfb9acbb13c426097aabb1d81a9d016"#);
-    let shared = ShadowShared::new(None);
-    let mut runner = Runner::from(shared.clone());
-    let rpc = &shared.eth;
+    use std::fs;
+    let rpcs = vec![String::from("https://mainnet.infura.io/v3/0bfb9acbb13c426097aabb1d81a9d016")];
+    let rpc = Arc::new(EthereumRPC::new(reqwest::Client::new(), rpcs));
+    let dbpath = env::temp_dir().join("test_proposal.db");
+    fs::remove_dir_all(&dbpath).unwrap_or_else(|err|{
+        println!("{}", err);
+    });
+    let path = dbpath.to_str().unwrap().to_string();
+    let mmr_db = database(Some(path)).unwrap();
+    //let mut runner = Runner::new(&rpc, &mmr_db);
+    let mut client = build_client(&mmr_db).unwrap();
 
     // Gen mmrs
-    assert!(stops_at(&shared.db, &mut runner, 30).await.is_ok());
+    assert!(stops_at(&rpc, &mut client, 30).await.is_ok());
 
     // Confirmed block on chain
     let confirmed = ProposalReq {
@@ -60,20 +70,21 @@ async fn test_proposal() {
 
     // Verify MMR
     let p_r0 = MerkleProof::<[u8; 32], MergeHash>::new(
-        cmmr::leaf_index_to_mmr_size(req_r0.last_leaf),
+        mmr::leaf_index_to_mmr_size(req_r0.last_leaf),
         req_r0
-            .mmr_proof(&shared.store)
+            .mmr_proof(&mmr_db)
+            .unwrap()
             .into_iter()
-            .map(|h| H256::from(&h))
+            .map(|h| H256::from(&h).unwrap())
             .collect(),
     );
 
     // Should pass verification
     assert!(p_r0
         .verify(
-            H256::from(&helper::parent_mmr_root(req_r0.target, &shared).unwrap()),
+            H256::from(&client.get_mmr_root(req_r0.target-1).unwrap().unwrap()).unwrap(),
             vec![(
-                cmmr::leaf_index_to_pos(req_r0.member),
+                mmr::leaf_index_to_pos(req_r0.member),
                 rpc.get_header_by_number(req_r0.member)
                     .await
                     .unwrap()
@@ -92,11 +103,12 @@ async fn test_proposal() {
 
     // Verify MMR
     let p_r1 = MerkleProof::<[u8; 32], MergeHash>::new(
-        cmmr::leaf_index_to_mmr_size(req_r1.last_leaf),
+        mmr::leaf_index_to_mmr_size(req_r1.last_leaf),
         req_r1
-            .mmr_proof(&shared.store)
+            .mmr_proof(&mmr_db)
+            .unwrap()
             .into_iter()
-            .map(|h| H256::from(&h))
+            .map(|h| H256::from(&h).unwrap())
             .collect(),
     );
 
@@ -105,9 +117,9 @@ async fn test_proposal() {
     // The the round 0's mmr_root to verify round 1's hash
     assert!(p_r1
         .verify(
-            H256::from(&helper::parent_mmr_root(req_r0.target, &shared).unwrap()),
+            H256::from(&client.get_mmr_root(req_r0.target-1).unwrap().unwrap()).unwrap(),
             vec![(
-                cmmr::leaf_index_to_pos(req_r1.member),
+                mmr::leaf_index_to_pos(req_r1.member),
                 rpc.get_header_by_number(req_r1.member)
                     .await
                     .unwrap()
@@ -116,4 +128,8 @@ async fn test_proposal() {
             )]
         )
         .unwrap_or(false));
+
+    fs::remove_dir_all(&dbpath).unwrap_or_else(|err|{
+        println!("{}", err);
+    });
 }

@@ -1,11 +1,15 @@
-use crate::{mmr::helper, result::Error, ShadowShared};
+use crate::{result::Result};
+use crate::mmr::database;
+use mmr::build_client;
 
 /// Count mmr
-pub fn exec() -> Result<(), Error> {
-    let shared = ShadowShared::new(None);
+pub fn exec(uri: Option<String>) -> Result<()> {
+    // Build mmr client
+    let client = build_client(&database(uri)?)?;
+
     println!(
-        "Current best block: {}",
-        helper::mmr_size_to_last_leaf(helper::mmr_size_from_store(&shared.db) as i64)
+        "Current leaf count: {}",
+        client.get_leaf_count()?
     );
 
     Ok(())

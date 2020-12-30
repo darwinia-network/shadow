@@ -71,15 +71,10 @@
 
 #[macro_use]
 extern crate log;
-#[macro_use]
-extern crate serde;
 
-mod shared;
+pub(crate) mod conf;
 
-pub mod api;
 pub mod cmd;
 pub mod mmr;
 pub mod result;
-
-pub use shared::ShadowShared;
-pub use shared::ShadowUnsafe;
+mod epoch;

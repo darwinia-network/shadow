@@ -2,7 +2,4 @@
 **/*target
 **/*Cargo.lock
 .idea
-/ffi
-/mmr
-/api
-build
+ffi/build

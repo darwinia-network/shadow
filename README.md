@@ -11,7 +11,7 @@ The shadow service for relayers and verify workers to retrieve header data and g
 ## Usage
 
 ```sh
-shadow 0.2.5
+shadow 0.2.16
 
 USAGE:
     shadow <SUBCOMMAND>
@@ -21,10 +21,12 @@ FLAGS:
     -V, --version    Prints version information
 
 SUBCOMMANDS:
-    count    Current block height in mmr store
-    help     Prints this message or the help of the given subcommand(s)
-    run      Start shadow service
-    trim     Trim mmr from target leaf
+    count     Current block height in mmr store
+    export    Exports shadow's rocksdb
+    help      Prints this message or the help of the given subcommand(s)
+    import    Imports mmr from shadow backup or geth
+    run       Start shadow service
+    trim      Trim mmr from target leaf
 ```
 
 
@@ -60,6 +62,36 @@ $ cargo install darwinia-shadow
 Everytime you run `proof` in error, please delete `~/.ethashproof` and `~/.ethash` 
 and retry.
 
+## Sub commands
+
+### import
+
+#### rockdb
+
+If `-u` not set, the default rocksdb dir is ~/.shadow/cache/mmr
+
+example:
+```
+shadow import \
+  -p /data/geth/chaindata \
+  -u /path/to/rocksdb/dir \ 
+  -t 11357653
+```
+
+#### mysql
+
+1. create database 'mmr_store'. Any database name can be used.
+
+2. run sub command 'import'
+
+    example:
+    ```
+    shadow import \
+      -p /data/geth/chaindata \
+      -u mysql://root:@localhost:3306/mmr_store \
+      -t 11357653
+    ```
+
 ## Apis
 
 ### Get the total number of leaves
@@ -71,14 +103,22 @@ and retry.
 ##### RESPONSE
 
 ```json
-count number
+{
+  "error": "INTEGER, the total number of leaves"
+}
+```
+
+```json
+{ 
+  "error": "STRING, error message"
+}
 ```
 
 ##### EXAMPLE
 
 ```bash
 > curl https://shadow.darwinia.network/ethereum/count
-128
+{"count":128}
 ```
 
 
@@ -101,6 +141,12 @@ count number
 }
 ```
 
+```json
+{ 
+  "error": "STRING, error message"
+}
+```
+
 ##### EXAMPLE
 
 ```bash
@@ -110,23 +156,27 @@ count number
 
 
 
-### Get the mmr root in `block_number`
-
-the mmr root of block_number's parent as leaf index
+### Get the mmr root by leaf's parent index
 
 ##### REQUEST
 
-`GET /ethereum/parent_mmr_root/{block_number}`
+`GET /ethereum/parent_mmr_root/{leaf_index}`
 
 ##### REQUEST PARAMS
 
-`block_number`:  from 0
+`leaf_index`:  from 0
 
 ##### RESPONSE
 
 ```json
 {
-  "mmr_root": "INTEGER, the mmr root of block_number's parent(block_number-1) as leaf index."
+  "mmr_root": "INTEGER, the mmr root of (leaf_index-1)"
+}
+```
+
+```json
+{ 
+  "error": "STRING, error message"
 }
 ```
 
@@ -134,6 +184,39 @@ the mmr root of block_number's parent as leaf index
 
 ```bash
 > curl https://shadow.darwinia.network/ethereum/parent_mmr_root/10
+{"mmr_root":"0xe28d7f650efb9cbaaca7f485d078c0f6b1104807a3a31f85fc1268b0673140ff"}
+```
+
+
+
+### Get the mmr root by leaf index
+
+##### REQUEST
+
+`GET /ethereum/mmr_root/{leaf_index}`
+
+##### REQUEST PARAMS
+
+`leaf_index`:  from 0
+
+##### RESPONSE
+
+```json
+{
+  "mmr_root": "INTEGER, the mmr root of leaf_index"
+}
+```
+
+```json
+{ 
+  "error": "STRING, error message"
+}
+```
+
+##### EXAMPLE
+
+```bash
+> curl https://shadow.darwinia.network/ethereum/mmr_root/9
 {"mmr_root":"0xe28d7f650efb9cbaaca7f485d078c0f6b1104807a3a31f85fc1268b0673140ff"}
 ```
 
@@ -182,6 +265,12 @@ the mmr root of block_number's parent as leaf index
 }
 ```
 
+```json
+{ 
+  "error": "STRING, error message"
+}
+```
+
 ##### EXAMPLE
 
 ```bash
@@ -189,9 +278,8 @@ the mmr root of block_number's parent as leaf index
     -X POST \
     -H "Content-Type: application/json" \
     -d '{"member": 2, "target": 10, "last_leaf": 9}'
-{"ethash_proof":[],"mmr_proof":[]}
+{"ethash_proof":[...],"mmr_proof":[...]}
 ```
-
 
 
 ### Get ethereum tx receipt by tx hash
@@ -214,8 +302,8 @@ the mmr root of block_number's parent as leaf index
 {
   "header": {
     "parent_hash": "hash of the parent block",
-    "timestamp": "INTEGER, the unix timestamp for when the block was collated",
-    "number": "INTEGER, the block number",
+    "timestamp": INTEGER, //the unix timestamp for when the block was collated
+    "number": INTEGER, // the block number
     "author": "the address of the beneficiary to whom the mining rewards were given",
     "transactions_root": "the root of the transaction trie of the block",
     "uncles_hash": "SHA3 of the uncles data in the block",
@@ -223,10 +311,10 @@ the mmr root of block_number's parent as leaf index
     "state_root": "the root of the final state trie of the block",
     "receipts_root": "the root of the receipts trie of the block",
     "log_bloom": "the bloom filter for the logs of the block",
-    "gas_used": "INTEGER, the total used gas by all transactions in this block",
-    "gas_limit": "INTEGER, the maximum gas allowed in this block",
-    "difficulty": "INTEGER, the difficulty for this block",
-    "seal": "STRING ARRAY",
+    "gas_used": INTEGER, // the total used gas by all transactions in this block
+    "gas_limit": INTEGER, // the maximum gas allowed in this block
+    "difficulty": INTEGER, // the difficulty for this block
+    "seal": STRING ARRAY, //
     "hash": "hash of the block"
   },
   "receipt_proof": {
@@ -235,10 +323,16 @@ the mmr root of block_number's parent as leaf index
     "header_hash": ""
   },
   "mmr_proof": {
-    "member_leaf_index": "INTEGER, just to get the mmr proof for this leaf",
-    "last_leaf_index": "INTEGER, mmr mountain boundary, mmr_proof_of(member_leaf_index, last_leaf_index)",
-    "proof": []
+    "member_leaf_index": INTEGER, // just to get the mmr proof for this leaf
+    "last_leaf_index": INTEGER, // mmr mountain boundary, mmr_proof_of(member_leaf_index, last_leaf_index)
+    "proof": [...]
   }
+}
+```
+
+```json
+{ 
+  "error": "STRING, error message"
 }
 ```
 
@@ -246,8 +340,9 @@ the mmr root of block_number's parent as leaf index
 
 ```bash
 > curl https://shadow.darwinia.network/ethereum/receipt/0x9b8f30bc20809571dd2382433b28d259456cb7f03aec935f6592e1ba1f1173e1/11330897
-{"header":{},"receipt_proof":{},"mmr_proof":{}}
+{"header":{...},"receipt_proof":{...},"mmr_proof":{...}}
 ```
+
 
 
 

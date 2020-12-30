@@ -11,7 +11,7 @@ The shadow service for relayers and verify workers to retrieve header data and g
 ## Usage
 
 ```sh
-shadow 0.2.16
+shadow 0.4.0
 
 USAGE:
     shadow <SUBCOMMAND>

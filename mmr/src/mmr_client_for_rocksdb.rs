@@ -1,5 +1,5 @@
 use cmmr::{MMR, MMRStore};
-use rocksdb::{IteratorMode, DB};
+use rocksdb::DB;
 
 use crate::{Result, MergeHash, H256, MmrClientTrait, mmr_size_to_last_leaf};
 use crate::{RocksdbStore, RocksBatchStore};
@@ -49,7 +49,8 @@ impl MmrClientTrait for MmrClientForRocksdb {
     }
 
     fn get_mmr_size(&self) -> Result<u64> {
-        let mmr_size = self.db.iterator(IteratorMode::Start).count() as u64;
+        let store = RocksdbStore::with(self.db.clone());
+        let mmr_size = store.get_mmr_size() as u64;
         Ok(mmr_size)
     }
 

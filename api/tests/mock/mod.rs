@@ -13,7 +13,7 @@ pub use header::HEADER;
 // pub use mock_header_19::MOCK_HEADER_19;
 use scale::Decode;
 
-use darwinia_shadow::mmr::H256;
+use mmr::H256;
 use primitives::{
     bytes,
     chain::ethereum::{EthashProof, EthereumHeader},
@@ -22,7 +22,7 @@ use primitives::{
 /// Hash array for tests
 pub fn ha() -> [[u8; 32]; 10] {
     let mut hashes = [[0; 32]; 10];
-    (0..10).for_each(|i| hashes[i] = <[u8; 32] as H256>::from(HASHES[i]));
+    (0..10).for_each(|i| hashes[i] = H256::from(HASHES[i]).unwrap());
     hashes
 }
 

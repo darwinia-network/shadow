@@ -27,6 +27,9 @@ pub use self::{
     mmr_client_for_rocksdb::MmrClientForRocksdb,
 };
 
+pub use cmmr::MerkleProof;
+pub use cmmr::leaf_index_to_mmr_size;
+pub use cmmr::leaf_index_to_pos;
 
 /// Client type with diff mmr store
 #[derive(Clone)]

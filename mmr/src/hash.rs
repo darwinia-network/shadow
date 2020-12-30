@@ -47,3 +47,14 @@ impl Merge for MergeHash {
         hash(&data.as_slice())
     }
 }
+
+#[test]
+fn test_merge() {
+    let lhs: [u8; 32] = H256::from("34f61bfda344b3fad3c3e38832a91448b3c613b199eb23e5110a635d71c13c65").unwrap();
+    let rhs: [u8; 32] = H256::from("70d641860d40937920de1eae29530cdc956be830f145128ebb2b496f151c1afb",).unwrap();
+    assert_eq!(
+        "3aafcc7fe12cb8fad62c261458f1c19dba0a3756647fa4e8bff6e248883938be",
+        H256::hex(&MergeHash::merge(&lhs, &rhs))
+    );
+}
+

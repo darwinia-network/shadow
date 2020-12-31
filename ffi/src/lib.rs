@@ -1,5 +1,5 @@
 mod ffi;
 
-pub use ffi::{
+pub use crate::ffi::{
     proof, epoch, receipt, import, start, stop,
 };

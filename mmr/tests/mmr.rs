@@ -4,7 +4,8 @@ use mmr::{
     build_client,
     Database,
     MmrClientTrait,
-    MergeHash
+    MergeHash,
+    RocksBatchStore
 };
 use std::sync::Arc;
 use rocksdb::{Options, DB};
@@ -160,3 +161,19 @@ fn test_rocks_client_proof() {
     assert!(DB::destroy(&Options::default(), &db).is_ok());
 }
 
+#[test]
+fn test_rocks_batch_store() {
+    let db = {
+        let (mut client, db) = rocks_test_client("test_rocks_batch_store.db");
+        let bstore = RocksBatchStore::with(db.clone());
+        let mut mmr = cmmr::MMR::<_, MergeHash, _>::new(0, &bstore);
+        for hash in &hashes {
+            if let Err(e) = mmr.push(*hash) {
+                error!("push mmr failed, exception {}", e);
+                return false
+            }
+        }
+        mmr_size = mmr.mmr_size();
+        bstore.start_batch();
+    match mmr.commit()
+}

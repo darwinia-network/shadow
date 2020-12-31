@@ -27,7 +27,7 @@ impl EpochRunner {
 
         while let Err(err) = self.run().await {
             error!("{:?}", err);
-            tokio::time::delay_for(Duration::from_millis(10)).await;
+            tokio::time::delay_for(Duration::from_secs(10)).await;
         }
     }
 

@@ -9,7 +9,7 @@ pub fn exec(path: String, to: u64, uri: Option<String>) -> Result<()> {
     std::env::set_var("RUST_LOG", "info,darwinia_shadow");
     env_logger::init();
 
-    if !path.trim_end_matches("/").ends_with("chaindata") {
+    if !path.trim_end_matches('/').ends_with("chaindata") {
         error!("invalid geth data path(must endwith chaindata) {}", path);
         return Err(anyhow::anyhow!("invalid geth data path").into());
     }

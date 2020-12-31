@@ -21,7 +21,7 @@ impl Runner {
     pub async fn start(&self) {
         while let Err(err) = self.run().await {
             error!("{:?}", err);
-            tokio::time::delay_for(Duration::from_millis(10)).await;
+            tokio::time::delay_for(Duration::from_secs(10)).await;
         }
     }
 
@@ -46,7 +46,7 @@ impl Runner {
             // checking finalization, run too fast
             if last_rpc_block_number < (ptr + delay_blocks) {
                 trace!("Pause 10s due to finalization checking, prepare to push block {}, last block number from rpc is {}", ptr, last_rpc_block_number);
-                tokio::time::delay_for(Duration::from_millis(10)).await;
+                tokio::time::delay_for(Duration::from_secs(10)).await;
                 last_rpc_block_number = self.eth.block_number().await?;
                 continue;
             }
@@ -74,7 +74,7 @@ impl Runner {
                 }
             } else {
                 warn!("Ethereum block hash of {} is none", ptr);
-                tokio::time::delay_for(Duration::from_millis(10)).await;
+                tokio::time::delay_for(Duration::from_secs(10)).await;
             }
         }
     }

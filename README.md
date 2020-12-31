@@ -22,6 +22,7 @@ FLAGS:
 
 SUBCOMMANDS:
     count     Current block height in mmr store
+    epoch     Generate epoch data for ethash
     export    Exports shadow's rocksdb
     help      Prints this message or the help of the given subcommand(s)
     import    Imports mmr from shadow backup or geth

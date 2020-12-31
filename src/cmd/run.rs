@@ -3,7 +3,6 @@ use tokio::select;
 use std::sync::Arc;
 use primitives::rpc::EthereumRPC;
 use std::env;
-use crate::epoch::EpochRunner;
 
 /// Run shadow service
 pub async fn exec(port: u16, verbose: bool, uri: Option<String>, mode: String) -> Result<()> {
@@ -38,10 +37,6 @@ pub async fn exec(port: u16, verbose: bool, uri: Option<String>, mode: String) -
         },
         "api" => {
             api::serve(port, &mmr_db, &eth).await?;
-        },
-        "epoch" => {
-            let mut epoch_runner = EpochRunner::new(&eth);
-            epoch_runner.start().await;
         },
         _ => {
             return Err(anyhow::anyhow!("Unsupported mode: {}, only can be one of all, mmr, api, epoch", mode).into());

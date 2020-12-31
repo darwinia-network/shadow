@@ -21,7 +21,7 @@ impl Runner {
     pub async fn start(&self) {
         while let Err(err) = self.run().await {
             error!("{:?}", err);
-            tokio::time::delay_for(Duration::from_millis(10)).await;
+            tokio::time::delay_for(Duration::from_secs(10)).await;
         }
     }
 
@@ -74,7 +74,7 @@ impl Runner {
                 }
             } else {
                 warn!("Ethereum block hash of {} is none", ptr);
-                tokio::time::delay_for(Duration::from_millis(10)).await;
+                tokio::time::delay_for(Duration::from_secs(10)).await;
             }
         }
     }

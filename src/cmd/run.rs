@@ -13,8 +13,7 @@ pub async fn exec(port: u16, verbose: bool) -> Result<(), Error> {
 
     let shared = ShadowShared::new(None);
     let mut runner = Runner::from(shared.clone());
-    let (mr, ar) = futures::join!(api::serve(port, shared), runner.start());
+    let (mr, _) = futures::join!(api::serve(port, shared), runner.start());
     mr?;
-    ar?;
     Ok(())
 }

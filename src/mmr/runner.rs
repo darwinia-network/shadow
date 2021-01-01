@@ -52,8 +52,15 @@ impl Runner {
         }
     }
 
-    /// Start the runner
-    pub async fn start(&mut self) -> Result<(), Error> {
+	/// Start the runner
+    pub async fn start(&mut self) {
+        while let Err(err) = self.run().await {
+            error!("{:?}", err);
+			actix_rt::time::delay_for(time::Duration::from_secs(10)).await;
+        }
+    }
+
+    async fn run(&mut self) -> Result<(), Error> {
         let mut mmr_size = helper::mmr_size_from_store(&self.as_ref().db);
         info!("last mmr size {}", mmr_size);
 

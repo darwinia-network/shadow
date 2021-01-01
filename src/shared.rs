@@ -3,6 +3,7 @@ use primitives::rpc::EthereumRPC;
 use reqwest::Client;
 use rocksdb::DB;
 use std::{env, path::PathBuf, sync::Arc, thread, time};
+use std::time::Duration;
 
 /// Constants
 const DEFAULT_RELATIVE_MMR_DB: &str = ".darwinia/cache/mmr";
@@ -74,10 +75,13 @@ impl ShadowShared {
             }
             Ok(rocks) => {
                 let db = Arc::new(rocks);
+                let client = reqwest::Client::builder()
+                    .timeout(Duration::from_secs(30))
+                    .build().unwrap();
                 ShadowShared {
                     db: db.clone(),
                     store: Store::with(db),
-                    eth: Arc::new(ethereum_rpc(Client::new())),
+                    eth: Arc::new(ethereum_rpc(client)),
                 }
             }
         }

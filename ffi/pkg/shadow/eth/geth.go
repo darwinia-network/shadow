@@ -8,6 +8,7 @@ import (
     "github.com/darwinia-network/shadow/ffi/pkg/log"
     "github.com/golang/snappy"
     "github.com/syndtr/goleveldb/leveldb"
+    "github.com/syndtr/goleveldb/leveldb/opt"
 )
 
 const indexEntrySize = 6
@@ -140,7 +141,10 @@ type BlockHashReader struct {
 }
 
 func NewBlockHashReader(ar *AncientReader, dbpath string) *BlockHashReader {
-    db, err := leveldb.OpenFile(dbpath, nil)
+    option := &opt.Options {
+        ReadOnly: true,
+    }
+    db, err := leveldb.OpenFile(dbpath, option)
     if err != nil {
         log.Error("open geth db failed, path %v, err %v", dbpath, err)
         return nil

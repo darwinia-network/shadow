@@ -8,6 +8,7 @@ mod export;
 mod run;
 mod trim;
 mod import;
+mod epoch;
 
 #[derive(StructOpt)]
 #[structopt(setting = AppSettings::InferSubcommands)]
@@ -63,6 +64,12 @@ enum Opt {
         #[structopt(short, long)]
         uri: Option<String>,
     },
+    /// Generate epoch data for ethash
+    Epoch {
+        /// Block number for epoch
+        #[structopt(short, long)]
+        block: u64,
+    },
 }
 
 /// Exec `shadow` binary
@@ -73,6 +80,7 @@ pub async fn exec() -> Result<()> {
         Opt::Import { path, to, uri } => import::exec(path, to, uri),
         Opt::Trim { leaf, uri } => trim::exec(leaf, uri),
         Opt::Export { dist, uri } => export::exec(dist, uri),
+        Opt::Epoch { block } => epoch::exec(block),
     }?;
 
     Ok(())

@@ -49,6 +49,11 @@ func Epoch(blockno uint64) bool {
     return ethproof.NotifyEpoch(blockno)
 }
 
+//export EpochWait
+func EpochWait(blockno uint64) bool {
+    return ethproof.NotifyEpochWait(blockno) == nil
+}
+
 //export Proof
 func Proof(api string, number uint64) *C.char {
     header, err := eth.Header(api, number)

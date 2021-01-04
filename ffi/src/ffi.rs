@@ -41,6 +41,7 @@ extern "C" {
     fn Proof(api: GoString, number: libc::c_uint) -> *const c_char;
     fn Receipt(api: GoString, tx: GoString) -> GoTuple;
     fn Epoch(input: libc::c_uint) -> bool;
+    fn EpochWait(input: libc::c_uint) -> bool;
     fn Free(pointer: *const c_char);
     fn Start(input: libc::c_uint);
     fn Stop();
@@ -90,9 +91,14 @@ pub fn proof(api: &str, block: u64) -> String {
     }
 }
 
-/// Proof eth header by number
+/// Ethashproof epoch
 pub fn epoch(block: u64) -> bool {
     unsafe { Epoch(block as u32) }
+}
+
+/// Ethashproof epoch wait
+pub fn epoch_wait(block: u64) -> bool {
+    unsafe{ EpochWait(block as u32)}
 }
 
 /// Start ethproof with block

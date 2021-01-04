@@ -39,3 +39,9 @@ jobs:
 
       - name: Run api tests
         run: cargo test -p api --release -vv
+
+      - name: Run ffi tests
+        run: cargo test -p ffi --release -vv
+
+      - name: Lint
+        run: cargo clippy --all -- -D warnings

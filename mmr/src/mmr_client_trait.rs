@@ -4,7 +4,7 @@ use std::time::Instant;
 
 pub trait MmrClientTrait {
     fn push(&mut self, elem: &[u8; 32]) -> Result<u64>;
-    fn batch_push(&mut self, elems: &Vec<[u8; 32]>) -> Result<Vec<u64>>;
+    fn batch_push(&mut self, elems: Vec<[u8; 32]>) -> Result<Vec<u64>>;
     fn get_mmr_size(&self) -> Result<u64>;
     fn get_last_leaf_index(&self) -> Result<Option<u64>>;
     fn get_elem(&self, pos: u64) -> Result<Option<String>>;
@@ -39,11 +39,11 @@ pub trait MmrClientTrait {
         }
         info!("Importing ethereum headers from {:?}", geth_dir);
         ffi::import(geth_dir.to_str().unwrap(), from as i32, til_block as i32, BATCH, |hashes| {
-            if let Err(err) = self.batch_push(&hashes) {
+            if let Err(err) = self.batch_push(hashes) {
                 info!("batch push hashes failed, err {}", err);
                 return false;
             }
-            return true;
+            true
         });
         let elapsed = start.elapsed();
         info!("batch_push elapsed: {:?}", elapsed);

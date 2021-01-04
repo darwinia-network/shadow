@@ -54,7 +54,7 @@ impl MmrClientTrait for MmrClientForMysql {
     }
 
     /// push elements to mmr
-    fn batch_push(&mut self, elems: &Vec<[u8; 32]>) -> Result<Vec<u64>> {
+    fn batch_push(&mut self, elems: Vec<[u8; 32]>) -> Result<Vec<u64>> {
         let mut result = vec![];
 
         let mut conn = self.db.get_conn()?;
@@ -67,7 +67,7 @@ impl MmrClientTrait for MmrClientForMysql {
         let mut mmr = MMR::<[u8; 32], MergeHash, _>::new(self.get_mmr_size()?, store);
 
         // let mut root_pos_list = vec![];
-        for &elem in elems {
+        for elem in elems {
             //let elem = H256::from(elem)?;
             let position = mmr.push(elem)?;
             // let root = H256::hex(&mmr.get_root()?);

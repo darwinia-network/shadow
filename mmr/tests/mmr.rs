@@ -4,7 +4,9 @@ use mmr::{
     build_client,
     Database,
     MmrClientTrait,
-    MergeHash
+    MergeHash,
+    RocksdbStore,
+    RocksBatchStore
 };
 use std::sync::Arc;
 use rocksdb::{Options, DB};
@@ -93,7 +95,7 @@ fn test_mmr_size_n_leaves() {
     });
 }
 
-fn rocks_test_client(file: &str) -> (Box<dyn MmrClientTrait>, PathBuf) {
+fn rocks_test_client(file: &str) -> (Box<dyn MmrClientTrait>, PathBuf, Arc<DB>) {
     use std::fs;
     let dbpath = env::temp_dir().join(file);
     fs::remove_dir_all(&dbpath).unwrap_or_else(|err|{
@@ -102,13 +104,13 @@ fn rocks_test_client(file: &str) -> (Box<dyn MmrClientTrait>, PathBuf) {
     let rocksdb = DB::open_default(&dbpath).unwrap();
     let db = Arc::new(rocksdb);
     let clientdb = Database::Rocksdb(db.clone());
-    return (build_client(&clientdb).unwrap(), dbpath);
+    return (build_client(&clientdb).unwrap(), dbpath, db);
 }
 
 #[test]
 fn test_rocks_client_base() {
     let db = {
-        let (mut client, db) = rocks_test_client("test_rocks_client.db");
+        let (mut client, dbpath, _db) = rocks_test_client("test_rocks_client.db");
         let pos: Vec<u64> = (0..10).map(|h| {
             client.push(&H256::from(HEADERS_N_ROOTS[h].0).unwrap()).unwrap()
         }).collect();
@@ -129,7 +131,7 @@ fn test_rocks_client_base() {
             let mmr_root = client.get_mmr_root(l).unwrap().unwrap();
             assert_eq!(mmr_root, HEADERS_N_ROOTS[l as usize].1);
         });
-        db
+        dbpath
     };
     assert!(DB::destroy(&Options::default(), &db).is_ok());
 }
@@ -137,7 +139,7 @@ fn test_rocks_client_base() {
 #[test]
 fn test_rocks_client_proof() {
     let db = {
-        let (mut client, db) = rocks_test_client("test_rocks_proof.db");
+        let (mut client, dbpath, _db) = rocks_test_client("test_rocks_proof.db");
         let pos: Vec<u64> = (0..10).map(|h| {
             client.push(&H256::from(HEADERS_N_ROOTS[h].0).unwrap()).unwrap()
         }).collect();
@@ -155,8 +157,33 @@ fn test_rocks_client_proof() {
             let verify = merkle_proof.verify(H256::from(&mmr_root).unwrap(), vec![(pos[l as usize], H256::from(&HEADERS_N_ROOTS[((l + 1) % 10) as usize].0).unwrap())]).unwrap();
             assert_eq!(verify, false);
         });
-        db
+        dbpath
     };
     assert!(DB::destroy(&Options::default(), &db).is_ok());
 }
 
+#[test]
+fn test_rocks_batch_store() {
+    let db = {
+        let (mut _client, dbpath, db) = rocks_test_client("test_rocks_batch_store.db");
+        let bstore = RocksBatchStore::with(db.clone());
+        let mut mmr = cmmr::MMR::<_, MergeHash, _>::new(0, &bstore);
+        &HEADERS_N_ROOTS.iter().for_each(|h| {
+            mmr.push(H256::from(h.0).unwrap()).unwrap();
+        });
+        let mmr_size = mmr.mmr_size();
+
+        let store = RocksdbStore::with(db.clone());
+        let mut mmr_size_fromdb = store.get_mmr_size() as u64;
+        assert_eq!(mmr_size_fromdb, 0);
+        bstore.start_batch();
+        mmr.commit().unwrap();
+        assert_eq!(mmr_size_fromdb, 0);
+        bstore.commit_batch().unwrap();
+        mmr_size_fromdb = store.get_mmr_size() as u64;
+        assert_eq!(mmr_size_fromdb, mmr_size);
+        assert!(mmr_size_fromdb > 0);
+        dbpath
+    };
+    assert!(DB::destroy(&Options::default(), &db).is_ok());
+}

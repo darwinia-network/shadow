@@ -37,7 +37,7 @@ extern "C" fn geth_handler(x: *const c_char, size: c_int, arg: *mut c_void) -> b
 
 #[link(name = "darwinia_shadow")]
 extern "C" {
-    fn Import(path: GoString, from: libc::c_int, to: libc::c_int, batch: libc::c_int, f: Option<extern "C" fn(x: *const c_char, len: c_int, arg: *mut c_void) -> bool>, arg: *mut c_void) -> bool;
+    fn Import(path: GoString, genesis: GoString, from: libc::c_int, to: libc::c_int, batch: libc::c_int, f: Option<extern "C" fn(x: *const c_char, len: c_int, arg: *mut c_void) -> bool>, arg: *mut c_void) -> bool;
     fn Proof(api: GoString, number: libc::c_uint) -> *const c_char;
     fn Receipt(api: GoString, tx: GoString) -> GoTuple;
     fn Epoch(input: libc::c_uint) -> bool;
@@ -136,7 +136,7 @@ pub fn receipt(api: &str, tx: &str) -> (String, String, String) {
 }
 
 /// import from geth
-pub fn import<F>(path: &str, from: i32, to: i32, batch: i32, mut callback: F) -> bool
+pub fn import<F>(path: &str, genesis: &str, from: i32, to: i32, batch: i32, mut callback: F) -> bool
     where F: FnMut(Vec<[u8; 32]>) -> bool
 {
     // reason for double indirection is that a "Trait Object" is a fat pointer, the size of
@@ -144,11 +144,16 @@ pub fn import<F>(path: &str, from: i32, to: i32, batch: i32, mut callback: F) ->
     let mut cb: &mut dyn FnMut(Vec<[u8; 32]>) -> bool = &mut callback;
     let cb = &mut cb;
     let c_path = CString::new(path).expect("CString::new failed");
+    let c_genesis = CString::new(genesis).expect("CString::new failed");
     unsafe { 
         Import(
             GoString {
                 a: c_path.as_ptr(),
                 b: c_path.as_bytes().len() as i64,
+            },
+            GoString {
+                a: c_genesis.as_ptr(),
+                b: c_genesis.as_bytes().len() as i64,
             },
             from,
             to,

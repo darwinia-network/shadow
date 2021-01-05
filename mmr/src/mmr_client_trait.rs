@@ -37,8 +37,14 @@ pub trait MmrClientTrait {
                 til_block, from
             ).into());
         }
+        let genesis = {
+            match self.get_leaf(0)? {
+                Some(hash) => hash,
+                None => String::from(""),
+            }
+        };
         info!("Importing ethereum headers from {:?}", geth_dir);
-        ffi::import(geth_dir.to_str().unwrap(), from as i32, til_block as i32, BATCH, |hashes| {
+        ffi::import(geth_dir.to_str().unwrap(), &genesis, from as i32, til_block as i32, BATCH, |hashes| {
             if let Err(err) = self.batch_push(hashes) {
                 info!("batch push hashes failed, err {}", err);
                 return false;

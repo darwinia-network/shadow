@@ -84,11 +84,14 @@ func Receipt(api string, tx string) (*C.char, *C.char, *C.char) {
 }
 
 //export Import
-func Import(datadir string, from int, to int, batch int, callback unsafe.Pointer, arg unsafe.Pointer) bool {
+func Import(datadir string, genesis string, from int, to int, batch int, callback unsafe.Pointer, arg unsafe.Pointer) bool {
     f := C.get_header(callback)
     ar := eth.NewAncientReader(filepath.Join(datadir, "ancient"), "hashes", false)
     blockReader := eth.NewBlockHashReader(ar, datadir)
     if blockReader == nil {
+        return false
+    }
+    if err := blockReader.CheckGenesis(genesis); err != nil {
         return false
     }
     hashes := make([]byte, 0)

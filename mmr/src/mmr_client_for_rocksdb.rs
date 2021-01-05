@@ -176,8 +176,14 @@ impl MmrClientTrait for MmrClientForRocksdb {
                                       ).into());
         }
         let mut mmr_size = self.get_mmr_size()?;
+        let genesis = {
+            match self.get_leaf(0)? {
+                Some(hash) => hash,
+                None => String::from(""),
+            }
+        };
         info!("Importing ethereum headers from {:?}", geth_dir);
-        ffi::import(geth_dir.to_str().unwrap(), from as i32, til_block as i32, BATCH, |hashes| {
+        ffi::import(geth_dir.to_str().unwrap(), &genesis, from as i32, til_block as i32, BATCH, |hashes| {
             leaf += hashes.len();
             let bstore = RocksBatchStore::with(self.db.clone());
             let mut mmr = MMR::<_, MergeHash, _>::new(mmr_size, &bstore);

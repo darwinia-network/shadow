@@ -29,10 +29,10 @@ pub trait MmrClientTrait {
     fn import_from_backup(&mut self, backup_file: PathBuf) -> Result<()>;
 
     fn import_from_geth(&mut self, geth_dir: PathBuf, til_block: u64) -> Result<()> {
-        const BATCH: i32 = 10240;
+        const BATCH: u64 = 10240;
         let start = Instant::now();
-        let from = self.get_leaf_count()? as usize;
-        if from >= til_block as usize {
+        let from = self.get_leaf_count()?;
+        if from >= til_block {
             return Err(anyhow::anyhow!("The to position of mmr is {}, can not import mmr from {}, from must be less than to",
                 til_block, from
             ).into());
@@ -44,7 +44,7 @@ pub trait MmrClientTrait {
             }
         };
         info!("Importing ethereum headers from {:?}", geth_dir);
-        ffi::import(geth_dir.to_str().unwrap(), &genesis, from as i32, til_block as i32, BATCH, |hashes| {
+        ffi::import(geth_dir.to_str().unwrap(), &genesis, from, til_block, BATCH, |hashes| {
             if let Err(err) = self.batch_push(hashes) {
                 info!("batch push hashes failed, err {}", err);
                 return false;

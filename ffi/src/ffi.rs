@@ -1,7 +1,7 @@
 //! Ethereum ffi bindgen
 use std::{
     ffi::{CStr, CString},
-    os::raw::{c_char, c_void, c_int},
+    os::raw::{c_char, c_void, c_int, c_ulonglong},
     fmt,
     slice,
 };
@@ -37,7 +37,7 @@ extern "C" fn geth_handler(x: *const c_char, size: c_int, arg: *mut c_void) -> b
 
 #[link(name = "darwinia_shadow")]
 extern "C" {
-    fn Import(path: GoString, genesis: GoString, from: libc::c_int, to: libc::c_int, batch: libc::c_int, f: Option<extern "C" fn(x: *const c_char, len: c_int, arg: *mut c_void) -> bool>, arg: *mut c_void) -> bool;
+    fn Import(path: GoString, genesis: GoString, from: c_ulonglong, to: c_ulonglong, batch: c_ulonglong, f: Option<extern "C" fn(x: *const c_char, len: c_int, arg: *mut c_void) -> bool>, arg: *mut c_void) -> bool;
     fn Proof(api: GoString, number: libc::c_uint) -> *const c_char;
     fn Receipt(api: GoString, tx: GoString) -> GoTuple;
     fn Epoch(input: libc::c_uint) -> bool;
@@ -136,7 +136,7 @@ pub fn receipt(api: &str, tx: &str) -> (String, String, String) {
 }
 
 /// import from geth
-pub fn import<F>(path: &str, genesis: &str, from: i32, to: i32, batch: i32, mut callback: F) -> bool
+pub fn import<F>(path: &str, genesis: &str, from: u64, to: u64, batch: u64, mut callback: F) -> bool
     where F: FnMut(Vec<[u8; 32]>) -> bool
 {
     // reason for double indirection is that a "Trait Object" is a fat pointer, the size of

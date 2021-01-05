@@ -84,7 +84,7 @@ func Receipt(api string, tx string) (*C.char, *C.char, *C.char) {
 }
 
 //export Import
-func Import(datadir string, genesis string, from int, to int, batch int, callback unsafe.Pointer, arg unsafe.Pointer) bool {
+func Import(datadir string, genesis string, from uint64, to uint64, batch uint64, callback unsafe.Pointer, arg unsafe.Pointer) bool {
     f := C.get_header(callback)
     ar := eth.NewAncientReader(filepath.Join(datadir, "ancient"), "hashes", false)
     blockReader := eth.NewBlockHashReader(ar, datadir)
@@ -98,9 +98,9 @@ func Import(datadir string, genesis string, from int, to int, batch int, callbac
     // the whole import process is split into several batches
     // each batch we process a number of `batch` blocks which saved in array `hashes`, and deliver it to callback
     // the hashes should be cleared for next batch
-    if uint64(to) > blockReader.Head {
+    if to > blockReader.Head {
         log.Info("import to %v is too large, change to max number %v - %v", to, blockReader.Head, reorgDistance)
-        to = int(blockReader.Head)
+        to = blockReader.Head
         if to > reorgDistance {
             to -= reorgDistance
         }

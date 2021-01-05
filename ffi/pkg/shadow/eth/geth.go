@@ -186,7 +186,7 @@ func (bhr *BlockHashReader) Read(number uint64) (blob []byte, err error) {
 
 func (bhr *BlockHashReader) CheckGenesis(genesis string) error {
     if len(genesis) == 0 {
-        log.Info("genesis consistent geth:%v", genesis)
+        log.Info("genesis consistent geth nil")
         return nil
     }
 

@@ -2,6 +2,8 @@ package eth
 
 import (
     "encoding/binary"
+    "encoding/hex"
+    "errors"
     "fmt"
     "os"
     "path/filepath"
@@ -180,5 +182,24 @@ func (bhr *BlockHashReader) Read(number uint64) (blob []byte, err error) {
     }
     hashKey := headerHashKey(number)
     return bhr.db.Get(hashKey, nil)
+}
+
+func (bhr *BlockHashReader) CheckGenesis(genesis string) error {
+    if len(genesis) == 0 {
+        log.Info("genesis consistent geth nil")
+        return nil
+    }
+
+    hash, err := bhr.Read(0)
+    if err != nil {
+        log.Warn("read genesis failed %v", err)
+        return err
+    }
+    if h := hex.EncodeToString(hash); h != genesis {
+        log.Warn("genesis inconsistent geth:%v, checked:%v", h, genesis)
+        return errors.New("genesis inconsistent")
+    }
+    log.Info("genesis consistent geth:%v", genesis)
+    return nil
 }
 

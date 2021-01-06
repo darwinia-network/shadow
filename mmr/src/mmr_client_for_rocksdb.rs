@@ -166,19 +166,25 @@ impl MmrClientTrait for MmrClientForRocksdb {
     }
 
     fn import_from_geth(&mut self, geth_dir: PathBuf, til_block: u64) -> Result<()> {
-        const BATCH: i32 = 10240;
+        const BATCH: u64 = 10240;
         let start = Instant::now();
-        let from = self.get_leaf_count()? as usize;
+        let from = self.get_leaf_count()?;
         let mut leaf = from;
-        if from >= til_block as usize {
+        if from >= til_block {
             return Err(anyhow::anyhow!("The to position of mmr is {}, can not import mmr from {}, from must be less than to",
                                        til_block, from
                                       ).into());
         }
         let mut mmr_size = self.get_mmr_size()?;
+        let genesis = {
+            match self.get_leaf(0)? {
+                Some(hash) => hash,
+                None => String::from(""),
+            }
+        };
         info!("Importing ethereum headers from {:?}", geth_dir);
-        ffi::import(geth_dir.to_str().unwrap(), from as i32, til_block as i32, BATCH, |hashes| {
-            leaf += hashes.len();
+        ffi::import(geth_dir.to_str().unwrap(), &genesis, from, til_block, BATCH, |hashes| {
+            leaf += hashes.len() as u64;
             let bstore = RocksBatchStore::with(self.db.clone());
             let mut mmr = MMR::<_, MergeHash, _>::new(mmr_size, &bstore);
             for hash in &hashes {

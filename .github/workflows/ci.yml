@@ -9,27 +9,23 @@ on:
 jobs:
   build-and-test:
     name: Build and Test
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [macOS-latest, ubuntu-latest]
+    runs-on: ubuntu-latest
     steps:
-      - name: Checkout the source code
-        uses: actions/checkout@v1
-
-      - name: Cache MMR Library
-        uses: actions/cache@v1
-        env:
-          cache-name: mmr-cache
+      - uses: actions/checkout@v2
+      - uses: actions/cache@v2
         with:
-          path: ./target
-          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('./Cargo.lock') }}
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
 
-      - name: Build
-        run: cargo build --release -vv
-
-      - name: Check Binary
-        run: ./target/release/shadow --version
+      - name: Lint
+        run: |
+          rustup component add clippy
+          cargo clippy --all -- -D warnings
 
       - name: Run tests
         run: cargo test --release -vv
@@ -42,6 +38,3 @@ jobs:
 
       - name: Run ffi tests
         run: cargo test -p ffi --release -vv
-
-      - name: Lint
-        run: cargo clippy --all -- -D warnings

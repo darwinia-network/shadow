@@ -6,6 +6,7 @@ use std::{
     slice,
 };
 use std::convert::TryInto;
+use anyhow::{anyhow, Result};
 
 #[repr(C)]
 struct GoString {
@@ -18,6 +19,12 @@ struct GoTuple {
     index: *const c_char,
     proof: *const c_char,
     header_hash: *const c_char,
+}
+
+#[repr(C)]
+struct EthashProof {
+    proof: *const c_char,
+    error: *const c_char,
 }
 
 extern "C" fn geth_handler(x: *const c_char, size: c_int, arg: *mut c_void) -> bool {
@@ -38,7 +45,7 @@ extern "C" fn geth_handler(x: *const c_char, size: c_int, arg: *mut c_void) -> b
 #[link(name = "darwinia_shadow")]
 extern "C" {
     fn Import(path: GoString, genesis: GoString, from: c_ulonglong, to: c_ulonglong, batch: c_ulonglong, f: Option<extern "C" fn(x: *const c_char, len: c_int, arg: *mut c_void) -> bool>, arg: *mut c_void) -> bool;
-    fn Proof(api: GoString, number: libc::c_uint) -> *const c_char;
+    fn Proof(api: GoString, number: c_ulonglong, block: bool) -> EthashProof;
     fn Receipt(api: GoString, tx: GoString) -> GoTuple;
     fn Epoch(input: libc::c_uint) -> bool;
     fn EpochWait(input: libc::c_uint) -> bool;
@@ -76,18 +83,22 @@ impl Drop for WrapperCString {
 }
 
 /// Proof eth header by number
-pub fn proof(api: &str, block: u64) -> String {
+pub fn proof(api: &str, number: u64, block: bool) -> Result<String> {
     let c_api = CString::new(api).expect("CString::new failed");
     unsafe {
-        WrapperCString::new(
-            Proof(
-                GoString {
-                    a: c_api.as_ptr(),
-                    b: c_api.as_bytes().len() as i64,
-                },
-                block as u32,
-                )
-            ).to_string()
+        let ethashproof = Proof(
+            GoString {
+                a: c_api.as_ptr(),
+                b: c_api.as_bytes().len() as i64,
+            },
+            number,
+            block,
+        );
+        if ethashproof.error.is_null() {
+            Ok(WrapperCString::new(ethashproof.proof).to_string())
+        } else {
+            Err(anyhow!(WrapperCString::new(ethashproof.error).to_string()))
+        }
     }
 }
 

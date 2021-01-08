@@ -183,7 +183,8 @@ mod test {
         super::proof(
             "https://ropsten.infura.io/v3/0bfb9acbb13c426097aabb1d81a9d016",
             1,
-        );
+            true,
+        ).unwrap();
         super::stop();
     }
 

@@ -55,14 +55,14 @@ func EpochWait(blockno uint64) bool {
 }
 
 //export Proof
-func Proof(api string, number uint64, block bool) (*C.char, *C.char) {
+func Proof(api string, number uint64, wait bool) (*C.char, *C.char) {
     header, err := eth.Header(api, number)
     if err != nil {
         log.Error("get ethashproof when get header failed %v", err)
         return nil, C.CString(err.Error())
     }
 
-    _, proof, err := ethproof.Proof(&header, block)
+    _, proof, err := ethproof.Proof(&header, wait)
     if err != nil {
         log.Error("get ethashproof when get proof failed %v", err)
         return nil, C.CString(err.Error())

@@ -83,7 +83,7 @@ impl Drop for WrapperCString {
 }
 
 /// Proof eth header by number
-pub fn proof(api: &str, number: u64, block: bool) -> Result<String> {
+pub fn proof(api: &str, number: u64, wait: bool) -> Result<String> {
     let c_api = CString::new(api).expect("CString::new failed");
     unsafe {
         let ethashproof = Proof(
@@ -92,7 +92,7 @@ pub fn proof(api: &str, number: u64, block: bool) -> Result<String> {
                 b: c_api.as_bytes().len() as i64,
             },
             number,
-            block,
+            wait,
         );
         if ethashproof.error.is_null() {
             Ok(WrapperCString::new(ethashproof.proof).to_string())

@@ -30,13 +30,14 @@ pub struct ProposalReq {
     pub target: u64,
     /// The last leaf of mmr
     pub last_leaf: u64,
+    // Block or Unblock for generate ethash
+    // pub block: bool,
 }
 
 impl ProposalReq {
     /// Get `EtHashProof`
     fn ethash_proof(&self, api: &str) -> Result<Vec<EthashProofJson>> {
-        let proof = ffi::proof(api, self.target);
-        // let y =  &mut bytes!(proof.as_str()).as_ref();
+        let proof = ffi::proof(api, self.target, false)?;
         let proof_vec_u8 = bytes(proof.as_str())?;
         let result = <Vec<EthashProof>>::decode(&mut proof_vec_u8.as_ref())?
             .iter()

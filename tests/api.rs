@@ -1,18 +1,15 @@
-use mmr::{
-    MerkleProof,
-    mmr_size_to_last_leaf,
-    MergeHash,
-    H256,
-    build_client,
-    MmrClientTrait
-};
 use api::{ethereum::ProposalReq, Error};
-use primitives::rpc::{RPC, EthereumRPC};
 use darwinia_shadow::mmr::database;
+use mmr::{build_client, mmr_size_to_last_leaf, MergeHash, MerkleProof, MmrClientTrait, H256};
+use primitives::rpc::{EthereumRPC, RPC};
 
 use std::{env, sync::Arc};
 
-async fn stops_at(rpc: &Arc<EthereumRPC> , client: &mut Box<dyn MmrClientTrait>, count: i64) -> Result<(), Error> {
+async fn stops_at(
+    rpc: &Arc<EthereumRPC>,
+    client: &mut Box<dyn MmrClientTrait>,
+    count: i64,
+) -> Result<(), Error> {
     let mmr_size = client.get_mmr_size().unwrap();
     let mut ptr = {
         let last_leaf = mmr_size_to_last_leaf(mmr_size as i64);
@@ -40,10 +37,12 @@ async fn stops_at(rpc: &Arc<EthereumRPC> , client: &mut Box<dyn MmrClientTrait>,
 #[actix_rt::test]
 async fn test_proposal() {
     use std::fs;
-    let rpcs = vec![String::from("https://mainnet.infura.io/v3/0bfb9acbb13c426097aabb1d81a9d016")];
+    let rpcs = vec![String::from(
+        "https://mainnet.infura.io/v3/0bfb9acbb13c426097aabb1d81a9d016",
+    )];
     let rpc = Arc::new(EthereumRPC::new(reqwest::Client::new(), rpcs));
     let dbpath = env::temp_dir().join("test_proposal.db");
-    fs::remove_dir_all(&dbpath).unwrap_or_else(|err|{
+    fs::remove_dir_all(&dbpath).unwrap_or_else(|err| {
         println!("{}", err);
     });
     let path = dbpath.to_str().unwrap().to_string();
@@ -82,7 +81,7 @@ async fn test_proposal() {
     // Should pass verification
     assert!(p_r0
         .verify(
-            H256::from(&client.get_mmr_root(req_r0.target-1).unwrap().unwrap()).unwrap(),
+            H256::from(&client.get_mmr_root(req_r0.target - 1).unwrap().unwrap()).unwrap(),
             vec![(
                 mmr::leaf_index_to_pos(req_r0.member),
                 rpc.get_header_by_number(req_r0.member)
@@ -117,7 +116,7 @@ async fn test_proposal() {
     // The the round 0's mmr_root to verify round 1's hash
     assert!(p_r1
         .verify(
-            H256::from(&client.get_mmr_root(req_r0.target-1).unwrap().unwrap()).unwrap(),
+            H256::from(&client.get_mmr_root(req_r0.target - 1).unwrap().unwrap()).unwrap(),
             vec![(
                 mmr::leaf_index_to_pos(req_r1.member),
                 rpc.get_header_by_number(req_r1.member)
@@ -129,7 +128,7 @@ async fn test_proposal() {
         )
         .unwrap_or(false));
 
-    fs::remove_dir_all(&dbpath).unwrap_or_else(|err|{
+    fs::remove_dir_all(&dbpath).unwrap_or_else(|err| {
         println!("{}", err);
     });
 }

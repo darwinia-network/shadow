@@ -4,11 +4,11 @@ use std::path::PathBuf;
 use structopt::{clap::AppSettings, StructOpt};
 
 mod count;
+mod epoch;
 mod export;
+mod import;
 mod run;
 mod trim;
-mod import;
-mod epoch;
 
 #[derive(StructOpt)]
 #[structopt(setting = AppSettings::InferSubcommands)]
@@ -76,7 +76,12 @@ enum Opt {
 pub async fn exec() -> Result<()> {
     match Opt::from_args() {
         Opt::Count { uri } => count::exec(uri),
-        Opt::Run { port, verbose, uri, mode } => run::exec(port, verbose, uri, mode).await,
+        Opt::Run {
+            port,
+            verbose,
+            uri,
+            mode,
+        } => run::exec(port, verbose, uri, mode).await,
         Opt::Import { path, to, uri } => import::exec(path, to, uri),
         Opt::Trim { leaf, uri } => trim::exec(leaf, uri),
         Opt::Export { dist, uri } => export::exec(dist, uri),

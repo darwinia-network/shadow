@@ -21,7 +21,7 @@ ffi = { path = "../ffi" }
 
 [dependencies.primitives]
 package = "darwinia-bridge-primitives"
-version = "=0.1.5-alpha.3"
+version = "0.3.3"
 features = ["rpc"]
 
 [dependencies.scale]

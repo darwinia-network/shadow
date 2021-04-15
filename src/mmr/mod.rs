@@ -1,15 +1,15 @@
 //! Shdaow service mmr implementation
-use crate::result::Result;
 use crate::conf::DEFAULT_ROCKSDB_FILE;
+use crate::result::Result;
 use mmr::Database;
-use rocksdb::DB;
 use mysql::Pool;
+use rocksdb::DB;
 use std::sync::Arc;
 
 mod runner;
 
-pub use runner::Runner;
 use mysql::prelude::Queryable;
+pub use runner::Runner;
 
 /// Build mmr client type
 pub fn database(uri: Option<String>) -> Result<Database> {

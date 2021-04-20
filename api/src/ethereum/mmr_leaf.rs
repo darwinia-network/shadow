@@ -10,8 +10,8 @@ use serde::{Serialize};
 /// MMR leaf result
 #[derive(Clone, Debug, Serialize, PartialEq, Eq)]
 #[serde(untagged)]
-pub enum MMRLeafResult {
-    MMRLeaf { mmr_leaf: String },
+pub enum MmrLeafResult {
+    MmrLeaf { mmr_leaf: String },
     Error { error: String }
 }
 
@@ -19,8 +19,8 @@ pub enum MMRLeafResult {
 #[allow(clippy::eval_order_dependence)]
 pub async fn handle(block: Path<String>, app_data: Data<AppData>) -> impl Responder {
     match mmr_leaf(block, &app_data.mmr_db) {
-        Ok(leaf) => Json(MMRLeafResult::MMRLeaf { mmr_leaf: format!("0x{}", leaf) }),
-        Err(err) => Json(MMRLeafResult::Error { error: err.to_string() })
+        Ok(leaf) => Json(MmrLeafResult::MmrLeaf { mmr_leaf: format!("0x{}", leaf) }),
+        Err(err) => Json(MmrLeafResult::Error { error: err.to_string() })
     }
 }
 

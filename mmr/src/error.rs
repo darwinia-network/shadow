@@ -2,12 +2,12 @@ use thiserror::Error;
 use anyhow::Result as AnyResult;
 
 #[derive(Error, Debug)]
-pub enum MMRError {
+pub enum MmrError {
     #[error(transparent)]
     Io(#[from] std::io::Error),
 
     #[error(transparent)]
-    CMMRError(#[from] cmmr::Error),
+    CMmrError(#[from] cmmr::Error),
 
     #[error(transparent)]
     MysqlError(#[from] mysql::Error),
@@ -23,4 +23,4 @@ pub enum MMRError {
 
 }
 
-pub type Result<T> = AnyResult<T, MMRError>;
+pub type Result<T> = AnyResult<T, MmrError>;

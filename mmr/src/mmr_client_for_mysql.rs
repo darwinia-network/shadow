@@ -99,10 +99,8 @@ impl MmrClientTrait for MmrClientForMysql {
     fn get_mmr_size(&self) -> Result<u64> {
         let mut conn = self.db.get_conn()?;
         let mut mmr_size = 0;
-        if let Some(result) = conn.query_first::<Option<u64>, _>("SELECT MAX(position)+1 FROM mmr")? {
-            if let Some(count) = result {
-                mmr_size = count;
-            }
+        if let Some(Some(count)) = conn.query_first::<Option<u64>, _>("SELECT MAX(position)+1 FROM mmr")? {
+            mmr_size = count;
         };
 
         Ok(mmr_size)

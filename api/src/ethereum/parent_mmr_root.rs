@@ -10,7 +10,7 @@ use serde::Serialize;
 /// MMR root result
 #[derive(Clone, Debug, Serialize, PartialEq, Eq)]
 #[serde(untagged)]
-pub enum MMRRootResult {
+pub enum MmrRootResult {
     MmrRoot { mmr_root: String },
     Error { error: String }
 }
@@ -19,8 +19,8 @@ pub enum MMRRootResult {
 #[allow(clippy::eval_order_dependence)]
 pub async fn handle(block: Path<String>, app_data: Data<AppData>) -> impl Responder {
     match parent_mmr_root(block, &app_data.mmr_db) {
-        Ok(root) => Json(MMRRootResult::MmrRoot { mmr_root: format!("0x{}", root) }),
-        Err(err) => Json(MMRRootResult::Error { error: err.to_string() })
+        Ok(root) => Json(MmrRootResult::MmrRoot { mmr_root: format!("0x{}", root) }),
+        Err(err) => Json(MmrRootResult::Error { error: err.to_string() })
     }
 }
 

@@ -16,7 +16,7 @@ mod mmr_client_trait;
 mod mmr_client_for_rocksdb;
 
 pub use self::{
-    error::{Result, MMRError as Error},
+    error::{Result, MmrError as Error},
     hash::{MergeHash, H256},
     rocksdb_store::RocksdbStore,
     rocksdb_batchstore::RocksBatchStore,

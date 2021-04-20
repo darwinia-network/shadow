@@ -189,30 +189,22 @@ func GetReceiptRlpEncode(api string, tx string) (*types.Receipt, error) {
 func trieFromReceipts(receipts map[string]interface{}) (*trie.Trie, error) {
 	tr := new(trie.Trie)
 
-	for i, r := range receipts {
+	var receiptList types.Receipts
+	for i := 0; i < len(receipts); i++ {
+		receiptList = append(receiptList, receipts[util.IntToString(i)].(*types.Receipt))
+	}
+
+	for i := range receipts {
 		path, err := rlp.EncodeToBytes(uint(util.StringToInt(i)))
 		if err != nil {
 			return nil, err
 		}
-
-		rawReceipt, err := encodeReceipt(r.(*types.Receipt))
-		if err != nil {
-			return nil, err
-		}
-
-		tr.Update(path, rawReceipt)
+		w := new(bytes.Buffer)
+		receiptList.EncodeIndex(util.StringToInt(i), w)
+		tr.Update(path, w.Bytes())
 	}
 
 	return tr, nil
-}
-
-func encodeReceipt(r *types.Receipt) ([]byte, error) {
-	buf := new(bytes.Buffer)
-	if err := r.EncodeRLP(buf); err != nil {
-		return nil, err
-	}
-
-	return buf.Bytes(), nil
 }
 
 func rlpLength(dataLen int, offset byte) []byte {

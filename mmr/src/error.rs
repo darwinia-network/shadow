@@ -8,7 +8,6 @@ pub enum MmrError {
 
     #[error(transparent)]
     CMmrError(#[from] cmmr::Error),
-
     #[error(transparent)]
     MysqlError(#[from] mysql::Error),
 

@@ -71,12 +71,6 @@ $ cargo install darwinia-shadow
 
     Example: `"100000"`
 
-## Trouble Shooting
-
-Everytime you run `proof` in error, please delete `~/.ethashproof` and `~/.ethash`
-
-and retry.
-
 ## Sub commands
 
 ### import

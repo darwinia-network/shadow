@@ -41,35 +41,56 @@ $ cargo install darwinia-shadow
 
 ## Environment Variables
 
-> Please use different environment variables for each shadow instance that connects to various blockchain
+> Suggest to use different environment variables for each shadow instance that connects to various blockchain, but that is not necessary. You **can** indeed use same `local` env to start shadow for different blockchain, however, you **can't** do this with same or different `global` env.
 
 * `ETHEREUM_RPC`
 
-    Required only when start shadow service for etherum mmr generation. The RPC endpoint of a etherum node, only `http://` and `https://` are supported. Default is http://localhost:8545.
+    `Optional` The RPC endpoint of a etherum node, only `http://` and `https://` are supported. Default is http://localhost:8545.
 
     Example: `http://localhost:8545/`
 
 * `HECO_MAINNET`
 
-    Required only when start shadow service for [heco](https://github.com/HuobiGroup/huobi-eco-chain) mainnet mmr generation. The RPC endpoint of a heco mainnet node, only `http://` and `https://` are supported. Default is https://http-mainnet-node.huobichain.com.
+    `Optional` You can use this var when you start shadow service for [heco](https://github.com/HuobiGroup/huobi-eco-chain) mainnet mmr generation. The RPC endpoint of a heco mainnet node, only `http://` and `https://` are supported. Default is https://http-mainnet-node.huobichain.com.
 
 * `HECO_TESTNET`
 
-    Required only when start shadow service for [heco](https://github.com/HuobiGroup/huobi-eco-chain) testnet mmr generation. The RPC endpoint of a heco testnet node, only `http://` and `https://` are supported. Default is https://http-testnet.huobichain.com.
+    `Optional` You can use this var when you start shadow service for [heco](https://github.com/HuobiGroup/huobi-eco-chain) testnet mmr generation. The RPC endpoint of a heco testnet node, only `http://` and `https://` are supported. Default is https://http-testnet.huobichain.com.
 
 * `BSC_MAINNET`
 
-    Required only when start shadow service for [bsc](https://github.com/binance-chain/bsc) mainnet mmr generation. The RPC endpoint of a bsc mainnet node, only `http://` and `https://` are supported. Default is https://bsc-dataseed.binance.org.
+    `Optional` You can use this var when you start shadow service for [bsc](https://github.com/binance-chain/bsc) mainnet mmr generation. The RPC endpoint of a bsc mainnet node, only `http://` and `https://` are supported. Default is https://bsc-dataseed.binance.org.
 
 * `BSC_TESTNET`
 
-    Required only when start shadow service for [bsc](https://github.com/binance-chain/bsc) testnet mmr generation. The RPC endpoint of a bsc testnet node, only `http://` and `https://` are supported. Default is https://data-seed-prebsc-1-s1.binance.org:8545.
+    `Optional` You can use this var when you start shadow service for [bsc](https://github.com/binance-chain/bsc) testnet mmr generation. The RPC endpoint of a bsc testnet node, only `http://` and `https://` are supported. Default is https://data-seed-prebsc-1-s1.binance.org:8545.
 
 * `MMR_LOG`
 
     Optional. Define how frequently it outputs logs `Pushed mmr ... into database` while generating MMR. Useful when you first time running shadow, since it generates millon of MMR data at first launch. Default is `10000` .
 
     Example: `"100000"`
+
+#### Examples
+Use same local var to start shadow for different blockchain in same host
+```shell
+ETHEREUM_RPC=https://ethereum.ethash.rpc.endpoint ./shadow run --mode all --port 3001
+ETHEREUM_RPC=https://heco.rpc.endpoint ./shadow run --mode all --port 3002
+ETHEREUM_RPC=https://bsc.rpc.endpoint ./shadow run --mode all --port 3003
+```
+
+Use different local var to start shadow for different blockchain in same host
+``` shell
+ETHEREUM_RPC=https://ethereum.ethash.rpc.endpoint ./shadow run --mode all --port 3000
+HECO_MAINNET=https://heco.rpc.endpoint ./shadow run --mode all --port 3001
+BSC_MAINNET=https://bsc.rpc.endpoint ./shadow run --mode all --port 3002
+```
+
+You can left the value empty to activate the default one.
+``` shell
+HECO_MAINNET= ./shadow run --mode all --port 3003
+```
+
 
 ## Sub commands
 

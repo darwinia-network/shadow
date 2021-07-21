@@ -6,7 +6,7 @@ use primitives::{
     chain::ethereum::{EthashProof, EthereumHeader},
     hex,
 };
-use scale::{Decode, Encode};
+use codec::{Decode, Encode};
 
 /// the scale codec of hash is its hex string
 #[test]

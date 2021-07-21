@@ -95,6 +95,7 @@ type BlockResult struct {
 	TotalDifficulty  string        `json:"totalDifficulty"`
 	Transactions     []Transaction `json:"transactions"`
 	TransactionsRoot string        `json:"transactionsRoot"`
+	BaseFee          string        `json:"baseFeePerGas" rlp:"optional"`
 }
 
 type Transaction struct {

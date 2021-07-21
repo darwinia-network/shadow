@@ -11,7 +11,7 @@ pub use hash::HASHES;
 pub use header::HEADER;
 // pub use header_thing::ETH_HEADER_THING;
 // pub use mock_header_19::MOCK_HEADER_19;
-use scale::Decode;
+use codec::Decode;
 
 use mmr::H256;
 use primitives::{

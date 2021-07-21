@@ -1,7 +1,7 @@
 //! MMR Runner
 use mmr::{H256, Database, build_client, MmrClientTrait};
 use crate::result::Result;
-use primitives::rpc::{RPC, EthereumRPC};
+use primitives::rpc::{Rpc, EthereumRPC};
 use std::time::Duration;
 use std::sync::Arc;
 

@@ -33,8 +33,4 @@ anyhow = "1.0.34"
 mmr = { path = "./mmr" }
 ffi = { path = "./ffi" }
 api = { path = "./api" }
-
-[dependencies.primitives]
-package = "darwinia-bridge-primitives"
-version = "=0.1.5-alpha.3"
-features = ["rpc"]
+primitives = { features = ["rpc"], package = "darwinia-bridge-primitives", git = "https://github.com/darwinia-network/bridger", branch = "add-ethereum-basefee" }

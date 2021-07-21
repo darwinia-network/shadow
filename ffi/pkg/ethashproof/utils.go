@@ -22,5 +22,7 @@ func RLPHeader(header *types.Header) ([]byte, error) {
 		header.Extra,
 		header.MixDigest,
 		header.Nonce,
+		// BaseFee was added by EIP-1559 and is ignored in legacy headers.
+		header.BaseFee,
 	})
 }

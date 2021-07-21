@@ -6,7 +6,7 @@ use actix_web::{
 };
 use primitives::{
     chain::ethereum::{EthereumHeaderJson, MMRProofJson},
-    rpc::RPC,
+    rpc::Rpc,
 };
 use crate::{Result, AppData};
 use serde::Serialize;
@@ -94,3 +94,17 @@ pub async fn handle(tx: Path<(String, u64)>, app_data: Data<AppData>) -> impl Re
         Err(err) => Json(ReceiptResult::Error(err.to_json()))
     }
 }
+
+//#[test]
+//fn header_before_london() {
+    //let eth = EthereumRPC::new(reqwest::Client::new(), "https://ropsten.geth.darwinia.network");
+    //// block 10499400
+    //let header = ReceiptResp::header(&eth, "0xeafc2fd5df033e82a69943eb7d53a1cc4978047dc6557ab8fb5ee8c414ec3282");
+    //assert_eq!(header.is_ok(), true);
+    //header.unwrap().base_fee_per_gas, None
+//}
+
+//#[test]
+//fn receipt_after_london() {
+//}
+

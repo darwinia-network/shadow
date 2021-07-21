@@ -7,7 +7,7 @@ use primitives::{
     chain::ethereum::{EthashProof, EthashProofJson, EthereumRelayProofsJson},
     rpc::EthereumRPC,
 };
-use scale::{Decode, Encode};
+use codec::{Decode, Encode};
 use crate::{Result, AppData};
 use serde::{Serialize, Deserialize};
 use crate::error::ErrorJson;

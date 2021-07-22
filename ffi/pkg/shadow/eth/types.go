@@ -1,8 +1,6 @@
 package eth
 
 import (
-	"encoding/json"
-
 	"github.com/ethereum/go-ethereum/core/types"
 )
 
@@ -11,51 +9,6 @@ type InfuraResponse struct {
 	JsonRPC string       `json:"jsonrpc"`
 	Id      uint32       `json:"id"`
 	Result  types.Header `json:"result"`
-}
-
-// Darwinia block
-type DarwiniaEthHeader struct {
-	ParentHash       string   `json:"parent_hash"`
-	TimeStamp        uint64   `json:"timestamp"`
-	Number           uint64   `json:"number"`
-	Author           string   `json:"author"`
-	TransactionsRoot string   `json:"transactions_root"`
-	UnclesHash       string   `json:"uncles_hash"`
-	ExtraData        string   `json:"extra_data"`
-	StateRoot        string   `json:"state_root"`
-	ReceiptsRoot     string   `json:"receipts_root"`
-	LogBloom         string   `json:"log_bloom"`
-	GasUsed          uint64   `json:"gas_used"`
-	GasLimited       uint64   `json:"gas_limit"`
-	Difficulty       uint64   `json:"difficulty"`
-	Seal             []string `json:"seal"`
-	Hash             string   `json:"hash"`
-}
-
-func (d *DarwiniaEthHeader) ToString() (string, error) {
-	bytes, err := json.Marshal(d)
-	if err != nil {
-		return "", err
-	}
-	return string(bytes), nil
-}
-
-type DarwiniaEthHeaderHexFormat struct {
-	ParentHash       string   `json:"parent_hash"`
-	TimeStamp        string   `json:"timestamp"`
-	Number           string   `json:"number"`
-	Author           string   `json:"author"`
-	TransactionsRoot string   `json:"transactions_root"`
-	UnclesHash       string   `json:"uncles_hash"`
-	ExtraData        string   `json:"extra_data"`
-	StateRoot        string   `json:"state_root"`
-	ReceiptsRoot     string   `json:"receipts_root"`
-	LogBloom         string   `json:"log_bloom"`
-	GasUsed          string   `json:"gas_used"`
-	GasLimited       string   `json:"gas_limit"`
-	Difficulty       string   `json:"difficulty"`
-	Seal             []string `json:"seal"`
-	Hash             string   `json:"hash"`
 }
 
 type Receipts struct {

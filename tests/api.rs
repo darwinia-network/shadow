@@ -7,7 +7,7 @@ use mmr::{
     MmrClientTrait
 };
 use api::{ethereum::ProposalReq, Error};
-use primitives::rpc::{RPC, EthereumRPC};
+use primitives::rpc::{Rpc, EthereumRPC};
 use darwinia_shadow::mmr::database;
 
 use std::{env, sync::Arc};

@@ -26,6 +26,3 @@ package = "parity-scale-codec"
 version = "2"
 features = ["derive"]
 
-[dev-dependencies]
-"tokio" = "0.2.22"
-

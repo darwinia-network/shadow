@@ -95,23 +95,3 @@ pub async fn handle(tx: Path<(String, u64)>, app_data: Data<AppData>) -> impl Re
     }
 }
 
-#[cfg(test)]
-#[tokio::test]
-async fn header_before_london() {
-    let eth = EthereumRPC::new(reqwest::Client::new(), vec!["https://ropsten.geth.darwinia.network".into()]);
-    // block 10499400
-    let header = ReceiptResp::header(&eth, "0xeafc2fd5df033e82a69943eb7d53a1cc4978047dc6557ab8fb5ee8c414ec3282").await;
-    assert_eq!(header.is_ok(), true);
-    assert_eq!(header.unwrap().base_fee_per_gas.is_none(), true);
-}
-
-#[cfg(test)]
-#[tokio::test]
-async fn receipt_after_london() {
-    let eth = EthereumRPC::new(reqwest::Client::new(), vec!["https://ropsten.geth.darwinia.network".into()]);
-    // block 10499401
-    let header = ReceiptResp::header(&eth, "0x076323243bb412fd1526da231ebcabffeee8ad7dcb8a3c009c87b6a4f49c429e").await;
-    assert_eq!(header.is_ok(), true);
-    assert_eq!(header.unwrap().base_fee_per_gas, Some(1000000000));
-}
-

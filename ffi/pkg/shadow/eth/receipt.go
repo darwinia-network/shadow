@@ -64,47 +64,10 @@ func GetReceiptLog(tx string, api string) (*Receipts, error) {
 	}
 }
 
-type EthHeader struct {
-	ParentHash      string   `json:"parent_hash"`
-	Timestamp       int64    `json:"timestamp"`
-	Number          int64    `json:"number"`
-	Auth            string   `json:"auth"`
-	TransactionRoot string   `json:"transaction_root"`
-	UnclesHash      string   `json:"uncles_hash"`
-	ExtraData       string   `json:"extra_data"`
-	StateRoot       string   `json:"state_root"`
-	ReceiptsRoot    string   `json:"receipts_root"`
-	LogBloom        string   `json:"log_bloom"`
-	GasUsed         string   `json:"gas_used"`
-	GasLimit        string   `json:"gas_limit"`
-	Difficulty      string   `json:"difficulty"`
-	Seal            []string `json:"seal"`
-	Hash            string   `json:"hash"`
-}
-
-type EthReceiptLog struct {
-	Address string   `json:"address"`
-	Topics  []string `json:"topics"`
-	Data    []byte   `json:"data"`
-}
-
-type EthReceipt struct {
-	GasUsed  int64           `json:"gas_used"`
-	LogBloom string          `json:"log_bloom"`
-	Logs     []EthReceiptLog `json:"logs"`
-	Outcome  int             `json:"outcome"`
-}
-
 type ProofRecord struct {
 	Index      string `json:"index"`
 	Proof      string `json:"proof"`
 	HeaderHash string `json:"header_hash"`
-}
-
-type RedeemFor struct {
-	Ring    *ProofRecord `json:"ring,omitempty"`
-	Kton    *ProofRecord `json:"kton,omitempty"`
-	Deposit *ProofRecord `json:"deposit,omitempty"`
 }
 
 func GetReceipt(api string, tx string) (ProofRecord, string, error) {

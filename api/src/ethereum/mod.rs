@@ -10,5 +10,5 @@ pub use self::{
     parent_mmr_root::handle as parent_mmr_root,
     mmr_leaf::handle as mmr_leaf,
     proof::{handle as proof, ProposalReq},
-    receipt::handle as receipt,
+    receipt::{handle as receipt, ReceiptResp},
 };

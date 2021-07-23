@@ -6,11 +6,12 @@ require (
 	github.com/btcsuite/btcd v0.21.0-beta // indirect
 	github.com/deckarep/golang-set v1.7.1
 	github.com/edsrzf/mmap-go v1.0.0
-	github.com/ethereum/go-ethereum v1.10.2
+	github.com/ethereum/go-ethereum v1.10.4
 	github.com/fatih/color v1.7.0
 	github.com/go-logfmt/logfmt v0.4.0 // indirect
-	github.com/golang/snappy v0.0.3-0.20201103224600-674baa8c7fc3
+	github.com/golang/snappy v0.0.3
 	github.com/hashicorp/golang-lru v0.5.5-0.20210104140557-80c98217689d
+	github.com/holiman/uint256 v1.2.0
 	github.com/huandu/xstrings v1.3.2
 	github.com/mattn/go-isatty v0.0.12 // indirect
 	github.com/mitchellh/mapstructure v1.3.2
@@ -24,5 +25,4 @@ require (
 	github.com/ttacon/libphonenumber v1.1.0
 	github.com/tuvistavie/securerandom v0.0.0-20140719024926-15512123a948
 	golang.org/x/crypto v0.0.0-20210415154028-4f45737414dc
-	golang.org/x/sys v0.0.0-20210420072515-93ed5bcd2bfe // indirect
 )

@@ -20,7 +20,7 @@ pub enum Error {
     ParseIntError(#[from] std::num::ParseIntError),
 
     #[error(transparent)]
-    ScaleCodecError(#[from] scale::Error),
+    ScaleCodecError(#[from] codec::Error),
 
     #[error(transparent)]
     ArrayBytesError(#[from] array_bytes::Error),

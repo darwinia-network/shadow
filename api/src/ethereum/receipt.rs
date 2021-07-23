@@ -6,7 +6,7 @@ use actix_web::{
 };
 use primitives::{
     chain::ethereum::{EthereumHeaderJson, MMRProofJson},
-    rpc::RPC,
+    rpc::Rpc,
 };
 use crate::{Result, AppData};
 use serde::Serialize;
@@ -94,3 +94,4 @@ pub async fn handle(tx: Path<(String, u64)>, app_data: Data<AppData>) -> impl Re
         Err(err) => Json(ReceiptResult::Error(err.to_json()))
     }
 }
+

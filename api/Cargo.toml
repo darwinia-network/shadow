@@ -12,19 +12,17 @@ env_logger = "0.7.1"
 thiserror = "1.0"
 anyhow = "1.0.34"
 actix-web = "2.0.0"
+reqwest = { version = "0.10", features = ["json"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 array-bytes = "0.1.0"
 
 mmr = { path = "../mmr" }
 ffi = { path = "../ffi" }
+primitives = { features = ["rpc"], package = "darwinia-bridge-primitives", git = "https://github.com/darwinia-network/bridger", branch = "add-ethereum-basefee" }
 
-[dependencies.primitives]
-package = "darwinia-bridge-primitives"
-version = "=0.1.5-alpha.3"
-features = ["rpc"]
-
-[dependencies.scale]
+[dependencies.codec]
 package = "parity-scale-codec"
-version = "1.3.5"
+version = "2"
 features = ["derive"]
+

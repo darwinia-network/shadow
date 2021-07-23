@@ -7,11 +7,23 @@
 
 The shadow service for relayers and verify workers to retrieve header data and generate proof. Shadow will index the data it needs from blockchain nodes, such as Ethereum and Darwinia.
 
+## Build
+
+```
+cargo build --release
+```
+Note: This will automatically build a `libdarwinia_shadow` dynamic lib in `/usr/local/lib/`.
+For static lib link, use
+
+```
+LIBRARY_TYPE=static cargo build --release
+```
+
 
 ## Usage
 
 ```sh
-shadow 0.5.0
+shadow 0.6.0
 
 USAGE:
     shadow <SUBCOMMAND>

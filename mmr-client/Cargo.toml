@@ -1,0 +1,10 @@
+[package]
+name = "merkle-mountain-range"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+blake2-rfc = "0.2.18"
+cmmr       = { version = "0.3.2", package = "ckb-merkle-mountain-range"}

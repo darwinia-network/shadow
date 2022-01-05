@@ -1,5 +1,5 @@
-use cmmr::Merge;
 use crate::mmr::merge;
+use cmmr::Merge;
 
 struct MergeHash;
 impl Merge for MergeHash {
@@ -12,9 +12,9 @@ impl Merge for MergeHash {
 #[cfg(test)]
 mod tests {
     use super::MergeHash;
-    use cmmr::{helper, util::MemStore, Error, MMR, MMRStore, Result};
-    use crate::mmr::{get_peaks, bag_rhs_peaks, gen_proof, gen_proof_positions};
+    use crate::mmr::{bag_rhs_peaks, gen_proof, gen_proof_positions, get_peaks};
     use blake2_rfc::blake2b::blake2b;
+    use cmmr::{helper, util::MemStore, Error, MMRStore, Result, MMR};
 
     fn hash(data: &[u8]) -> [u8; 32] {
         let mut dest = [0; 32];
@@ -39,8 +39,14 @@ mod tests {
         //1. get peaks
         let peak_positions = get_peaks(mmrsize);
         //2. query from db
-        let peaks = peak_positions.into_iter().map(|pos| {
-            (&store).get_elem(pos).and_then(|elem| elem.ok_or(Error::InconsistentStore)) }).collect::<Result<Vec<[u8; 32]>>>();
+        let peaks = peak_positions
+            .into_iter()
+            .map(|pos| {
+                (&store)
+                    .get_elem(pos)
+                    .and_then(|elem| elem.ok_or(Error::InconsistentStore))
+            })
+            .collect::<Result<Vec<[u8; 32]>>>();
         // bag peaks
         let mmr_root2 = bag_rhs_peaks(peaks.unwrap());
         assert_eq!(mmr_root1, mmr_root2);
@@ -66,9 +72,16 @@ mod tests {
         // 2. query hash from db
         let merkle_proof = merkle_proof_pos
             .iter()
-            .map(|pos| (&store).get_elem(*pos).and_then(|elem| elem.ok_or(Error::InconsistentStore)))
+            .map(|pos| {
+                (&store)
+                    .get_elem(*pos)
+                    .and_then(|elem| elem.ok_or(Error::InconsistentStore))
+            })
             .collect::<Result<Vec<[u8; 32]>>>();
-        let peaks = peaks_pos.iter().map(|pos| (*pos, (&store).get_elem(*pos).unwrap().unwrap())).collect::<Vec<(u64, [u8; 32])>>();
+        let peaks = peaks_pos
+            .iter()
+            .map(|pos| (*pos, (&store).get_elem(*pos).unwrap().unwrap()))
+            .collect::<Vec<(u64, [u8; 32])>>();
         // 3. gen proof
         let mmr_proof2 = gen_proof(merkle_proof.unwrap(), peaks, peak_pos);
         assert_eq!(mmr_proof1.proof_items(), mmr_proof2);

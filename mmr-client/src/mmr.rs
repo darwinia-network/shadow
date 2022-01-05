@@ -1,6 +1,6 @@
+use blake2_rfc::blake2b::blake2b;
 pub use cmmr::helper::{get_peaks, leaf_index_to_pos};
 use cmmr::{helper, Error, Result};
-use blake2_rfc::blake2b::blake2b;
 
 type Hash = [u8; 32];
 
@@ -16,12 +16,7 @@ pub fn merge(lhs: &[u8], rhs: &[u8]) -> Hash {
 pub fn bag_rhs_peaks(mut peaks: Vec<Hash>) -> Result<Hash> {
     let last = peaks.pop().ok_or_else(|| Error::GenProofForInvalidLeaves)?;
     peaks.reverse();
-    Ok(peaks.iter().fold(
-            last,
-            |prev, &next| { 
-                merge(&prev, &next)
-            }
-            ))
+    Ok(peaks.iter().fold(last, |prev, &next| merge(&prev, &next)))
 }
 
 // mmr root
@@ -61,9 +56,17 @@ pub fn gen_proof_positions(mut pos: u64, leaf_pos: u64) -> (Vec<u64>, Vec<u64>, 
 
 // after get positions by gen_proof_positions, query the hash of the positions and then gen_proof
 pub fn gen_proof(merkle_proof: Vec<Hash>, peaks: Vec<(u64, Hash)>, peak_pos: u64) -> Vec<Hash> {
-    let mut proof = peaks.iter().filter(|(pos, _)| pos < &peak_pos).map(|(_, h)| *h).collect::<Vec<Hash>>();
+    let mut proof = peaks
+        .iter()
+        .filter(|(pos, _)| pos < &peak_pos)
+        .map(|(_, h)| *h)
+        .collect::<Vec<Hash>>();
     proof.append(&mut merkle_proof.clone());
-    let rhs_peaks = peaks.iter().filter(|(pos, _)| pos > &peak_pos).map(|(_, h)| *h).collect::<Vec<Hash>>();
+    let rhs_peaks = peaks
+        .iter()
+        .filter(|(pos, _)| pos > &peak_pos)
+        .map(|(_, h)| *h)
+        .collect::<Vec<Hash>>();
     if let Ok(rhs_peak_hash) = bag_rhs_peaks(rhs_peaks) {
         proof.push(rhs_peak_hash);
     }

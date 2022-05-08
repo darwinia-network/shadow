@@ -56,15 +56,17 @@ mod tests {
     fn test_mmr_proof() {
         let store = MemStore::default();
         let mut mmr = MMR::<_, MergeHash, _>::new(0, &store);
-        let leaf_index = 1000;
-        let check_pos = helper::leaf_index_to_pos(820);
+        let leaf_index = 20000;
+        let check_pos = helper::leaf_index_to_pos(7820);
 
         let _positions: Vec<u64> = (0u32..leaf_index)
             .map(|i| mmr.push(hash(&i.to_le_bytes())).unwrap())
             .collect();
-        // mmrsize = leaf_index_to_pos(leaf_index);
+        let mmrsize_fromindex = cmmr::leaf_index_to_pos(leaf_index.into());
         let mmrsize = mmr.mmr_size();
+        assert_eq!(mmrsize_fromindex, mmrsize);
         let mmr_proof1 = mmr.gen_proof(vec![check_pos]).unwrap();
+        let root = mmr.get_root().unwrap();
         mmr.commit().unwrap();
 
         // 1. gen positions
@@ -85,5 +87,8 @@ mod tests {
         // 3. gen proof
         let mmr_proof2 = gen_proof(merkle_proof.unwrap(), peaks, peak_pos);
         assert_eq!(mmr_proof1.proof_items(), mmr_proof2);
+        assert_eq!(true, mmr_proof1.verify(root, vec![(check_pos, hash(&7820i32.to_le_bytes()))]).unwrap());
+        let mmr_proof_instance = cmmr::MerkleProof::<[u8;32], MergeHash>::new(mmrsize, mmr_proof2);
+        assert_eq!(true, mmr_proof_instance.verify(root, vec![(check_pos, hash(&7820i32.to_le_bytes()))]).unwrap());
     }
 }

@@ -59,10 +59,10 @@ mod tests {
         let leaf_index = 20000;
         let check_pos = helper::leaf_index_to_pos(7820);
 
-        let _positions: Vec<u64> = (0u32..leaf_index)
+        let _positions: Vec<u64> = (0u32..leaf_index+1)
             .map(|i| mmr.push(hash(&i.to_le_bytes())).unwrap())
             .collect();
-        let mmrsize_fromindex = cmmr::leaf_index_to_pos(leaf_index.into());
+        let mmrsize_fromindex = cmmr::leaf_index_to_pos((leaf_index+1).into());
         let mmrsize = mmr.mmr_size();
         assert_eq!(mmrsize_fromindex, mmrsize);
         let mmr_proof1 = mmr.gen_proof(vec![check_pos]).unwrap();

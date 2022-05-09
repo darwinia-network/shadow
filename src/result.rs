@@ -14,9 +14,6 @@ pub enum Error {
     MysqlError(#[from] mysql::Error),
 
     #[error(transparent)]
-    MmrError(#[from] mmr::Error),
-
-    #[error(transparent)]
     PrimitivesError(#[from] primitives::result::Error),
 
     #[error(transparent)]

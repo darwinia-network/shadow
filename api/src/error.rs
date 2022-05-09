@@ -8,9 +8,6 @@ pub enum Error {
     Io(#[from] std::io::Error),
 
     #[error(transparent)]
-    MmrError(#[from] mmr::Error),
-
-    #[error(transparent)]
     PrimitivesError(#[from] primitives::result::Error),
 
     #[error(transparent)]

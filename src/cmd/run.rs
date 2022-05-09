@@ -1,11 +1,11 @@
-use crate::{mmr::database, mmr::Runner, result::Result};
+use crate::{runner::Runner, result::Result};
 use tokio::select;
 use std::sync::Arc;
 use primitives::rpc::EthereumRPC;
 use std::env;
 
 /// Run shadow service
-pub async fn exec(port: u16, verbose: bool, uri: Option<String>, mode: String) -> Result<()> {
+pub async fn exec(port: u16, verbose: bool, mode: String) -> Result<()> {
     if std::env::var("RUST_LOG").is_err() {
         if verbose {
             std::env::set_var("RUST_LOG", "info,darwinia_shadow");
@@ -15,28 +15,26 @@ pub async fn exec(port: u16, verbose: bool, uri: Option<String>, mode: String) -
     }
     env_logger::init();
 
-    // Shared data
-    let mmr_db = database(uri)?;
     let eth = Arc::new(ethereum_rpc());
 
     match mode.as_str() {
         "all" => {
-            let runner = Runner::new(&eth, &mmr_db);
+            let runner = Runner::new(&eth);
             select! {
                 _ = runner.start() => {
                     info!("Mmr Runner completed");
                 },
-                r = api::serve(port, &mmr_db, &eth) => {
+                r = api::serve(port, &eth) => {
                     error!("Api service completed: {:?}", r);
                 },
             };
         },
-        "mmr" => {
-            let runner = Runner::new(&eth, &mmr_db);
+        "runner" => {
+            let runner = Runner::new(&eth);
             runner.start().await;
         },
         "api" => {
-            api::serve(port, &mmr_db, &eth).await?;
+            api::serve(port, &eth).await?;
         },
         _ => {
             return Err(anyhow::anyhow!("Unsupported mode: {}, only can be one of all, mmr, api, epoch", mode).into());

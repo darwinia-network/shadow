@@ -1,6 +1,6 @@
 [package]
 name = "darwinia-shadow"
-version = "0.6.0"
+version = "0.7.0"
 authors = ["clearloop <udtrokia@gmail.com>"]
 edition = "2018"
 description = "The shadow service for relayers and verify workers to retrieve header data and generate proof."
@@ -30,7 +30,6 @@ rocksdb = "0.15.0"
 mysql = "*"
 thiserror = "1.0"
 anyhow = "1.0.34"
-mmr = { path = "./mmr" }
 ffi = { path = "./ffi" }
 api = { path = "./api" }
 primitives = { features = ["rpc"], package = "darwinia-bridge-primitives", git = "https://github.com/darwinia-network/bridger", branch = "add-ethereum-basefee" }

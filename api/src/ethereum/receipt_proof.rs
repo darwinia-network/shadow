@@ -1,11 +1,10 @@
-use mmr::{Database, build_client};
 use primitives::rpc::EthereumRPC;
 use actix_web::{
     web::{Data, Path, Json},
     Responder
 };
 use primitives::{
-    chain::ethereum::{EthereumHeaderJson, MMRProofJson},
+    chain::ethereum::EthereumHeaderJson,
     rpc::Rpc,
 };
 use crate::{Result, AppData};
@@ -43,12 +42,11 @@ impl From<(String, String, String)> for ReceiptProof {
 pub struct ReceiptResp {
     header: EthereumHeaderJson,
     receipt_proof: ReceiptProof,
-    mmr_proof: MMRProofJson,
 }
 
 impl ReceiptResp {
     /// Get Receipt
-    pub fn receipt(api: &str, tx: &str) -> ReceiptProof {
+    pub fn receipt_proof(api: &str, tx: &str) -> ReceiptProof {
         ffi::receipt(api, tx).into()
     }
 
@@ -60,36 +58,24 @@ impl ReceiptResp {
 
     /// Generate header
     /// mmr_root_height should be last confirmed block in relayt
-    pub async fn new(mmr_db: &Database,
-                     eth: &EthereumRPC,
-                     tx: &str,
-                     mmr_root_height: u64
+    pub async fn new(eth: &EthereumRPC,
+                     tx: &str
     ) -> Result<ReceiptResp> {
-        let receipt_proof = Self::receipt(eth.rpc(), tx);
+        let receipt_proof = Self::receipt_proof(eth.rpc(), tx);
         let header = Self::header(eth, &receipt_proof.header_hash).await?;
-
-        let client = build_client(mmr_db)?;
-        let (member_leaf_index, last_leaf_index) = (header.number, mmr_root_height - 1);
-        let mmr_proof = MMRProofJson {
-            member_leaf_index,
-            last_leaf_index,
-            proof: client.gen_proof(member_leaf_index, last_leaf_index)?,
-        };
 
         Ok(ReceiptResp {
             header,
             receipt_proof,
-            mmr_proof,
         })
     }
 }
 
 /// Receipt Handler
-pub async fn handle(tx: Path<(String, u64)>, app_data: Data<AppData>) -> impl Responder {
-    let tx_hash = tx.0.as_str();
-    let mmr_root_height = tx.1;
+pub async fn handle(tx: Path<String>, app_data: Data<AppData>) -> impl Responder {
+    let tx_hash = tx.as_str();
 
-    match ReceiptResp::new(&app_data.mmr_db, &app_data.eth, tx_hash, mmr_root_height).await {
+    match ReceiptResp::new(&app_data.eth, tx_hash).await {
         Ok(result) => Json(ReceiptResult::ReceiptResp(result)),
         Err(err) => Json(ReceiptResult::Error(err.to_json()))
     }

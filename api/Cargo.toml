@@ -17,7 +17,6 @@ serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 array-bytes = "0.1.0"
 
-mmr = { path = "../mmr" }
 ffi = { path = "../ffi" }
 primitives = { features = ["rpc"], package = "darwinia-bridge-primitives", git = "https://github.com/darwinia-network/bridger", branch = "add-ethereum-basefee" }
 

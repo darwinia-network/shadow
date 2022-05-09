@@ -40,7 +40,7 @@ pub async fn serve(port: u16, mmr_db: &mmr::Database, eth: &Arc<EthereumRPC>) ->
             // .service(web::resource("/ethereum/parcel/{block}").to(ethereum::parcel))
             .service(web::resource("/ethereum/proof").to(ethereum::proof))
             .service(
-                web::resource("/ethereum/receipt/{tx}/{last}").to(ethereum::receipt_with_mmr_root),
+                web::resource("/ethereum/receipt/{tx}/{last}").to(ethereum::receipt_with_mmr_proof),
             )
             .service(web::resource("/ethereum/only-receipt/{tx}").to(ethereum::only_receipt))
     })

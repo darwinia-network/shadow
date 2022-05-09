@@ -4,12 +4,8 @@ use actix_web::{
     web::{Data, Json, Path},
     Responder,
 };
-use mmr::{build_client, Database};
 use primitives::rpc::EthereumRPC;
-use primitives::{
-    chain::ethereum::{EthereumHeaderJson, MMRProofJson},
-    rpc::Rpc,
-};
+use primitives::{chain::ethereum::EthereumHeaderJson, rpc::Rpc};
 use serde::Serialize;
 
 /// Receipt result

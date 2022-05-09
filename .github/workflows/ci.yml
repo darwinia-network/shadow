@@ -30,9 +30,6 @@ jobs:
       - name: Run tests
         run: cargo test --release -vv
 
-      - name: Run mmr tests
-        run: cargo test -p mmr --release -vv
-
       - name: Run api tests
         run: cargo test -p api --release -vv
 

@@ -1,11 +1,11 @@
 //! The API server of Shadow
 use actix_web::{middleware, web, App, HttpServer};
 
+mod error;
 pub mod ethereum;
 mod root;
-mod error;
 
-pub use error::{Result, Error};
+pub use error::{Error, Result};
 use primitives::rpc::EthereumRPC;
 use std::sync::Arc;
 
@@ -19,7 +19,7 @@ pub struct AppData {
 pub async fn serve(port: u16, mmr_db: &mmr::Database, eth: &Arc<EthereumRPC>) -> Result<()> {
     let app_data = AppData {
         mmr_db: mmr_db.clone(),
-        eth: eth.clone()
+        eth: eth.clone(),
     };
 
     HttpServer::new(move || {
@@ -39,11 +39,14 @@ pub async fn serve(port: u16, mmr_db: &mmr::Database, eth: &Arc<EthereumRPC>) ->
             )
             // .service(web::resource("/ethereum/parcel/{block}").to(ethereum::parcel))
             .service(web::resource("/ethereum/proof").to(ethereum::proof))
-            .service(web::resource("/ethereum/receipt/{tx}/{last}").to(ethereum::receipt))
+            .service(
+                web::resource("/ethereum/receipt/{tx}/{last}").to(ethereum::receipt_with_mmr_root),
+            )
+            .service(web::resource("/ethereum/only-receipt/{tx}").to(ethereum::only_receipt))
     })
-        .disable_signals()
-        .bind(format!("0.0.0.0:{}", port))?
-        .run()
-        .await?;
+    .disable_signals()
+    .bind(format!("0.0.0.0:{}", port))?
+    .run()
+    .await?;
     Ok(())
 }

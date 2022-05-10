@@ -26,7 +26,10 @@ jobs:
         uses: actions-rs/toolchain@v1
         with:
           toolchain: nightly
-          target: wasm32-unknown-unknown
+
+      - uses: actions/setup-go@v3
+        with:
+          go-version: '>=1.17.0'
 
       - uses: actions/cache@v2
         with:

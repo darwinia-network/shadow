@@ -14,6 +14,13 @@ jobs:
       image: ubuntu:16.04
     steps:
       - uses: actions/checkout@v2
+
+      - name: Install Rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly
+          target: wasm32-unknown-unknown
+
       - uses: actions/cache@v2
         with:
           path: |

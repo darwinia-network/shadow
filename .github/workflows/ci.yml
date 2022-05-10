@@ -22,6 +22,12 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-cargo-
 
+      - name: Install dependencies
+        run: |
+          sudo apt update -y
+          sudo apt install --no-install-recommends -y \
+            make gcc g++ clang-4.0
+
       - name: Lint
         run: |
           rustup component add clippy

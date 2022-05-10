@@ -10,27 +10,13 @@ jobs:
   build-and-test:
     name: Build and Test
     runs-on: ubuntu-latest
-    container:
-      image: ubuntu:16.04
     steps:
       - uses: actions/checkout@v2
-
-      - name: Install dependencies
-        run: |
-          apt update -y
-          apt install --no-install-recommends -y \
-            git curl ca-certificates \
-            make gcc g++ clang-4.0 \
-            pkg-config libssl-dev
 
       - name: Install Rust toolchain
         uses: actions-rs/toolchain@v1
         with:
           toolchain: nightly
-
-      - uses: actions/setup-go@v3
-        with:
-          go-version: '>=1.17.0'
 
       - uses: actions/cache@v2
         with:

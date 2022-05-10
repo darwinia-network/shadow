@@ -11,30 +11,30 @@ use crate::{
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct EthereumBlockRPC {
-    difficulty: String,
-    extra_data: String,
-    gas_limit: String,
-    gas_used: String,
+    pub difficulty: String,
+    pub extra_data: String,
+    pub gas_limit: String,
+    pub gas_used: String,
     /// Ethereum header hash
     pub hash: String,
-    logs_bloom: String,
-    miner: String,
-    mix_hash: String,
-    nonce: String,
-    number: String,
+    pub logs_bloom: String,
+    pub miner: String,
+    pub mix_hash: String,
+    pub nonce: String,
+    pub number: String,
     /// Parent hash
     pub parent_hash: String,
-    receipts_root: String,
-    sha3_uncles: String,
-    size: String,
-    state_root: String,
-    timestamp: String,
-    total_difficulty: String,
-    transactions_root: String,
+    pub receipts_root: String,
+    pub sha3_uncles: String,
+    pub size: String,
+    pub state_root: String,
+    pub timestamp: String,
+    pub total_difficulty: String,
+    pub transactions_root: String,
     /// Block transactions
     pub transactions: Vec<String>,
-    uncles: Vec<String>,
-    base_fee_per_gas: Option<String>,
+    pub uncles: Vec<String>,
+    pub base_fee_per_gas: Option<String>,
 }
 
 impl From<EthereumBlockRPC> for EthereumHeader {
@@ -72,45 +72,45 @@ impl From<EthereumBlockRPC> for EthereumHeader {
 /// Darwinia Eth header
 #[derive(Clone, Decode, Encode, Debug, PartialEq, Eq, Serialize, Deserialize, Default)]
 pub struct EthereumHeader {
-    parent_hash: [u8; 32],
-    timestamp: u64,
+    pub parent_hash: [u8; 32],
+    pub timestamp: u64,
     /// Block number
     pub number: u64,
-    author: [u8; 20],
-    transactions_root: [u8; 32],
-    uncles_hash: [u8; 32],
-    extra_data: Vec<u8>,
-    state_root: [u8; 32],
-    receipts_root: [u8; 32],
-    log_bloom: Bloom,
-    gas_used: U256,
-    gas_limit: U256,
-    difficulty: U256,
-    seal: Vec<Vec<u8>>,
+    pub author: [u8; 20],
+    pub transactions_root: [u8; 32],
+    pub uncles_hash: [u8; 32],
+    pub extra_data: Vec<u8>,
+    pub state_root: [u8; 32],
+    pub receipts_root: [u8; 32],
+    pub log_bloom: Bloom,
+    pub gas_used: U256,
+    pub gas_limit: U256,
+    pub difficulty: U256,
+    pub seal: Vec<Vec<u8>>,
     /// Ethereum header hash
     pub hash: Option<[u8; 32]>,
-    base_fee_per_gas: Option<U256>,
+    pub base_fee_per_gas: Option<U256>,
 }
 
 /// Darwinia Eth header Json foramt
 #[derive(Debug, PartialEq, Eq, Serialize, Deserialize, Default, Encode, Clone)]
 pub struct EthereumHeaderJson {
-    parent_hash: String,
-    timestamp: u64,
+    pub parent_hash: String,
+    pub timestamp: u64,
     /// Block Number
     pub number: u64,
-    author: String,
-    transactions_root: String,
-    uncles_hash: String,
-    extra_data: String,
-    state_root: String,
-    receipts_root: String,
-    log_bloom: String,
-    gas_used: u128,
-    gas_limit: u128,
-    difficulty: u128,
-    seal: Vec<String>,
-    hash: String,
+    pub author: String,
+    pub transactions_root: String,
+    pub uncles_hash: String,
+    pub extra_data: String,
+    pub state_root: String,
+    pub receipts_root: String,
+    pub log_bloom: String,
+    pub gas_used: u128,
+    pub gas_limit: u128,
+    pub difficulty: u128,
+    pub seal: Vec<String>,
+    pub hash: String,
     pub base_fee_per_gas: Option<u128>,
 }
 

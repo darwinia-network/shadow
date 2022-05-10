@@ -10,6 +10,8 @@ jobs:
   build-and-test:
     name: Build and Test
     runs-on: ubuntu-latest
+    container:
+      image: ubuntu:16.04
     steps:
       - uses: actions/checkout@v2
       - uses: actions/cache@v2
@@ -24,8 +26,8 @@ jobs:
 
       - name: Install dependencies
         run: |
-          sudo apt update -y
-          sudo apt install --no-install-recommends -y \
+          apt update -y
+          apt install --no-install-recommends -y \
             make gcc g++ clang-4.0
 
       - name: Lint

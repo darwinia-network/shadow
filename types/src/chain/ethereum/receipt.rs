@@ -66,14 +66,14 @@ pub struct LogEntry {
     pub data: Vec<u8>,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct EthereumReceiptJson {
     pub header: EthereumHeaderJson,
     pub receipt_proof: ReceiptProof,
 }
 
 /// Receipt proof
-#[derive(Serialize)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct ReceiptProof {
     pub index: String,
     pub proof: String,

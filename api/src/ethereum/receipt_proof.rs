@@ -27,7 +27,7 @@ async fn handle_receipt(eth: &EthereumRPC, tx: &str) -> Result<EthereumReceiptJs
     let header: EthereumHeaderJson = eth
         .get_header_by_hash(&receipt_proof.header_hash)
         .await?
-        .into()?;
+        .into();
     Ok(EthereumReceiptJson {
         header,
         receipt_proof,

@@ -9,10 +9,9 @@ pub use header::HEADER;
 // pub use mock_header_19::MOCK_HEADER_19;
 use codec::Decode;
 
-use mmr::H256;
 use shadow_types::{
     bytes,
-    chain::ethereum::{EthashProof, EthereumHeader},
+    chain::ethereum::{ethash::EthashProof, block::EthereumHeader},
 };
 
 pub fn ha() -> [[u8; 32]; 10] {

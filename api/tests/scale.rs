@@ -1,8 +1,10 @@
-use core::num::flt2dec::decode;
-
 use codec::{Decode, Encode};
 use mock::{ha, header, proof, ETHASH_PROOF_CODEC, HEADER};
-use shadow_types::chain::ethereum::{EthashProof, EthereumHeader};
+use shadow_types::{
+    bytes,
+    hex,
+    chain::ethereum::{ethash::EthashProof, block::EthereumHeader}
+};
 
 mod mock;
 
@@ -21,14 +23,6 @@ fn hash_array() {
     let hashes = ha();
     let encoded = hashes.encode();
     assert_eq!(encoded, hashes.concat());
-}
-
-#[test]
-fn mmr_proof() {
-    let hashes = ha();
-    let ha_hex_0 = array_bytes::bytes2hex("08", &hashes[0..2].concat());
-    let ha_hex_1 = array_bytes::bytes2hex("08", &hashes[0..2].to_vec().encode());
-    assert_eq!(ha_hex_0, ha_hex_1);
 }
 
 #[test]

@@ -32,5 +32,6 @@ thiserror = "1.0"
 anyhow = "1.0.34"
 ffi = { path = "./ffi" }
 api = { path = "./api" }
-primitives = { features = ["rpc"], package = "darwinia-bridge-primitives", git = "https://github.com/darwinia-network/bridger", branch = "add-ethereum-basefee" }
 
+#primitives = { features = ["rpc"], package = "darwinia-bridge-primitives", git = "https://github.com/darwinia-network/bridger", branch = "add-ethereum-basefee" }
+shadow-types = { features = ["rpc"], path = "./types" }

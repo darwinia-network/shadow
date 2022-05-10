@@ -1,6 +1,6 @@
-use thiserror::Error as ThisError;
 use anyhow::Result as AnyResult;
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
+use thiserror::Error as ThisError;
 
 #[derive(ThisError, Debug)]
 pub enum Error {
@@ -8,7 +8,7 @@ pub enum Error {
     Io(#[from] std::io::Error),
 
     #[error(transparent)]
-    PrimitivesError(#[from] primitives::result::Error),
+    PrimitivesError(#[from] shadow_types::result::Error),
 
     #[error(transparent)]
     AnyhowError(#[from] anyhow::Error),
@@ -19,15 +19,20 @@ pub enum Error {
     #[error(transparent)]
     ScaleCodecError(#[from] codec::Error),
 
-    #[error(transparent)]
-    ArrayBytesError(#[from] array_bytes::Error),
+    #[error("ArrayBytes: {0}")]
+    ArrayBytesError(String),
 
     #[error("Leaf of index {0} is not found")]
     LeafNotFound(u64),
 
     #[error("Mmr root of leaf {0} is not found")]
     MmrRootNotFound(u64),
+}
 
+impl From<array_bytes::Error> for Error {
+    fn from(e: array_bytes::Error) -> Self {
+        Self::ArrayBytesError(format!("{:?}", e))
+    }
 }
 
 /// Error Json
@@ -39,7 +44,9 @@ pub struct ErrorJson {
 
 impl Error {
     pub fn to_json(&self) -> ErrorJson {
-        ErrorJson{ error: self.to_string() }
+        ErrorJson {
+            error: self.to_string(),
+        }
     }
 }
 

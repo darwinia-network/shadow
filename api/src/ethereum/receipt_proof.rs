@@ -1,22 +1,22 @@
-use primitives::rpc::EthereumRPC;
 use actix_web::{
-    web::{Data, Path, Json},
-    Responder
+    web::{Data, Json, Path},
+    Responder,
 };
-use primitives::{
-    chain::ethereum::EthereumHeaderJson,
-    rpc::Rpc,
-};
-use crate::{Result, AppData};
 use serde::Serialize;
+use shadow_types::{
+    chain::ethereum::block::EthereumHeaderJson,
+    rpc::{EthereumRPC, Rpc},
+};
+
 use crate::error::ErrorJson;
+use crate::{AppData, Result};
 
 /// Receipt result
 #[derive(Serialize)]
 #[serde(untagged)]
 pub enum ReceiptResult {
     ReceiptResp(ReceiptResp),
-    Error(ErrorJson)
+    Error(ErrorJson),
 }
 
 /// Receipt proof
@@ -58,9 +58,7 @@ impl ReceiptResp {
 
     /// Generate header
     /// mmr_root_height should be last confirmed block in relayt
-    pub async fn new(eth: &EthereumRPC,
-                     tx: &str
-    ) -> Result<ReceiptResp> {
+    pub async fn new(eth: &EthereumRPC, tx: &str) -> Result<ReceiptResp> {
         let receipt_proof = Self::receipt_proof(eth.rpc(), tx);
         let header = Self::header(eth, &receipt_proof.header_hash).await?;
 
@@ -77,7 +75,6 @@ pub async fn handle(tx: Path<String>, app_data: Data<AppData>) -> impl Responder
 
     match ReceiptResp::new(&app_data.eth, tx_hash).await {
         Ok(result) => Json(ReceiptResult::ReceiptResp(result)),
-        Err(err) => Json(ReceiptResult::Error(err.to_json()))
+        Err(err) => Json(ReceiptResult::Error(err.to_json())),
     }
 }
-

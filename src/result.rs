@@ -1,6 +1,7 @@
 //! MMR Errors
 use anyhow::Result as AnyResult;
 use thiserror::Error as ThisError;
+
 #[allow(missing_docs)]
 #[derive(ThisError, Debug)]
 pub enum Error {
@@ -14,7 +15,7 @@ pub enum Error {
     MysqlError(#[from] Box<mysql::Error>),
 
     #[error(transparent)]
-    PrimitivesError(#[from] primitives::result::Error),
+    PrimitivesError(#[from] shadow_types::result::Error),
 
     #[error(transparent)]
     JoinError(#[from] tokio::task::JoinError),

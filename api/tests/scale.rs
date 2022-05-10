@@ -1,12 +1,10 @@
-mod mock;
+use core::num::flt2dec::decode;
 
-use mock::{ha, header, proof, ETHASH_PROOF_CODEC, HEADER};
-use primitives::{
-    bytes,
-    chain::ethereum::{EthashProof, EthereumHeader},
-    hex,
-};
 use codec::{Decode, Encode};
+use mock::{ha, header, proof, ETHASH_PROOF_CODEC, HEADER};
+use shadow_types::chain::ethereum::{EthashProof, EthereumHeader};
+
+mod mock;
 
 /// the scale codec of hash is its hex string
 #[test]
@@ -28,10 +26,9 @@ fn hash_array() {
 #[test]
 fn mmr_proof() {
     let hashes = ha();
-    assert_eq!(
-        format!("08{}", &hex!(&hashes[0..2].concat())),
-        hex!(hashes[0..2].to_vec().encode())
-    );
+    let ha_hex_0 = array_bytes::bytes2hex("08", &hashes[0..2].concat());
+    let ha_hex_1 = array_bytes::bytes2hex("08", &hashes[0..2].to_vec().encode());
+    assert_eq!(ha_hex_0, ha_hex_1);
 }
 
 #[test]

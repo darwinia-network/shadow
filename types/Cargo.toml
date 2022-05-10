@@ -1,0 +1,27 @@
+[package]
+name = "shadow-types"
+version = "0.7.0"
+authors = ["clearloop <udtrokia@gmail.com>"]
+include = ["src/**/*", "Cargo.toml", "./README.md"]
+edition = "2021"
+
+[package.metadata.docs.rs]
+all-features = true
+
+[dependencies]
+uint = "0.8.5"
+thiserror = "1.0"
+
+## Optional featrues
+async-trait = { version = "0.1.40", optional = true }
+reqwest = { version = "0.10", features = ["json"], optional = true }
+serde_json = { version = "1.0", optional = true }
+
+rlp = "0.4"
+serde = { version = "1", features = ["derive"] }
+codec = { version = "2", features = ["derive"], package = "parity-scale-codec" }
+
+[features]
+rpc = ["async-trait", "reqwest", "serde_json"]
+
+default = []

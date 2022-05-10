@@ -1,13 +1,13 @@
 //! The API server of Shadow
+use std::sync::Arc;
+
 use actix_web::{middleware, web, App, HttpServer};
+pub use error::{Error, Result};
+use shadow_types::rpc::EthereumRPC;
 
 mod error;
 pub mod ethereum;
 mod root;
-
-pub use error::{Error, Result};
-use primitives::rpc::EthereumRPC;
-use std::sync::Arc;
 
 #[derive(Clone)]
 pub struct AppData {
@@ -16,9 +16,7 @@ pub struct AppData {
 
 /// Run HTTP Server
 pub async fn serve(port: u16, eth: &Arc<EthereumRPC>) -> Result<()> {
-    let app_data = AppData {
-        eth: eth.clone(),
-    };
+    let app_data = AppData { eth: eth.clone() };
 
     HttpServer::new(move || {
         App::new()
@@ -28,9 +26,7 @@ pub async fn serve(port: u16, eth: &Arc<EthereumRPC>) -> Result<()> {
             .service(web::resource("/version").to(root::version))
             // .service(web::resource("/ethereum/parcel/{block}").to(ethereum::parcel))
             .service(web::resource("/ethereum/ethash_proof").to(ethereum::ethash_proof))
-            .service(
-                web::resource("/ethereum/receipt/{tx}").to(ethereum::receipt_proof),
-            )
+            .service(web::resource("/ethereum/receipt/{tx}").to(ethereum::receipt_proof))
     })
     .disable_signals()
     .bind(format!("0.0.0.0:{}", port))?

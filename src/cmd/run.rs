@@ -1,16 +1,18 @@
-use crate::{runner::Runner, result::Result};
-use tokio::select;
-use std::sync::Arc;
-use primitives::rpc::EthereumRPC;
 use std::env;
+use std::sync::Arc;
+
+use shadow_types::rpc::EthereumRPC;
+use tokio::select;
+
+use crate::{result::Result, runner::Runner};
 
 /// Run shadow service
 pub async fn exec(port: u16, verbose: bool, mode: String) -> Result<()> {
-    if std::env::var("RUST_LOG").is_err() {
+    if env::var("RUST_LOG").is_err() {
         if verbose {
-            std::env::set_var("RUST_LOG", "info,darwinia_shadow");
+            env::set_var("RUST_LOG", "info,darwinia_shadow");
         } else {
-            std::env::set_var("RUST_LOG", "info");
+            env::set_var("RUST_LOG", "info");
         }
     }
     env_logger::init();
@@ -28,16 +30,20 @@ pub async fn exec(port: u16, verbose: bool, mode: String) -> Result<()> {
                     error!("Api service completed: {:?}", r);
                 },
             };
-        },
+        }
         "runner" => {
             let runner = Runner::new(&eth);
             runner.start().await;
-        },
+        }
         "api" => {
             api::serve(port, &eth).await?;
-        },
+        }
         _ => {
-            return Err(anyhow::anyhow!("Unsupported mode: {}, only can be one of all, mmr, api, epoch", mode).into());
+            return Err(anyhow::anyhow!(
+                "Unsupported mode: {}, only can be one of all, mmr, api, epoch",
+                mode
+            )
+            .into());
         }
     }
 
@@ -57,7 +63,6 @@ fn ethereum_rpc() -> EthereumRPC {
         .map(|s| s.trim().to_string())
         .collect();
 
-
-    info!("Avaiable ethereum rpc urls: \n{:#?}", rpcs);
+    info!("Available ethereum rpc urls: \n{:#?}", rpcs);
     EthereumRPC::new(reqwest::Client::new(), rpcs)
 }

@@ -1,16 +1,16 @@
 use actix_web::{
     web::{Data, Json},
-    Responder
-};
-use primitives::{
-    chain::ethereum::{EthashProof, EthashProofJson},
-    rpc::EthereumRPC,
+    Responder,
 };
 use codec::{Decode, Encode};
-use crate::{Result, AppData};
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
+use shadow_types::{
+    chain::ethereum::ethash::{EthashProof, EthashProofJson},
+    rpc::EthereumRPC,
+};
+
 use crate::error::ErrorJson;
-use array_bytes::bytes;
+use crate::{AppData, Result};
 
 #[derive(Clone, Default, Serialize, Deserialize, PartialEq, Eq)]
 pub struct EthashProofsJson {
@@ -23,7 +23,7 @@ pub struct EthashProofsJson {
 #[serde(untagged)]
 pub enum ProofResult {
     EthashProofs(EthashProofsJson),
-    Error(ErrorJson)
+    Error(ErrorJson),
 }
 
 /// Proposal post req
@@ -37,7 +37,7 @@ impl ProposalReq {
     /// Get `EtHashProof`
     fn ethash_proof(&self, api: &str) -> Result<Vec<EthashProofJson>> {
         let proof = ffi::proof(api, self.target, false)?;
-        let proof_vec_u8 = bytes(proof.as_str())?;
+        let proof_vec_u8 = array_bytes::hex2bytes(proof.as_str())?;
         let result = <Vec<EthashProof>>::decode(&mut proof_vec_u8.as_ref())?
             .iter()
             .map(|p| Into::<EthashProofJson>::into(p.clone()))
@@ -58,6 +58,6 @@ impl ProposalReq {
 pub async fn handle(req: Json<ProposalReq>, app_data: Data<AppData>) -> impl Responder {
     match req.0.gen(&app_data.eth).await {
         Ok(result) => Json(ProofResult::EthashProofs(result)),
-        Err(err) => Json(ProofResult::Error(err.to_json()))
+        Err(err) => Json(ProofResult::Error(err.to_json())),
     }
 }

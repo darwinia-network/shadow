@@ -1,5 +1,5 @@
 [package]
-name = "api"
+name    = "api"
 version = "0.7.0"
 authors = ["clearloop <udtrokia@gmail.com>", "Aki <wuminzhe@gmail.com>"]
 edition = "2021"
@@ -7,21 +7,22 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-log = "0.4.0"
-env_logger = "0.7.1"
-thiserror = "1.0"
-anyhow = "1.0.34"
-actix-web = "2.0.0"
-reqwest = { version = "0.10", features = ["json"] }
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
-array-bytes = "0.1.0"
+log         = "0.4"
+env_logger  = "0.7"
+thiserror   = "1.0"
+anyhow      = "1"
+actix-web   = "2.0.0"
+reqwest     = { version = "0.10", features = ["json"] }
+serde       = { version = "1.0", features = ["derive"] }
+serde_json  = "1"
+array-bytes = "1"
 
 ffi = { path = "../ffi" }
-primitives = { features = ["rpc"], package = "darwinia-bridge-primitives", git = "https://github.com/darwinia-network/bridger", branch = "add-ethereum-basefee" }
+#primitives = { features = ["rpc"], package = "darwinia-bridge-primitives", git = "https://github.com/darwinia-network/bridger", branch = "add-ethereum-basefee" }
+shadow-types = { features = ["rpc"], path = "../types" }
 
 [dependencies.codec]
-package = "parity-scale-codec"
-version = "2"
+package  = "parity-scale-codec"
+version  = "2"
 features = ["derive"]
 

@@ -6,6 +6,7 @@ use rlp::{Encodable, RlpStream};
 use serde::Deserialize;
 
 use crate::array::{H160, H256};
+use crate::chain::ethereum::block::EthereumHeaderJson;
 
 /// Ethereum rsp response body
 #[derive(Serialize, Deserialize, Debug)]
@@ -63,4 +64,28 @@ pub struct LogEntry {
     pub topics: Vec<H256>,
     /// The data associated with the `LOG` operation.
     pub data: Vec<u8>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct EthereumReceiptJson {
+    pub header: EthereumHeaderJson,
+    pub receipt_proof: ReceiptProof,
+}
+
+/// Receipt proof
+#[derive(Serialize)]
+pub struct ReceiptProof {
+    pub index: String,
+    pub proof: String,
+    pub header_hash: String,
+}
+
+impl From<(String, String, String)> for ReceiptProof {
+    fn from(t: (String, String, String)) -> ReceiptProof {
+        ReceiptProof {
+            index: t.0,
+            proof: t.1,
+            header_hash: t.2,
+        }
+    }
 }

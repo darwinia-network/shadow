@@ -21,7 +21,7 @@ jobs:
           apt install --no-install-recommends -y \
             git curl ca-certificates \
             make gcc g++ clang-4.0 \
-            pkg-config openssl
+            pkg-config libssl-dev
 
       - name: Install Rust toolchain
         uses: actions-rs/toolchain@v1

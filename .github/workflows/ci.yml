@@ -28,10 +28,10 @@ jobs:
           cargo clippy --all -- -D warnings
 
       - name: Run tests
-        run: cargo test --release -vv
+        run: cargo test --release
 
       - name: Run api tests
-        run: cargo test -p api --release -vv
+        run: cargo test -p api --release
 
       - name: Run ffi tests
-        run: cargo test -p ffi --release -vv
+        run: cargo test -p ffi --release

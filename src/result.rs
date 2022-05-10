@@ -1,6 +1,6 @@
 //! MMR Errors
-use thiserror::Error as ThisError;
 use anyhow::Result as AnyResult;
+use thiserror::Error as ThisError;
 #[allow(missing_docs)]
 #[derive(ThisError, Debug)]
 pub enum Error {
@@ -11,7 +11,7 @@ pub enum Error {
     RocksdbError(#[from] rocksdb::Error),
 
     #[error(transparent)]
-    MysqlError(#[from] mysql::Error),
+    MysqlError(#[from] Box<mysql::Error>),
 
     #[error(transparent)]
     PrimitivesError(#[from] primitives::result::Error),

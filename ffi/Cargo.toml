@@ -2,7 +2,7 @@
 name = "ffi"
 version = "0.1.0"
 authors = ["Aki <wuminzhe@gmail.com>"]
-edition = "2018"
+edition = "2021"
 include = [
     "go.mod",
     "go.sum",

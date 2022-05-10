@@ -2,7 +2,7 @@
 name = "darwinia-shadow"
 version = "0.7.0"
 authors = ["clearloop <udtrokia@gmail.com>"]
-edition = "2018"
+edition = "2021"
 description = "The shadow service for relayers and verify workers to retrieve header data and generate proof."
 repository = "https://github.com/darwinia-network/shadow"
 license = "GPL-3.0-or-later"

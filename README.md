@@ -25,7 +25,7 @@ LIBRARY_TYPE=static cargo build --release
 ## Usage
 
 ```sh
-shadow 0.7.0
+darwinia-shadow 0.7.0
 
 USAGE:
     shadow <SUBCOMMAND>
@@ -35,13 +35,9 @@ FLAGS:
     -V, --version    Prints version information
 
 SUBCOMMANDS:
-    count     Current block height in mmr store
-    epoch     Generate epoch data for ethash
-    export    Exports shadow's rocksdb
-    help      Prints this message or the help of the given subcommand(s)
-    import    Imports mmr from shadow backup or geth
-    run       Start shadow service
-    trim      Trim mmr from target leaf
+    epoch    Generate epoch data for ethash
+    help     Prints this message or the help of the given subcommand(s)
+    run      Start shadow service
 ```
 
 ## Download
@@ -63,50 +59,11 @@ $ cargo install darwinia-shadow
 
   Example: `http://localhost:8545/`
 
-- `MMR_LOG`
-
-  Optional. Define how frequently it outputs logs `Pushed mmr ... into database`
-  while generating MMR. Useful when you first time running shadow, since it
-  generates millon of MMR data at first launch. Default is `10000`.
-
-  Example: `"100000"`
-
 ## Trouble Shooting
 
 Everytime you run `proof` in error, please delete `~/.ethashproof`
 and `~/.ethash`
 and retry.
-
-## Sub commands
-
-### import
-
-#### rockdb
-
-If `-u` not set, the default rocksdb dir is ~/.shadow/cache/mmr
-
-example:
-
-```
-shadow import \
-  -p /data/geth/chaindata \
-  -u /path/to/rocksdb/dir \
-  -t 11357653
-```
-
-#### mysql
-
-1. create database 'mmr_store'. Any database name can be used.
-
-2. run sub command 'import'
-
-   example:
-    ```
-    shadow import \
-      -p /data/geth/chaindata \
-      -u mysql://root:@localhost:3306/mmr_store \
-      -t 11357653
-    ```
 
 ## Apis
 

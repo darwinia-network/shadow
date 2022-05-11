@@ -1,34 +1,68 @@
 mod ethash_proof;
 mod ethash_proof_codec;
-mod hash;
 mod header;
-// mod header_thing;
-// mod mock_header_19;
 
 pub use ethash_proof::{DAG_NODES, PROOF};
 pub use ethash_proof_codec::ETHASH_PROOF_CODEC;
-pub use hash::HASHES;
 pub use header::HEADER;
 // pub use header_thing::ETH_HEADER_THING;
 // pub use mock_header_19::MOCK_HEADER_19;
 use codec::Decode;
 
-use mmr::H256;
-use primitives::{
+use shadow_types::{
     bytes,
-    chain::ethereum::{EthashProof, EthereumHeader},
+    chain::ethereum::{ethash::EthashProof, block::EthereumHeader},
 };
 
-/// Hash array for tests
 pub fn ha() -> [[u8; 32]; 10] {
-    let mut hashes = [[0; 32]; 10];
-    (0..10).for_each(|i| hashes[i] = H256::from(HASHES[i]).unwrap());
-    hashes
+    return [
+        bytes!(
+            "0x34f61bfda344b3fad3c3e38832a91448b3c613b199eb23e5110a635d71c13c65",
+            32
+        ),
+        bytes!(
+            "0x70d641860d40937920de1eae29530cdc956be830f145128ebb2b496f151c1afb",
+            32
+        ),
+        bytes!(
+            "0x12e69454d992b9b1e00ea79a7fa1227c889c84d04b7cd47e37938d6f69ece45d",
+            32
+        ),
+        bytes!(
+            "0x3733bd06905e128d38b9b336207f301133ba1d0a4be8eaaff6810941f0ad3b1a",
+            32
+        ),
+        bytes!(
+            "0x3d7572be1599b488862a1b35051c3ef081ba334d1686f9957dbc2afd52bd2028",
+            32
+        ),
+        bytes!(
+            "0x2a04add3ecc3979741afad967dfedf807e07b136e05f9c670a274334d74892cf",
+            32
+        ),
+        bytes!(
+            "0xc58e247ea35c51586de2ea40ac6daf90eac7ac7b2f5c88bbc7829280db7890f1",
+            32
+        ),
+        bytes!(
+            "0x2cf0262f0a8b00cad22afa04d70fb0c1dbb2eb4a783beb7c5e27bd89015ff573",
+            32
+        ),
+        bytes!(
+            "0x05370d06def89f11486c994c459721b4bd023ff8c2347f3187e9f42ef39bddab",
+            32
+        ),
+        bytes!(
+            "0xc0c8c3f7dc9cdfa87d2433bcd72a744d634524a5ff76e019e44ea450476bac99",
+            32
+        ),
+    ];
 }
 
 /// Block Number ffi ports
 pub fn header() -> EthereumHeader {
-    EthereumHeader::decode(&mut bytes!("0xeafc2fd5df033e82a69943eb7d53a1cc4978047dc6557ab8fb5ee8c414ec3282f9e7d360000000004935a000000000001cffe205e97976bb9d1ec006f5222360a89353e036024788f64b44fb50965ebf573f22ed62621c6174d60b4a66fbf075e898cd011dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d4934768436f6e73656e5379732048797065726c65646765722042657375f3f732dc81910280d82d6857191474f273a6b9412920f7d211789ab6f2faeeb2abae94207f41048f943fad44af11e7fa84281ccf788d53c3674b72c56e612708c0248204a002100040a08040908005029412040044336018048380014244020a0000108502488502000000407010000001c40802145482290120011008b000800c2610010201c0010000800a80500464043105500a9002406141220088018000040040290a07228203000888001028040800004008104c000012807020001040208140160224088031409a080740011049031c23210094780000004a008200804e8004400520010002004101220000080080004c000800110071818880004208450001230440d8045500214805880103003461200100009300426720440031020a500201001080c8025604054408414011a134800f0002441248001400810110f7e2eb00000000000000000000000000000000000000000000000000000000000024f4000000000000000000000000000000000000000000000000000000000052532b42000000000000000000000000000000000000000000000000000000000884a00e79b359b213a236bf9e5e63b6029ed9a768e1720b457bc19d51488d97735d0d2488515a2ef4e7df9c4701076323243bb412fd1526da231ebcabffeee8ad7dcb8a3c009c87b6a4f49c429e0100ca9a3b00000000000000000000000000000000000000000000000000000000").as_ref()).unwrap()
+    let bytes = array_bytes::hex2bytes_unchecked(HEADER);
+    EthereumHeader::decode(&mut bytes.as_ref()).unwrap()
 }
 
 /// Generate DoubleNodeWithMerkleProof

@@ -12,6 +12,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+
+      - name: Install Rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly
+
       - uses: actions/cache@v2
         with:
           path: |
@@ -28,13 +34,10 @@ jobs:
           cargo clippy --all -- -D warnings
 
       - name: Run tests
-        run: cargo test --release -vv
-
-      - name: Run mmr tests
-        run: cargo test -p mmr --release -vv
+        run: cargo test --release
 
       - name: Run api tests
-        run: cargo test -p api --release -vv
+        run: cargo test -p api --release
 
       - name: Run ffi tests
-        run: cargo test -p ffi --release -vv
+        run: cargo test -p ffi --release

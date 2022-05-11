@@ -21,6 +21,7 @@ require (
 	github.com/regcostajr/go-web3 v0.0.0-20180609031449-555e83b623dd
 	github.com/shopspring/decimal v1.2.0
 	github.com/syndtr/goleveldb v1.0.1-0.20210305035536-64b5b1c73954
+	github.com/tklauser/go-sysconf v0.3.5 // indirect
 	github.com/ttacon/builder v0.0.0-20170518171403-c099f663e1c2 // indirect
 	github.com/ttacon/libphonenumber v1.1.0
 	github.com/tuvistavie/securerandom v0.0.0-20140719024926-15512123a948

@@ -75,5 +75,5 @@ extern crate log;
 pub(crate) mod conf;
 
 pub mod cmd;
-pub mod mmr;
 pub mod result;
+pub mod runner;

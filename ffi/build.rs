@@ -1,3 +1,5 @@
+extern crate core;
+
 use std::{env, process::Command};
 
 fn main() {
@@ -16,11 +18,10 @@ fn main() {
         Err(_) => true,
     };
 
-    let out_dir =
-        match env::var("OUT_DIR") {
-            Ok(out_dir) => out_dir,
-            Err(_) => ".".to_string()
-        };
+    let out_dir = match env::var("OUT_DIR") {
+        Ok(out_dir) => out_dir,
+        Err(_) => ".".to_string(),
+    };
 
     go(&mut dynamic, &out_dir);
 
@@ -36,21 +37,14 @@ fn main() {
 
 /// Build golang library
 fn go(dynamic: &mut bool, out_dir: &str) {
+    let args = gorgs(dynamic, out_dir);
     if *dynamic {
-        if !Command::new("go")
-            .args(&gorgs(dynamic, out_dir))
-            .status()
-            .unwrap()
-            .success()
-        {
+        if !Command::new("go").args(&args).status().unwrap().success() {
             *dynamic = false;
             go(dynamic, out_dir);
         }
     } else {
-        Command::new("go")
-            .args(&gorgs(dynamic, out_dir))
-            .status()
-            .unwrap();
+        Command::new("go").args(&args).status().unwrap();
         println!("built static library at {}", out_dir);
     }
 }

@@ -29,3 +29,30 @@ jobs:
           docker_registry: quay.io
           trigger_token: ${{ secrets.ITERING_DEPLOYMENT_TRIGGER_TOKEN }}
           trigger_endpoint: ${{ secrets.ITERING_DEPLOYMENT_TRIGGER_ENDPOINT }}
+          skip_deploy: true
+
+      - name: Generate template data
+        run: |
+          echo 'Template data:'
+          jq -n \
+            --arg tag "$GIT_TAG_NAME" \
+            --arg sha "$SHA" \
+            '{
+              tag: $tag,
+              sha: $sha
+            }' | tee template_data.json
+
+      - name: Render release page
+        uses: jayamanikharyono/jinja-action@v0.1
+        with:
+          datafile: template_data.json
+          path: .maintain/release-template.md
+
+      - name: Publish github release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            shared/*
+          body_path: ".maintain/release-template.md"
+          token: ${{ secrets.GITHUB_TOKEN }}
+
